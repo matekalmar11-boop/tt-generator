@@ -144,7 +144,7 @@ scenes:
     camera:
       shots: [{preset: push_in, target: {rel: leon, off: [0, 3.2, 0]}, offset: [0.3, 0.2, 5.4], push: 0.35, fov: [36, 31], from: 0, to: scene.end}]
     lines:
-      - {id: b01, who: ben, text: "Alter, was machst du vor eurem Haus?"}
+      - {id: b01, who: ben, text: "Alter, was machst du vor deinem Haus?"}
       - {id: l04, who: leon, text: "Was? Ich bin zu Hause."}
     sfx:
       - {sound: ring, at: 0, volume: 0.7}

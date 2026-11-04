@@ -22,7 +22,7 @@ Format: 1080×1920, 30 FPS, deutsch, ca. 35–38 s. Figuren: Rig `person2`. Noch
 - L04 LEON: „Es ist von morgen. Acht Uhr siebzehn.“
 
 **3 · Anruf** – *[Klingeln]*
-- B01 BEN (am Telefon): „Leon? Warum stehst du vor eurem Haus?“
+- B01 BEN (am Telefon): „Leon? Warum stehst du vor deinem Haus?“
 - L05 LEON: „Was? Ich bin zu Hause.“
 - B02 BEN (Straße, blickt in die Kamera): „Du stehst direkt vor mir. Und du grinst.“
 - L06 LEON: „Ben, ich sitze in meinem Zimmer!“
@@ -106,7 +106,7 @@ Datei: `stories/nachricht-von-morgen.yaml` · Sprache: `src/story/voices/nachric
 | 0,0 | Nachricht | Ping, Chatkarte „Ich (meine Nummer): Geh morgen nicht zur Schule.“ – LEON: „Von meiner eigenen Nummer?“ |
 | 2,6 | Foto 1 | Foto-Rahmen „MITTWOCH · 08:17“, Blitz, starre Kamera |
 | 4,7 | Datum | LEON: „Mittwoch, acht Uhr siebzehn?“ – Sperrbildschirm „Dienstag 19:42“ – LEON: „Heute ist erst Dienstag.“ |
-| 9,1 | Anruf | Klingeln – BEN: „Alter, was machst du vor eurem Haus?“ – LEON: „Was? Ich bin zu Hause.“ |
+| 9,1 | Anruf | Klingeln – BEN: „Alter, was machst du vor deinem Haus?“ – LEON: „Was? Ich bin zu Hause.“ |
 | 14,5 | Ben | Subjektive der Gestalt – BEN: „Du stehst genau vor mir. Und grinst.“ |
 | 17,9 | Leon | stumme Reaktion |
 | 19,3 | Foto 2 | „DIENSTAG · 19:44“, Ben neben der Gestalt (identisch zu Leon, blinzelt nicht) |
