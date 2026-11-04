@@ -5,7 +5,8 @@
  *   manifest                 schreibt src/story/audioManifest.json (vorhandene Audiodateien)
  *   schema                   schreibt stories/story.schema.json (Autovervollständigung im Editor)
  *   compare-legacy <datei>   vergleicht die YAML mit story/script.json + timeline.json (Migrationsnachweis)
- *   preview | render geplant (Schritt 4–5); render wird nie ohne Freigabe laufen
+ *   preview <datei> [--scene a,b] [--from 3s --to 8s] [--size 360|270] [--fps 15] [--out f] [--no-cache] [--props f]   schnelle Vorschau (Schritt 4)
+ *   render geplant (Schritt 5); render wird nie ohne Freigabe laufen
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,13 +15,13 @@ import {Story} from '../src/story/schema';
 import {OBJECTS, RIGS, SETS} from '../src/story/registry';
 import {checkStoryFile, type Issue} from '../src/story/validate';
 import {runVoice} from './voice';
+import {runPreview} from './preview';
 
 const root = process.cwd();
 const [cmd, arg, ...flags] = process.argv.slice(2);
 const json = flags.includes('--json') || arg === '--json';
 
 const PLANNED: Record<string, string> = {
-  preview: 'Schritt 4 (schnelle Vorschau 270×480 / 15 FPS)',
   render: 'Schritt 5 (Freigabe-Schranke + Teil-Rendering)',
 };
 
@@ -119,7 +120,7 @@ const writeSchema = () => {
 };
 
 const usage = () => {
-  console.log('Verwendung: npm run story -- <befehl> [datei]\n  check <datei>            Konfiguration prüfen (ohne Rendering)\n  schema                   JSON-Schema für den Editor schreiben\n  compare-legacy <datei>   Migration gegen story/script.json prüfen\n  manifest                 Audio-Manifest aus public/audio schreiben\n  voice <datei> [--check] [--force] [--line <id>]  Sprache mit Piper erzeugen (Cache, Wort-Timings)\n  preview | render         geplant (Schritt 4–5)');
+  console.log('Verwendung: npm run story -- <befehl> [datei]\n  check <datei>            Konfiguration prüfen (ohne Rendering)\n  schema                   JSON-Schema für den Editor schreiben\n  compare-legacy <datei>   Migration gegen story/script.json prüfen\n  manifest                 Audio-Manifest aus public/audio schreiben\n  voice <datei> [--check] [--force] [--line <id>]  Sprache mit Piper erzeugen (Cache, Wort-Timings)\n  preview <datei> [Optionen]  schnelle Vorschau 360×640 @ 15 FPS (siehe docs/STORY_FORMAT.md)\n  render                   geplant (Schritt 5)');
   return 0;
 };
 
@@ -129,6 +130,13 @@ else if (cmd === 'compare-legacy' && arg) code = compareLegacy(arg);
 else if (cmd === 'schema') code = writeSchema();
 else if (cmd === 'manifest') code = manifest();
 else if (cmd === 'voice' && arg) code = runVoice(arg, {check: flags.includes('--check'), force: flags.includes('--force'), line: flags.includes('--line') ? flags[flags.indexOf('--line') + 1] : undefined}, () => manifest());
+else if (cmd === 'preview' && arg) {
+  const opt = (n: string) => (flags.includes(n) ? flags[flags.indexOf(n) + 1] : undefined);
+  try {
+    code = await runPreview(arg, {scene: opt('--scene'), from: opt('--from'), to: opt('--to'), size: opt('--size') ? Number(opt('--size')) : undefined, fps: opt('--fps') ? Number(opt('--fps')) : undefined,
+      out: opt('--out'), noCache: flags.includes('--no-cache'), jpegQuality: opt('--jpeg-quality') ? Number(opt('--jpeg-quality')) : undefined, concurrency: opt('--concurrency') ? Number(opt('--concurrency')) : undefined, props: opt('--props'), crf: opt('--crf') ? Number(opt('--crf')) : undefined});
+  } catch (e) { console.log(`✖ ${(e as Error).message}`); code = 1; }
+}
 else if (cmd && PLANNED[cmd]) { console.log(`„${cmd}“ ist noch nicht umgesetzt – geplant für ${PLANNED[cmd]}. Es wurde nichts ausgeführt.`); code = 2; }
 else code = usage();
 process.exit(code);

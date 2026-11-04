@@ -13,7 +13,8 @@
     "test:story": "tsx tools/test-resolve.ts",
     "story:compare": "node scripts/compare-stills.mjs",
     "tts:setup": "bash tts/setup.sh",
-    "voice": "tsx tools/story.ts voice"
+    "voice": "tsx tools/story.ts voice",
+    "preview": "tsx tools/story.ts preview"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",

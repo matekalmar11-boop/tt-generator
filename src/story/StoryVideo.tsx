@@ -13,7 +13,15 @@ import {StoryCaptions, StoryCutFlash, StorySeriesTag} from './StoryOverlays';
 import {buildChunksFrom, SubtitleView, type SubVoice} from '../Subtitles';
 import {Vignette} from '../Overlays';
 import {sceneClock, talkAt, type Timeline} from './timeline';
+import {TimeScale} from './timescale';
 import {toFrames} from './resolve';
+
+/**
+ * Pixeldichte der 3D-Fläche. R3F begrenzt dpr standardmäßig auf mindestens 1 – bei Vorschau-Renderings mit `scale` < 1 (Seitenverhältnis
+ * unverändert, deviceScaleFactor = scale) würde die 3D-Fläche deshalb weiter in voller Auflösung berechnet und danach nur verkleinert.
+ * Mit min = devicePixelRatio (<1) rechnet sie in der Zielauflösung. Bei scale 1 (finales Video) und im Studio ändert sich nichts.
+ */
+const PIXEL_RATIO: [number, number] = [typeof window !== 'undefined' ? Math.min(1, window.devicePixelRatio || 1) : 1, 2];
 
 const HAVE = new Set(manifest as string[]);
 export const hasAudio = (file: string) => HAVE.has(file);
@@ -30,8 +38,17 @@ export const missingAudio = (story: StoryData, tl: Timeline): {file: string; wha
   return out;
 };
 
-export const StoryVideo: React.FC<{story: StoryData; timeline: Timeline}> = ({story, timeline: tl}) => {
-  const {width, height, fps} = useVideoConfig();
+/** Anzahl Bilder der Komposition bei `renderFps` (Vorschau: z. B. 15 statt 30 FPS → halb so viele Bilder). */
+export const compFrames = (tl: Timeline, scale: number) => Math.ceil(tl.totalFrames / scale - 1e-9);
+/** Erstes Bild der Szene i in der Komposition (aufgerundet, damit der Zeitversatz nie negativ wird). */
+export const sceneFrom = (startFrame: number, scale: number) => Math.ceil(startFrame / scale - 1e-9);
+
+export const StoryVideo: React.FC<{story: StoryData; timeline: Timeline; renderFps?: number}> = ({story, timeline: tl, renderFps}) => {
+  const {width, height} = useVideoConfig();
+  const fps = story.format.fps;                      // Autoren-FPS: alle Zeiten in der YAML beziehen sich darauf
+  const scale = fps / (renderFps ?? fps);            // 1 = finale Qualität; 2 = Vorschau mit halber Bildrate
+  const total = compFrames(tl, scale);
+  const froms = tl.scenes.map((s) => sceneFrom(s.startFrame, scale));
   const clocks = React.useMemo(() => tl.scenes.map((s) => sceneClock(s, tl.fps)), [tl]);
   const allLines = tl.scenes.flatMap((s) => s.lines);
   const sub = story.subtitles;
@@ -43,8 +60,9 @@ export const StoryVideo: React.FC<{story: StoryData; timeline: Timeline}> = ({st
   // Musik unter der Stimme absenken (Ducking) + Ausblenden am Ende
   const music = story.audio.music;
   const frameClock = {fps, durationFrames: 0, lines: {}};
-  const duckVol = (f: number) => {
+  const duckVol = (fOut: number) => {
     if (!music) return 0;
+    const f = fOut * scale;
     const att = toFrames(music.duck.attack, frameClock), rel = toFrames(music.duck.release, frameClock), fade = toFrames(music.fadeOut, frameClock);
     let d = 0;
     for (const l of allLines) {
@@ -56,11 +74,14 @@ export const StoryVideo: React.FC<{story: StoryData; timeline: Timeline}> = ({st
   };
 
   return (
+    <TimeScale scale={scale} fps={fps} offset={0}>
     <AbsoluteFill style={{background: '#07041a'}}>
-      <ThreeCanvas width={width} height={height} shadows camera={{fov: 50, position: [0, 3, 10], near: 0.1, far: 900}} gl={{antialias: true}}>
+      <ThreeCanvas width={width} height={height} dpr={PIXEL_RATIO} shadows camera={{fov: 50, position: [0, 3, 10], near: 0.1, far: 900}} gl={{antialias: true}}>
         {story.scenes.map((sc, i) => (
-          <Sequence key={sc.id} from={tl.scenes[i].startFrame} durationInFrames={tl.scenes[i].durationFrames} layout="none">
-            <StoryScene story={story} sceneId={sc.id} clock={clocks[i]} talk={(voice, f) => talkAt(tl.scenes[i], voice, f)} />
+          <Sequence key={sc.id} from={froms[i]} durationInFrames={(froms[i + 1] ?? total) - froms[i]} layout="none">
+            <TimeScale scale={scale} fps={fps} offset={froms[i] * scale - tl.scenes[i].startFrame}>
+              <StoryScene story={story} sceneId={sc.id} clock={clocks[i]} talk={(voice, f) => talkAt(tl.scenes[i], voice, f)} />
+            </TimeScale>
           </Sequence>
         ))}
       </ThreeCanvas>
@@ -73,16 +94,17 @@ export const StoryVideo: React.FC<{story: StoryData; timeline: Timeline}> = ({st
       {/* Audio */}
       {music && hasAudio(`audio/${music.file}.wav`) && <Audio src={staticFile(`audio/${music.file}.wav`)} volume={duckVol} />}
       {allLines.filter((l) => hasAudio(l.file)).map((l) => (
-        <Sequence key={l.id} from={l.startFrame} durationInFrames={l.durationFrames + 6}><Audio src={staticFile(l.file)} volume={1} /></Sequence>
+        <Sequence key={l.id} from={Math.round(l.startFrame / scale)} durationInFrames={Math.ceil((l.durationFrames + 6) / scale)}><Audio src={staticFile(l.file)} volume={1} /></Sequence>
       ))}
       {story.scenes.flatMap((sc, i) => sc.sfx.filter((s) => hasAudio(`audio/${s.sound}.wav`)).map((s, k) => {
         const at = Math.round(toFrames(s.at, clocks[i]));
         return (
-          <Sequence key={`${sc.id}${s.sound}${k}`} from={tl.scenes[i].startFrame + at} durationInFrames={s.loop === 'scene' ? tl.scenes[i].durationFrames - at : undefined}>
+          <Sequence key={`${sc.id}${s.sound}${k}`} from={Math.round((tl.scenes[i].startFrame + at) / scale)} durationInFrames={s.loop === 'scene' ? Math.ceil((tl.scenes[i].durationFrames - at) / scale) : undefined}>
             <Audio src={staticFile(`audio/${s.sound}.wav`)} volume={s.volume} />
           </Sequence>
         );
       }))}
     </AbsoluteFill>
+    </TimeScale>
   );
 };

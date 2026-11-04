@@ -119,5 +119,25 @@ for (const p of plan) { // Datei ↔ Eintrag ↔ Manifest
 const vtl = buildTimeline(city, undefined, stored as any);
 assert.ok(vtl.scenes.every((sc) => sc.lines.every((l) => l.real && l.durationFrames === Math.ceil(stored.lines[l.id].seconds * 30))), 'Zeitleiste nutzt die echte Dauer');
 console.log('✔ Schritt 3: Aussprachehilfe, Prüfsummen/Cache-Entscheidung, Piper-Timings, Datei↔Eintrag↔Manifest, Zeitleiste aus echter Dauer');
+
+// ── Schritt 4: Zeitmaßstab, Szenen-Cache-Schlüssel ──
+import {compFrames, sceneFrom} from '../src/story/StoryVideo';
+import {loadStoryProps, sceneKey} from './preview';
+const stl = buildTimeline(city, undefined, stored as any);
+for (const sc of stl.scenes) {
+  const from = sceneFrom(sc.startFrame, 2), off = from * 2 - sc.startFrame;
+  assert.ok(off === 0 || off === 1, `${sc.id}: Zeitversatz ${off} (aufgerundet, nie negativ)`);
+}
+assert.equal(compFrames(stl, 1), stl.totalFrames); assert.equal(compFrames(stl, 2), Math.ceil(stl.totalFrames / 2));
+const lp = loadStoryProps('stories/demo-stadtgeschichte.yaml');
+const cfgA = {width: 360, renderFps: 15, crf: 28, jq: 70};
+const k0 = lp.story.scenes.map((_, i) => sceneKey(lp.story, lp.timeline, i, cfgA, 'code1'));
+assert.deepEqual(k0, lp.story.scenes.map((_, i) => sceneKey(lp.story, lp.timeline, i, cfgA, 'code1')), 'Schlüssel stabil');
+const edited = JSON.parse(JSON.stringify(lp.story)); edited.scenes[2].captions[0].subtitle = 'ANDERS';
+const k1 = edited.scenes.map((_: unknown, i: number) => sceneKey(edited, lp.timeline, i, cfgA, 'code1'));
+assert.deepEqual(k1.map((k: string, i: number) => k === k0[i]), [true, true, false], 'Änderung in Szene 3 betrifft nur Szene 3');
+assert.notEqual(sceneKey(lp.story, lp.timeline, 0, {...cfgA, width: 270}, 'code1'), k0[0], 'andere Auflösung → anderer Schlüssel');
+assert.notEqual(sceneKey(lp.story, lp.timeline, 0, cfgA, 'code2'), k0[0], 'anderer Code → anderer Schlüssel');
+console.log('✔ Schritt 4: Zeitmaßstab (Versatz ≥ 0), Szenen-Cache-Schlüssel (stabil, nur betroffene Szene ändert sich)');
 console.log('✔ Etappe 3: Zeitleiste = alte TTS-Timeline, Untertitel identisch, fehlende Audiodateien gemeldet, Manifest aktuell');
 console.log('✔ alle Funktionstests bestanden');

@@ -106,12 +106,46 @@ npm run story -- voice <datei> --force --line s03   # eine Zeile erzwingen
 - **Fehlende Voraussetzungen** (Python-Umgebung, Pakete, Modell, ffmpeg): es wird **nichts** erzeugt, kein stummer Platzhalter; Ausgabe listet genau, was fehlt (Exit 2). Der Renderer (`buildTimeline(story, legacy, voices)`) nutzt `voices/<id>.json` automatisch, solange der Text der Zeile unverändert ist; `story check` rechnet die Länge damit.
 - Mondsplitter bleibt bei seiner alten Pipeline (`tts/synth.py`, `src/story/timeline.json`) und wird von `story voice` nicht angefasst.
 
+## Schritt 4: schnelle Vorschau (`story preview`)
+```bash
+# Vorschau 360×640 @ 15 FPS mit Sprache, Untertiteln, Einblendungen, Musik und Effekten (gleiche Composition „StoryAny“ wie das finale Video)
+npm run story -- preview stories/demo-stadtgeschichte.yaml                      # ganze Geschichte → out/preview/<story-id>.mp4
+npm run story -- preview stories/demo-stadtgeschichte.yaml --scene kueche       # eine (oder mehrere: a,b) Szene(n)
+npm run story -- preview stories/demo-stadtgeschichte.yaml --scene strasse --from 0.5s --to 3s   # Abschnitt (mit --scene relativ zur Szene, sonst zum Film; "90f" = Frames)
+npm run story -- preview <datei> --size 270 --fps 15 --out out/x.mp4 --no-cache --concurrency 1 --crf 28 --jpeg-quality 70
+
+# finales Rendering (Freigabe-Schranke und Teilrendering folgen in Schritt 5; bis dahin von Hand, bewusst nur auf Anforderung):
+npm run story -- preview <datei> --props out/props.json        # schreibt die Props in finaler Qualität (30 FPS), rendert nichts
+npx remotion render src/index.ts StoryAny out/final.mp4 --props=out/props.json --gl=swangle --concurrency=1 --crf=20 --audio-codec=aac
+```
+**Was die Vorschau vom finalen Video unterscheidet:** nur Auflösung (360×640 statt 1080×1920), Bildrate (15 statt 30 FPS), H.264-CRF 28 statt 20 und JPEG-Zwischenbilder 70 statt 80. Szenen, Kamera, Licht, Schatten, Kantenglättung, Untertitel, Einblendungen und Audio sind dieselben; der Zeitmaßstab (`src/story/timescale.tsx`) sorgt dafür, dass bei 15 FPS alle Animationen, Wort-Timings und Federn exakt zur selben Zeit passieren (geprüft: `node scripts/check-timescale.mjs`, Bild 15 FPS ↔ 30 FPS: Abweichung 0,000/255). Für das finale Video gilt Maßstab 1 – Ausgabe unverändert (Vollauflösungs-Standbilder `Main` ↔ YAML-Video identisch).
+
+**Zwischenspeicher (tatsächlich zeitsparend):** (1) Szenen werden einzeln gerendert und unter `out/preview-cache/<Schlüssel>.mp4` abgelegt; Schlüssel = Szeneninhalt, Zeitleiste, globale Einstellungen, Sprach-/Effekt-/Musikdateien, Code (`src/`, Konfiguration, Lockfile) und Vorschau-Einstellungen. Geänderte Szenen werden neu gerendert, alle anderen kosten 0 s; danach werden die Stücke per ffmpeg (Video unverändert, Ton neu kodiert) zusammengefügt. Wird der Text einer Zeile geändert, verschieben sich nachfolgende Szenen in der Zeit (Musikposition) und werden ebenfalls neu gerendert. (2) Das Webpack-Bundle wird je Code-Stand unter `out/bundle-cache/` wiederverwendet. Nicht im Repo (`out/` ist ignoriert).
+
+### Gemessene Renderzeiten (4 Kerne, 16 GB, Software-WebGL „swangle“, Stadtgeschichte, Szene „strasse“ = Straßenschlucht, die teuerste Szene)
+| Konfiguration | Bilder | Zeit | pro Bild |
+|---|---|---|---|
+| **final** 1080×1920 @ 30 FPS, 4 Tabs (bisherige Einstellung) | 60 (2 s) | 80,4 s | 1341 ms |
+| final, 1 Tab | 60 | 64,6 s | 1077 ms |
+| Vorschau 360×640 @ 15, vor dem Auflösungs-Fix (s. u.), 1 Tab | 30 (2 s) | 32,2 s | 1073 ms |
+| **Vorschau 360×640 @ 15**, 1 Tab (Standard) | 30 | 10,4 s | 346 ms |
+| Vorschau 270×480 @ 15 | 30 | 9,1 s | 304 ms |
+| Vorschau 360×640, 60 Bilder: 1 / 2 / 3 / 4 Tabs | 60 | 16,9 / 20,7 / 21,6 / 22,7 s | – |
+
+Ganze Stadtgeschichte (3 Szenen, 12,5 s Film, 187 Bilder): kalt 51,2 s · nichts geändert 0,6 s · Endkarte der letzten Szene geändert 17,7 s (nur diese Szene neu). Die Zeiten enthalten je Tab/Szene ca. 2–3 s Anlaufzeit (Shader-Kompilierung). Die Zeit für ein **finales** Gesamtvideo wurde nicht gemessen (kein vollständiges Rendering); Hochrechnung aus 1,08 s/Bild: etwa 6–7 Minuten für die 374 Bilder der Stadtgeschichte, der 44-s-Mondsplitter mit 1323 Bildern läge bei gleicher Szenenlast bei ca. 24 Minuten – das ist eine Hochrechnung, keine Messung.
+
+### Engpässe (gemessen)
+1. **3D-Fläche rechnete in der Vorschau weiter in voller Auflösung.** React-Three-Fiber begrenzt die Pixeldichte auf mindestens 1; bei Remotion-`scale` < 1 wurde die 3D-Szene deshalb in 1080×1920 berechnet und nur verkleinert (Zeit pro Bild 1073 ms bei 360×640 – praktisch wie in Vollauflösung 1341/1077 ms). Fix in `StoryVideo`: `dpr = [min(1, devicePixelRatio), 2]` → 346 ms. Bei Maßstab 1 und im Studio unverändert.
+2. **Mehrere Browser-Tabs bringen nichts, sondern kosten:** Der Software-Renderer (SwiftShader) nutzt schon in einem Tab alle Kerne; 4 Tabs = 4 × Anlaufzeit + Konkurrenz (final: 80,4 s statt 64,6 s; Vorschau: 22,7 s statt 16,9 s). Standard daher 1 Tab (`--concurrency`). Der alte Befehl `npm run render` (Mondsplitter, 4 Tabs) wurde nicht geändert – eine Messung mit 1 Tab dort steht aus.
+3. **Szenenkomplexität (Zeichenaufrufe, Lichter):** Bühne + 2 Personen ≈ 0,32 s/Bild, Küche ≈ 0,58 s, Straße ≈ 1,07 s (vor dem Fix gemessen, je 30 Bilder inkl. Anlauf). Die Straße hat ~500 einzelne Blöcke und 4 Punktlichter; das Zusammenfassen statischer Blöcke wäre der nächste Hebel (nicht umgesetzt, Bildinhalt müsste identisch bleiben).
+4. Nicht ursächlich: Kodieren (0,2 s je 30 Bilder), Bundle (2–6 s mit Webpack-Cache), Schatten und Kantenglättung (Test „ohne beides“: nur −7 % → nicht eingebaut), andere GL-Backends (`swiftshader`, `angle`) liefern in dieser Umgebung keinen WebGL-Kontext.
+
 ## Noch NICHT umgesetzt
 | Schritt | Inhalt |
 |---|---|
 | **2** (Etappe 1–3 ✅, Rest offen) | `<StoryScene>`: YAML → 3D-Szene (Aktoren, Objekte, Kamera aus keys/orbits/shake, Anker auflösen, Verläufe/Posen-Keyframes, `rel`-Verweise), Kamera-Presets (`camera.preset`), `look` (Aussehen), Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, Overlays/Captions/Subtitles/Cut-Flash aus der Config |
 | **3** ✅ | Stimmenprofile → TTS, Cache, `pronunciations`, Befehl `voice` (siehe oben). Offen: Mondsplitter bewusst nicht migriert (`synth.py`/`redo_dragon.py` bleiben), Whisper-Gegenprobe (`tts/verify.py`) nicht an die YAML angebunden |
-| **4** | Schnelle Vorschau (270×480, 15 FPS), Szenen-Vorschau, Kontaktbogen, Befehl `preview` |
+| **4** ✅ | Schnelle Vorschau, Szenen-/Abschnitts-Vorschau, Cache, Messwerte (siehe oben). Offen: Kontaktbogen, Hebel „statische Blöcke zusammenfassen“ |
 | **5** | Freigabe-Schranke (`approved.json` mit Hash der Story-Datei), Teil-Rendering/Zusammenfügen, Befehl `render` |
 
 Bis Schritt 2 wird die YAML **nicht** zum Rendern benutzt; gerendert wird weiter mit dem Referenzcode (`src/scenes/Scenes.tsx`), der unverändert bleibt.

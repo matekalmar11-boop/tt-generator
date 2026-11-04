@@ -13,6 +13,6 @@ const serveUrl = await bundle({
 const opts = {chromiumOptions: {gl: 'swangle'}, browserExecutable: '/opt/pw-browsers/chromium'};
 const comp = await selectComposition({serveUrl, id, ...opts});
 for (const f of frames) {
-  await renderStill({composition: comp, serveUrl, frame: Number(f), output: path.join(outDir, `${id}_${String(f).padStart(4, '0')}.png`), imageFormat: 'png', scale: 0.4, ...opts});
+  await renderStill({composition: comp, serveUrl, frame: Number(f), output: path.join(outDir, `${id}_${String(f).padStart(4, '0')}.png`), imageFormat: 'png', scale: Number(process.env.SCALE ?? 0.4), ...opts});
   console.log(id, 'frame', f);
 }

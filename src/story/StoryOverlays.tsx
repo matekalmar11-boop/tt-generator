@@ -1,6 +1,7 @@
 /** Einblendungen aus der YAML: Serien-Tag, Titel, Namensschilder, Endkarte, Cut-Flash. Optik wie im Mondsplitter-Film (src/Overlays.tsx). */
 import React from 'react';
-import {AbsoluteFill, spring, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, spring} from 'remotion';
+import {useStoryFps, useStoryFrame} from './timescale';
 import type {StoryData} from './schema';
 import {toFrames} from './resolve';
 import {sceneClock, type Timeline} from './timeline';
@@ -19,8 +20,8 @@ export const StorySeriesTag: React.FC<Props> = ({story}) => {
 
 /** Namensschilder, Titel und Endkarten aller Szenen (Zeiten relativ zur Szene, Anker erlaubt). */
 export const StoryCaptions: React.FC<Props> = ({story, timeline}) => {
-  const f = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const f = useStoryFrame();
+  const fps = useStoryFps();
   const out: React.ReactNode[] = [];
   story.scenes.forEach((sc, si) => {
     const ts = timeline.scenes[si];
@@ -70,7 +71,7 @@ export const StoryCaptions: React.FC<Props> = ({story, timeline}) => {
 
 /** Blitz an jedem Szenenübergang (verdeckt den harten Schnitt). Farbe, Stärke und Dauer aus transitions.cutFlash. */
 export const StoryCutFlash: React.FC<Props> = ({story, timeline}) => {
-  const f = useCurrentFrame();
+  const f = useStoryFrame();
   const cf = story.transitions.cutFlash;
   if (!cf) return null;
   const clock = {fps: timeline.fps, durationFrames: 0, lines: {}};

@@ -103,7 +103,7 @@ export const sceneClock = (s: TLScene, fps: number): Clock => ({
 export const talkAt = (s: TLScene, voice: string, f: number): number => {
   for (const l of s.lines) {
     if (l.voice !== voice) continue;
-    const i = s.startFrame + f - l.startFrame;
+    const i = Math.round(s.startFrame + f - l.startFrame);
     if (i >= 0 && i < l.env.length) return l.env[i] ?? 0;
   }
   return 0;

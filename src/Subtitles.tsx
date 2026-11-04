@@ -1,5 +1,6 @@
 import React from 'react';
-import {AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, interpolate, spring} from 'remotion';
+import {useStoryFps, useStoryFrame} from './story/timescale';
 import {allLines, Line} from './lib/story';
 
 export type Chunk = {words: Line['words']; start: number; end: number; voice: string};
@@ -40,8 +41,8 @@ const clean = (w: string) => w.replace(/[.,]$/, '');
 /** Darstellung (gemeinsam für den alten Mondsplitter-Film und YAML-Geschichten). */
 export const SubtitleView: React.FC<{chunks: Chunk[]; style: SubStyle; voices: Record<string, SubVoice>; defaultVoice?: SubVoice}> =
   ({chunks, style, voices, defaultVoice = {accent: '#ffd23d'}}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useStoryFrame();
+  const fps = useStoryFps();
   const chunk = chunks.find((c) => frame >= c.start && frame < c.end);
   if (!chunk) return null;
   const local = frame - chunk.start;

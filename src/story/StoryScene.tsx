@@ -6,7 +6,7 @@
  * mit einer klaren Fehlermeldung ab – es gibt keine stillen Ersatzanimationen.
  */
 import React from 'react';
-import {useCurrentFrame} from 'remotion';
+import {useStoryFrame} from './timescale';
 import {Glow} from '../lib/Box';
 import {clamp01, type V3} from '../lib/anim';
 import {Cam, AbyssSet, CaveSet, CrackingGround, ForestSet, Lights, NightSky, Plateau} from '../world/Sets';
@@ -77,7 +77,7 @@ const makeEnv = (story: StoryData, scene: SceneData, c: Clock, fps: number): Ref
 /* ───────────── Komponente ───────────── */
 
 export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c, talk}) => {
-  const f = useCurrentFrame();
+  const f = useStoryFrame();
   const fps = story.format.fps;
   const t = f / fps;
   const scene = story.scenes.find((s) => s.id === sceneId);
@@ -241,7 +241,7 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
   return (
     <>
       {lightNode}
-      <Cam shot={shot} />
+      <Cam shot={() => shot(f)} />
       {envNode}
       {setNode}
       {objectNodes}

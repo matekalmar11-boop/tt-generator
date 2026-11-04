@@ -13,6 +13,8 @@ Schritt 2 (Etappe 3): `<StoryVideo>` rendert komplette YAML-Geschichten mit Unte
 
 Schritt 3: `npm run story -- voice stories/<datei>.yaml` erzeugt die Sprache aus der YAML (Piper, Cache, echte Wort-Timings); Einrichtung `npm run tts:setup`, Details in [docs/STORY_FORMAT.md](docs/STORY_FORMAT.md).
 
+Schritt 4: `npm run story -- preview stories/<datei>.yaml [--scene id] [--from 3s --to 8s]` rendert eine schnelle Vorschau (360×640 @ 15 FPS, mit Ton); Messwerte und Befehle fürs finale Rendering in [docs/STORY_FORMAT.md](docs/STORY_FORMAT.md).
+
 ## Pipeline
 1. `story/script.json` – Geschichte (Szenen, Sprechzeilen, Sprecher).
 2. `tts/synth.py` – deutsche TTS (Piper-Stimme *Thorsten*, CC0) → `public/audio/vo_*.wav`, Wort-Timing, Lippensync-Hüllkurve → `src/story/timeline.json`.
