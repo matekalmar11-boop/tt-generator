@@ -168,3 +168,5 @@ Keine langen Renderings/Benchmarks ohne Aufforderung (Standbilder, kurze Abschni
 ## Nachtrag: Richtungswechsel – Film-Erklärtest „Die Truman Show“
 
 Die kreative Richtung wechselt von Mystery-Stories zu eigenständig kommentierten Film-Zusammenfassungen. Gesamtplan, Shotliste (17), Lehren und Messwerte: `docs/plans/truman-show.md`. Meilenstein M1 liegt vor (`stories/truman-show-m1.yaml`, Vorschau `docs/previews/truman-show-m1-vorschau-v1.mp4`, nicht freigegeben); M2/M3 sind nicht freigegeben. Neue Bausteine: Objekte `hidden_camera`, `stage_light`, `sky_panel` (`src/world/Props.tsx`), Einblendungen `camera_view` und `callout`.
+
+**Produktionsablauf (neu):** `docs/plans/produktionsablauf.md` – `npm run story -- board <yaml>` (Storyboard: ein Standbild je Einstellung + Kontaktbogen in `out/board/<id>/`, ca. 2–3 s je Bild), Vorlagenkatalog `stories/vorlagen.yaml` (13 kopierbare Szenenblöcke, Bildkatalog `docs/plans/vorlagen-kontaktbogen.jpg`), FPS-Test (bewegte Szenen bleiben bei echtem 30 FPS).

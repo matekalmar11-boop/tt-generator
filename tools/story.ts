@@ -7,6 +7,7 @@
  *   compare-legacy <datei>   vergleicht die YAML mit story/script.json + timeline.json (Migrationsnachweis)
  *   preview <datei> [--scene a,b] [--from 3s --to 8s] [--size 360|270] [--fps 15] [--out f] [--no-cache] [--props f]   schnelle Vorschau (Schritt 4)
  *   shots <datei>   Kameraprüfung: Blickwinkel auf Gesichter, Kopf im Bildausschnitt (ohne Rendern)
+ *   board <datei> [--scene a,b] [--at 0.4] [--cols 6] [--out ordner]   Storyboard: je Einstellung ein Standbild + Kontaktbogen in einem Durchlauf (out/board/<id>/)
  *   still <datei> --scene id --times 0.5,1.2 --out ordner [--scale 0.4]   Standbilder (Sekunden relativ zur Szene)
  *   approve <datei> [--confirm <hash>] | approval <datei> | revoke <datei>   Freigabe (Schritt 5)
  *   render <datei> [--only a,b] [--force]   finaler Export 1080×1920 @ 30 FPS – nur mit gültiger Freigabe; render wird nie ohne Freigabe laufen
@@ -20,6 +21,7 @@ import {checkStoryFile, type Issue} from '../src/story/validate';
 import {runVoice} from './voice';
 import {runPreview, runStills} from './preview';
 import {runShots} from './shotcheck';
+import {runBoard} from './board';
 import {runApprovalStatus, runApprove, runExport, runRevoke} from './export';
 
 const root = process.cwd();
@@ -124,7 +126,7 @@ const writeSchema = () => {
 };
 
 const usage = () => {
-  console.log('Verwendung: npm run story -- <befehl> [datei]\n  check <datei>            Konfiguration prüfen (ohne Rendering)\n  schema                   JSON-Schema für den Editor schreiben\n  compare-legacy <datei>   Migration gegen story/script.json prüfen\n  manifest                 Audio-Manifest aus public/audio schreiben\n  voice <datei> [--check] [--force] [--line <id>]  Sprache mit Piper erzeugen (Cache, Wort-Timings)\n  preview <datei> [Optionen]  schnelle Vorschau 360×640 @ 15 FPS (siehe docs/STORY_FORMAT.md)\n  approve | approval | revoke <datei>  Freigabe für den finalen Export (an den Inhalt gebunden)\n  render <datei> [--only a,b] [--force]  finaler Export (nur mit gültiger Freigabe)');
+  console.log('Verwendung: npm run story -- <befehl> [datei]\n  check <datei>            Konfiguration prüfen (ohne Rendering)\n  schema                   JSON-Schema für den Editor schreiben\n  compare-legacy <datei>   Migration gegen story/script.json prüfen\n  manifest                 Audio-Manifest aus public/audio schreiben\n  voice <datei> [--check] [--force] [--line <id>]  Sprache mit Piper erzeugen (Cache, Wort-Timings)\n  board <datei> [--scene a,b] [--at 0.4] [--cols 6]  Storyboard: je Einstellung ein Standbild + Kontaktbogen\n  preview <datei> [Optionen]  schnelle Vorschau 360×640 @ 15 FPS (siehe docs/STORY_FORMAT.md)\n  approve | approval | revoke <datei>  Freigabe für den finalen Export (an den Inhalt gebunden)\n  render <datei> [--only a,b] [--force]  finaler Export (nur mit gültiger Freigabe)');
   return 0;
 };
 
@@ -142,6 +144,10 @@ else if (cmd === 'preview' && arg) {
   } catch (e) { console.log(`✖ ${(e as Error).message}`); code = 1; }
 }
 else if (cmd === 'shots' && arg) { try { code = runShots(arg); } catch (e) { console.log(`✖ ${(e as Error).message}`); code = 1; } }
+else if (cmd === 'board' && arg) {
+  try { code = await runBoard(arg, {scene: opt('--scene'), at: opt('--at') ? Number(opt('--at')) : undefined, scale: opt('--scale') ? Number(opt('--scale')) : undefined, cols: opt('--cols') ? Number(opt('--cols')) : undefined, out: opt('--out')}); }
+  catch (e) { console.log(`✖ ${(e as Error).message}`); code = 1; }
+}
 else if (cmd === 'still' && arg) {
   try { code = await runStills(arg, {scene: opt('--scene') ?? '', times: opt('--times') ?? '0', out: opt('--out') ?? 'out/stills', scale: opt('--scale') ? Number(opt('--scale')) : undefined}); }
   catch (e) { console.log(`✖ ${(e as Error).message}`); code = 1; }

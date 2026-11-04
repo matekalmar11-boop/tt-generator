@@ -236,4 +236,18 @@ console.log('✔ Person2: Gehzyklus ohne Rutschen (Walk/Run), Standfuß-Sohle am
 }
 console.log('✔ Nachricht von morgen: message (chat/photo/lock) validiert, Pose call, blink, door_handle');
 console.log('✔ Etappe 3: Zeitleiste = alte TTS-Timeline, Untertitel identisch, fehlende Audiodateien gemeldet, Manifest aktuell');
+
+/* ── Storyboard (story board): Planung je Einstellung ── */
+{
+  const {boardPlan} = await import('../src/story/boardPlan');
+  const {story: ts, timeline: ttl} = loadStoryProps('stories/truman-show-m1.yaml');
+  const plan = boardPlan(ts, ttl);
+  // hook: 1 Schnitt (cut-Key bei 1.9 s) → 2 Einstellungen; kameras: 2; licht: 4 Einstellungen (Schnitte bei +14f, +60f, +84f) – die 3,5-s-Regel teilt keine davon
+  assert.deepEqual([...new Set(plan.map((x) => x.scene))], ['hook', 'kameras', 'licht']);
+  assert.equal(plan.filter((x) => x.scene === 'hook').length, 2); assert.equal(plan.filter((x) => x.scene === 'kameras').length, 2); assert.equal(plan.filter((x) => x.scene === 'licht').length, 4);
+  plan.forEach((x) => assert.ok(x.frame >= x.startFrame && x.frame < x.endFrame, `Bild liegt in der Einstellung (${x.label})`));
+  assert.equal(boardPlan(ts, ttl, {scenes: ['licht']}).length, 4);
+  assert.equal(boardPlan(ts, ttl, {at: 0.9}).every((x, i) => x.frame >= boardPlan(ts, ttl, {at: 0.1})[i].frame), true);
+  console.log('✔ Storyboard: ein Bild je Einstellung (Kamera-Schnitt), Szenenfilter, Zeitpunkt-Anteil');
+}
 console.log('✔ alle Funktionstests bestanden');

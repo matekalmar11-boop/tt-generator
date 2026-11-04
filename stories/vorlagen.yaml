@@ -1,0 +1,307 @@
+# yaml-language-server: $schema=./story.schema.json
+# ═══════════════════════════════════════════════════════════════════════════════════════════════════
+# PlotRush-Vorlagenkatalog: fertige, wiederverwendbare Szenenblöcke (Kamera + Kulisse + Licht + Figur + Overlays).
+# So benutzen:  1) `npm run story -- board stories/vorlagen.yaml`  → Bildkatalog (out/board/vorlagen/kontaktbogen.png)
+#               2) Szenenblock(e) in die neue Story kopieren (ab "- id:" bis zum nächsten "- id:"), `id` und Texte anpassen,
+#                  Sprechzeilen (`lines`) ergänzen – die Szenenlänge ergibt sich dann aus der Sprache (timing.pre/post = Pausen).
+# Konventionen: Hauptfigur heißt `held` (gelbes Oberteil, dunkle Hose) – Aussehen in `cast` ändern. Position: Figuren auf Gehwegen x ±4…7.
+# Kulissen immer hell mit Himmelsverlauf (keine schwarzen Flächen). Standard-Licht „tag“ (siehe unten) in jeder Vorlage wiederholt.
+# Status je Vorlage: „✔ Vorschau“ = in einer gerenderten Vorschau (Truman-Show M1) als Bewegtbild gesehen · „✔ Standbild“ = nur per `board` als Standbild gesehen,
+# Bewegung (Laufen, Winken, Orbit, Tür) noch nicht als Video geprüft. Bei jeder Nutzung vor dem Rendern `board` ansehen.
+# ═══════════════════════════════════════════════════════════════════════════════════════════════════
+schema: 1
+meta: {id: vorlagen, title: PlotRush Vorlagenkatalog, genre: katalog}
+format: {fps: 30, width: 1080, height: 1920}
+voices:
+  erzaehler: {lengthScale: 0.97, loudness: -16, subtitle: {accent: "#ffd23d"}}   # Standard-Erzählerstimme (Vorlage)
+cast:
+  erzaehler: {rig: person2, name: Erzähler, voice: erzaehler}   # nie im Bild
+  held:
+    rig: person2
+    name: Held
+    look: {skin: "#e8b894", hair: "#4a2f1e", hairStyle: short, shirt: "#ffd21f", pants: "#272b3a", shoes: "#f2f2f2", eyes: "#3b6e8f"}
+  nachbarin:
+    rig: person2
+    name: Nachbarin
+    look: {skin: "#f0c4a4", hair: "#a8552a", hairStyle: long, shirt: "#ff8fb8", pants: "#4a6fa5", shoes: "#ffffff", eyes: "#4a8a5a"}
+subtitles: {maxWords: 3, maxChars: 24, font: Inter, maxFontSize: 100, bottomPadding: 430}
+overlays: {vignette: true}
+
+scenes:
+  # ───────────── STADT ─────────────
+  # S1 ✔ Vorschau – Kamerasucher-POV: Kamera = Linse einer versteckten Kamera, Held geht auf sie zu. Hook-Vorlage („wird gefilmt/beobachtet“).
+  - id: stadt_pov_sucher
+    timing: {pre: 2.0, post: 0}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, path: [{t: 0, pos: [4.6, 0, -15]}, {t: scene.end, pos: [4.6, 0, -6]}], yaw: 0, pose: walk, face: smile, params: {gaze: "off", gestures: false}}
+      - {id: nachbarin, cast: nachbarin, at: [6.1, 0, -12.5], yaw: -0.5pi, pose: wave, face: smile, params: {gaze: "off"}}
+    objects:
+      - {id: kam, type: hidden_camera, at: [6.0, 0, 0.5], params: {host: hedge, scale: 1.5, aim: {rel: held, off: [0, 2.7, 0]}}}
+    camera:
+      keys:
+        - {t: 0, pos: [5.6, 1.9, -2.0], look: {rel: held, off: [0, 2.5, 0]}, fov: 30}
+        - {t: scene.end, pos: [5.6, 1.9, -2.0], look: {rel: held, off: [0, 2.5, 0]}, fov: 46, ease: lin}
+    captions:
+      - {type: camera_view, from: 0, to: scene.end, live: true, viewers: [2.1, 3.4], label: "KAMERA 7"}
+
+  # S2 ✔ Vorschau – Blick über die versteckte Kamera (Hecke) auf den Helden + Namensschild. Folgt auf S1 als „Auflösung“ des Hooks.
+  - id: stadt_ueber_kamera
+    timing: {pre: 2.0, post: 0}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, path: [{t: 0, pos: [4.6, 0, -9]}, {t: scene.end, pos: [4.6, 0, -2.5]}], yaw: 0, pose: walk, face: smile, params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: kam, type: hidden_camera, at: [6.0, 0, 0.5], params: {host: hedge, scale: 1.5, aim: {rel: held, off: [0, 2.7, 0]}}}
+    camera:
+      keys:
+        - {t: 0, pos: [5.0, 3.5, 4.4], look: [4.6, 1.8, -5.0], fov: 46}
+        - {t: scene.end, pos: [5.0, 3.5, 4.4], look: [4.6, 1.8, -5.0], fov: 42, ease: lin}
+    captions:
+      - {type: lower_third, from: 0.3s, to: scene.end, title: HELD, subtitle: "ahnt nichts"}
+
+  # S3 ✔ Vorschau – Straßenüberblick mit mehreren Kameras + Marker „KAMERA“ (Ringe erscheinen nacheinander). Kamera feststehend → Marker exakt.
+  #     Marker-Position `at: [x%, y%]` bei geänderter Kamera/Objektposition per `board` neu bestimmen.
+  - id: stadt_ueberblick_marker
+    timing: {pre: 2.5, post: 0}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, path: [{t: 0, pos: [4.2, 0, -14]}, {t: scene.end, pos: [4.2, 0, -4.5]}], yaw: 0, pose: walk, face: smile, params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: k1, type: hidden_camera, at: [6.0, 0, -2.5], params: {host: hedge, scale: 1.5, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {id: k2, type: hidden_camera, at: [6.0, 0, -6.5], params: {host: mailbox, scale: 1.5, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {id: k3, type: hidden_camera, at: [5.5, 0, -11.5], params: {host: lamp, scale: 1.5, aim: {rel: held, off: [0, 2.7, 0]}}}
+    camera:
+      keys: [{t: 0, pos: [2.6, 3.3, 9.0], look: [5.4, 3.0, -8.0], fov: 50}]
+    captions:
+      - {type: callout, from: 0.5s, to: scene.end, at: [47, 32], text: KAMERA, side: left, ring: 110}
+      - {type: callout, from: 0.9s, to: scene.end, at: [61, 51], text: KAMERA, side: right, ring: 110}
+      - {type: callout, from: 1.3s, to: scene.end, at: [70, 56], text: KAMERA, side: left, ring: 110}
+
+  # S4 ✔ Vorschau – Nahaufnahme eines Objekts (hier: Kamera an Laterne, Linse zeigt zur Kamera) mit Marker. Objekt/Marker anpassbar.
+  - id: objekt_nah_marker
+    timing: {pre: 2.0, post: 0}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, path: [{t: 0, pos: [4.2, 0, -14]}, {t: scene.end, pos: [4.2, 0, -4.5]}], yaw: 0, pose: walk, face: smile, params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: k, type: hidden_camera, at: [-4.7, 0, -6.5], params: {host: lamp, scale: 1.5, aim: {rel: held, off: [0, 2.7, 0]}}}
+    camera:
+      keys: [{t: 0, pos: [1.8, 3.4, -2.5], look: [-4.7, 6.0, -6.5], fov: 30}]
+    captions:
+      - {type: callout, from: 0.3s, to: scene.end, at: [29, 44], text: KAMERA, side: right, ring: 130}
+
+  # S5 ✔ Vorschau – Held halbnah von vorn (Dreiviertel), Straße mit Nachbarn im Hintergrund. Reaktionsbild „bleibt stehen / besorgt“.
+  - id: stadt_held_halbnah
+    timing: {pre: 2.0, post: 0}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - id: held
+        cast: held
+        path: [{t: 0, pos: [4.6, 0, -6]}, {t: 0.9s, pos: [4.6, 0, -2.6]}]
+        yaw: 0
+        pose: [{t: 0, pose: walk}, {t: 0.9s, pose: idle}]
+        face: [{t: 0, face: smile}, {t: 1.0s, face: worry}]
+        params: {gaze: "off", gestures: false}
+      - {id: nachbarin, cast: nachbarin, at: [6.0, 0, -9.5], yaw: -0.5pi, pose: idle, face: smile, prop: cup, params: {gaze: "off"}}
+    camera:
+      keys:
+        - {t: 0, pos: [1.8, 2.8, 4.5], look: {rel: held, off: [0, 2.5, 0]}, fov: 44}
+        - {t: scene.end, pos: [2.4, 2.8, 3.6], look: {rel: held, off: [0, 2.5, 0]}, fov: 42, ease: lin}
+
+  # S6 ✔ Vorschau – Froschperspektive auf künstlichen Himmel (Platte mit Wolken, Trägern, Luke), Objekt (Scheinwerfer) stürzt aus der Luke auf die Kamera zu.
+  - id: himmel_objekt_faellt
+    timing: {pre: 2.0, post: 0}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: [2.6, 0, -1]}
+    objects:
+      - {id: himmel, type: sky_panel, at: [2.6, 24, -1.2], params: {size: 70, hatch: 5, sky: "#4f9de0"}}
+      - id: licht
+        type: stage_light
+        params: {scale: 1.6, cable: 4}
+        path: [{t: 0.2s, pos: [2.6, 22.8, -1.2]}, {t: 1.6s, pos: [2.6, 1.0, -1.2], ease: in}]
+        tracks: {rx: [{t: 0.2s, v: 0.3}, {t: 1.4s, v: -0.5}]}
+        visible: {from: 0.2s}
+    camera:
+      keys:
+        - {t: 0, pos: [2.6, 0.8, 4.2], look: [2.6, 21, -1.2], fov: 62}
+        - {t: scene.end, pos: [2.6, 0.8, 4.2], look: [2.6, 15, -1.2], fov: 62, ease: lin}
+    captions:
+      - {type: callout, from: 0.2s, to: scene.end, at: [38, 9], text: KUNSTHIMMEL, side: right, ring: 160}
+    sfx:
+      - {sound: cable_snap, at: 0.2s, volume: 0.9}
+      - {sound: fall_whistle, at: 0.25s, volume: 0.8}
+
+  # S7 ✔ Standbild – Verfolgungsfahrt: Held rennt die Straße entlang, Kamera hinter ihm (track_behind). Pose `run` bewegt: noch nicht als Video gesehen.
+  - id: stadt_lauf_verfolgung
+    timing: {pre: 3.0, post: 0}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, path: [{t: 0, pos: [3.0, 0, 8]}, {t: scene.end, pos: [3.0, 0, -14]}], yaw: pi, pose: run, face: determined, params: {gaze: "off"}}
+    objects:
+      - {id: k1, type: hidden_camera, at: [6.0, 0, -2.5], params: {host: hedge, scale: 1.5, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {id: k2, type: hidden_camera, at: [-4.7, 0, -8.5], params: {host: lamp, scale: 1.5, aim: {rel: held, off: [0, 2.7, 0]}}}
+    camera:
+      shots: [{preset: track_behind, subject: held, offset: [0.9, 3.6, -8.0], fov: 50, from: 0, to: scene.end}]
+
+  # ───────────── BÜHNE (hell, mit Himmelsverlauf) ─────────────
+  # S8 ✔ Standbild – Held Nahaufnahme, Gesichtsausdruck wechselt (neutral → Schock). Schnelle Reaktionsvorlage, kaum Renderkosten.
+  - id: buehne_held_nah
+    timing: {pre: 2.0, post: 0}
+    set: {type: empty_stage, params: {floor: "#dfe6f2", accent: "#7fe8ff"}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, at: [0, 0, 0], yaw: 0, pose: idle, face: [{t: 0, face: neutral}, {t: 0.8s, face: shock, ease: cut}]}
+    camera:
+      shots: [{preset: push_in, target: {rel: held, off: [0, 2.9, 0]}, offset: [0.6, 0.2, 5.0], push: 0.35, fov: [40, 32], from: 0, to: scene.end}]
+
+  # S9 ✔ Standbild – „Umzingelt/beobachtet“: Ring aus Kamera-Laternen blickt auf den Helden, Kreisfahrt, Zuschauerzähler. Symbolbild für „Millionen sehen zu“.
+  - id: buehne_umzingelt
+    timing: {pre: 3.0, post: 0}
+    set: {type: empty_stage, params: {floor: "#dfe6f2", accent: "#7fe8ff"}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, at: [0, 0, 0], yaw: 0, pose: idle, face: worry, params: {gaze: camera}}
+    objects:
+      - {type: hidden_camera, at: [7.5, 0, 0], params: {host: lamp, scale: 1.3, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {type: hidden_camera, at: [5.3, 0, 5.3], params: {host: lamp, scale: 1.3, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {type: hidden_camera, at: [0, 0, 7.5], params: {host: lamp, scale: 1.3, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {type: hidden_camera, at: [-5.3, 0, 5.3], params: {host: lamp, scale: 1.3, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {type: hidden_camera, at: [-7.5, 0, 0], params: {host: lamp, scale: 1.3, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {type: hidden_camera, at: [-5.3, 0, -5.3], params: {host: lamp, scale: 1.3, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {type: hidden_camera, at: [0, 0, -7.5], params: {host: lamp, scale: 1.3, aim: {rel: held, off: [0, 2.7, 0]}}}
+      - {type: hidden_camera, at: [5.3, 0, -5.3], params: {host: lamp, scale: 1.3, aim: {rel: held, off: [0, 2.7, 0]}}}
+    camera:
+      shots: [{preset: orbit_in, target: {rel: held, off: [0, 2.6, 0]}, distance: [5.5, 4.2], angle: [-0.7, 0.2], height: [1.0, 1.2], fov: [52, 46], from: 0, to: scene.end}]
+    captions:
+      - {type: camera_view, from: 0, to: scene.end, live: true, viewers: [28, 31]}
+
+  # S10 ✔ Standbild – Tür im Himmelsblau: Held steht vor einer Tür, Klinke senkt sich, Licht scheint unter der Tür hervor. „Ausgang/Wendepunkt“-Vorlage.
+  - id: tuer_licht
+    timing: {pre: 3.5, post: 0}
+    set: {type: empty_stage, params: {floor: "#eef2fa", accent: "#7fe8ff"}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, at: [0, 0, -1.4], yaw: pi, pose: idle, face: determined, params: {gaze: "off"}}
+    objects:
+      - id: tuer
+        type: door_handle
+        at: [0, 0, -4]
+        tracks:
+          handle: [{t: 1.2s, v: 0}, {t: 2.4s, v: 1, ease: io}]
+          light: [{t: 1.6s, v: 0}, {t: 3.2s, v: 1}]
+    camera:
+      keys:
+        - {t: 0, pos: [2.4, 4.6, 10.5], look: [0, 3.4, -4], fov: 44}
+        - {t: scene.end, pos: [1.2, 4.0, 7.0], look: [0, 3.4, -4], fov: 42, ease: io}
+    sfx:
+      - {sound: door_latch, at: 1.4s, volume: 0.9}
+
+  # S11 ✔ Standbild – Held winkt frontal + Endkarte (Schlussbild, Schnitt ins Weiß). Endkartentext anpassen.
+  - id: end_winken
+    timing: {pre: 3.0, post: 0}
+    set: {type: empty_stage, params: {floor: "#eef2fa", accent: "#7fe8ff"}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, at: [0, 0, 0], yaw: 0, pose: wave, face: smile}
+    camera:
+      shots: [{preset: push_in, target: {rel: held, off: [0, 2.3, 0]}, offset: [0, 0.3, 7.5], push: 0.3, fov: [40, 36], from: 0, to: scene.end}]
+    captions:
+      - {type: end_card, from: 1.4s, title: "TITEL", subtitle: "Kennst du den Film?"}
+
+  # ───────────── ZIMMER / GRAFIK ─────────────
+  # S12 ✔ Standbild – Zimmer, Held mit Handy + Chat-Einblendung (Nachricht/Schlagzeile). Text in `captions` ändern.
+  - id: zimmer_chat
+    timing: {pre: 2.5, post: 0}
+    set: {type: room, params: {window: true, furniture: true}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.4}
+      ambient: 0.4
+      key: {color: "#fff4e0", intensity: 2.2, pos: [-3, 9, 6], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, at: [0, 0, 0], yaw: 0.08pi, pose: idle, prop: phone, face: [{t: 0, face: neutral}, {t: 0.3s, face: shock, ease: cut}]}
+    camera:
+      shots: [{preset: push_in, target: {rel: held, off: [0, 3.25, 0]}, offset: [0.5, 0.2, 5.4], push: 0.42, fov: [42, 33], ease: out, from: 0, to: scene.end}]
+    captions:
+      - {type: message, style: chat, from: 0, to: scene.end, sender: "Absender", text: "Nachrichtentext", time: "19:42", status: Gerade eben}
+    sfx:
+      - {sound: ping, at: 0, volume: 0.9}
+
+  # S13 ✔ Standbild – Zahl-/Faktenkarte: Held frontal im Hintergrund, große Zahl als Titel. Für „30 Mio. Zuschauer“, „1 Tag“, „3 Regeln“ usw.
+  - id: zahlkarte
+    timing: {pre: 2.0, post: 0}
+    set: {type: empty_stage, params: {floor: "#dfe6f2", accent: "#7fe8ff"}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, at: [0, 0, 0], yaw: 0, pose: idle, face: shock}
+    camera:
+      shots: [{preset: push_in, target: {rel: held, off: [0, 2.2, 0]}, offset: [0, 0.2, 8.5], push: 0.25, fov: [42, 38], from: 0, to: scene.end}]
+    captions:
+      - {type: title, from: 0.1s, to: scene.end, text: "30 MIO.", subtitle: "ZUSCHAUER", position: top, color: "#ffd23d"}
