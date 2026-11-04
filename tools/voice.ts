@@ -13,11 +13,11 @@ import {spawnSync} from 'node:child_process';
 import type {StoryData} from '../src/story/schema';
 import {checkStoryFile} from '../src/story/validate';
 
-export const PIPELINE_VERSION = 3; // bei Änderungen an yaml_tts.py (Klang/Timing) erhöhen → alles wird neu erzeugt
+export const PIPELINE_VERSION = 4; // bei Änderungen an yaml_tts.py (Klang/Timing) erhöhen → alles wird neu erzeugt
 export type VoiceProfile = StoryData['voices'][string];
 export type Unit = {display: string; spoken: string};
 export type PlanLine = {id: string; scene: string; voiceId: string; profile: VoiceProfile; units: Unit[]; hash: string; model: string};
-export type StoredLine = {hash: string; text: string; voice: string; file: string; wavSha: string; seconds: number; timingMode: string; words: {w: string; start: number; end: number}[]; env: number[]};
+export type StoredLine = {hash: string; text: string; voice: string; file: string; wavSha: string; seconds: number; timingMode: string; words: {w: string; start: number; end: number}[]; env: number[]; phonemes?: [number, number, string][]};
 export type StoredVoices = {version: number; story: string; fps: number; lines: Record<string, StoredLine>};
 
 const sha = (b: Buffer | string) => crypto.createHash('sha256').update(b).digest('hex');

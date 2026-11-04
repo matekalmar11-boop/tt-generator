@@ -13,6 +13,9 @@ import {Cam, AbyssSet, CaveSet, CrackingGround, ForestSet, Lights, NightSky, Pla
 import {Finn} from '../world/Finn';
 import {Dragon, dragonHead} from '../world/Dragon';
 import {Person} from '../world/Person';
+import {Person2} from '../world/Person2';
+import {beatSignal, gaitSignal, gaitTrack, gazeSignal, type SignalCtx} from './person2Signals';
+import type {Mouth} from './visemes';
 import {EmptyStage, RoomSet} from '../world/Interiors';
 import {CityStreet} from '../world/City';
 import {Dust, Moon, Sky, Stars} from '../world/Nature';
@@ -29,6 +32,8 @@ export type StorySceneProps = {
   clock: Clock;
   /** Mundöffnung 0..1 der Stimme `voiceId` zum SZENEN-Frame `frame` (aus der TTS-Hüllkurve). */
   talk: (voiceId: string, frame: number) => number;
+  /** Mundform aus Phonemen (nur Rig person2); undefined → Rückfall auf die Hüllkurve. */
+  mouth?: (voiceId: string, frame: number) => Mouth | undefined;
 };
 
 type ActorD = SceneData['actors'][number];
@@ -76,7 +81,7 @@ const makeEnv = (story: StoryData, scene: SceneData, c: Clock, fps: number): Ref
 
 /* ───────────── Komponente ───────────── */
 
-export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c, talk}) => {
+export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c, talk, mouth}) => {
   const f = useStoryFrame();
   const fps = story.format.fps;
   const t = f / fps;
@@ -84,6 +89,9 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
   if (!scene) throw new StoryError(`Szene "${sceneId}" existiert nicht in der Geschichte "${story.meta.id}"`);
   const env = React.useMemo(() => makeEnv(story, scene, c, fps), [story, scene, c, fps]);
   const cam = React.useMemo(() => buildCamera(scene.camera, c), [scene, c]);
+  // Rig person2: Gehstrecke je Figur (für Schrittphase mit Bodenkontakt)
+  const dists = React.useMemo(() => Object.fromEntries(scene.actors.filter((a) => story.cast[a.cast]?.rig === 'person2')
+    .map((a) => [a.id, gaitTrack(a, c.durationFrames, c, typeof a.params?.speed === 'number' ? a.params.speed : 1.4)])), [story, scene, c]);
   for (const a of scene.actors) {
     const rig = RIGS[story.cast[a.cast]?.rig];
     if (!rig) throw new StoryError(`Figur "${a.cast}" (Szene "${scene.id}") hat eine unbekannte Figurenart`);
@@ -161,6 +169,16 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
       const prop = typeof a.prop === 'string' ? a.prop : a.prop ? sampleHard(a.prop.map((k) => ({f: toFrames(k.t, c), name: k.prop})), f, 'none') : 'none';
       node = <Person t={t} pose={pose as any} face={face as any} prop={prop as any} talk={speech} position={pos} rotationY={yaw} scale={a.scale}
         ghost={a.ghost} look={member.look as any} />;
+    } else if (member.rig === 'person2') {
+      const pose = typeof a.pose === 'string' ? a.pose : a.pose ? sampleName(nameKeys(a.pose, 'pose', c), f) : 'idle';
+      const face = typeof a.face === 'string' ? a.face : a.face ? sampleName(nameKeys(a.face, 'face', c), f) : 'neutral';
+      const prop = typeof a.prop === 'string' ? a.prop : a.prop ? sampleHard(a.prop.map((k) => ({f: toFrames(k.t, c), name: k.prop})), f, 'none') : 'none';
+      const sx: SignalCtx = {scene, clock: c, env, fps, camPos: (ff) => sampleCamera(cam.keys, ff, env).pos};
+      const bt = beatSignal(a, f, sx);
+      node = <Person2 t={t} pose={pose as any} face={face as any} prop={prop as any} talk={speech} mouth={member.voice ? mouth?.(member.voice, f) : undefined}
+        position={pos} rotationY={yaw} scale={a.scale} ghost={a.ghost} look={member.look as any} seed={(scene.actors.indexOf(a) + 1) * 1.37 + a.id.length * 0.31}
+        gaze={gazeSignal(a, f, sx)} beat={bt.beat} beatIdx={bt.idx} gait={gaitSignal(dists[a.id], f)}
+        energy={typeof a.params?.energy === 'number' ? a.params.energy : 1} />;
     } else if (member.rig === 'dragon') {
       const p = a.params ?? {};
       node = <Dragon t={t} position={pos} rotationY={yaw} scale={a.scale} coil={dragonCoil(a, f, c)} roar={trackAt(a.tracks, 'roar', f, c, 0)}

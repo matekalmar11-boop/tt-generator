@@ -2,7 +2,7 @@
 
 Aufruf (von tools/voice.ts):  python tts/yaml_tts.py <job.json>
 Job: {fps, outDir, lines: [{id, hash, model, units: [{display, spoken}], profile: {model, lengthScale, noiseScale, noiseW, sentenceGap, loudness, effect}}]}
-Ergebnis: <outDir>/vo_<id>.wav und <outDir>/result.json  {id: {seconds, timingMode, words: [{w,start,end}] (Sekunden), env: [0..1 je Videoframe]}}
+Ergebnis: <outDir>/vo_<id>.wav und <outDir>/result.json  {id: {seconds, timingMode, words: [{w,start,end}] (Sekunden), env: [0..1 je Videoframe], phonemes: [[start,ende,IPA]] (Sekunden)}}
 
 Wort-Timings: ECHT aus den Phonem-Ausrichtungen des Piper-Modells (Anzahl Samples je Phonem, Wortgrenzen = Leerzeichen-Phoneme),
 umgerechnet auf die fertige (mit Effekten/Lautheit bearbeitete) Datei. Nur wenn Phonem-Wörter und Textwörter nicht übereinstimmen
@@ -58,16 +58,20 @@ def synth_line(ln):
     p = ln["profile"]; voice = load(ln["model"]); sr = voice.config.sample_rate
     cfg = SynthesisConfig(length_scale=p["lengthScale"], noise_scale=p["noiseScale"], noise_w_scale=p["noiseW"])
     parts, spans, cursor, aligned = [], [], 0, True   # spans: pro Textwort (Start, Ende) in Samples
+    phones = []                                        # [Start, Ende, IPA-Zeichen] in Samples (für Mundformen)
     for sent in sentences(ln["units"]):
         text = " ".join(u["spoken"] for u in sent)
         chunks = list(voice.synthesize(text, cfg, include_alignments=True))
         x = np.concatenate([c.audio_float_array for c in chunks])
         a, b = trim_bounds(x, sr)
         # Phonem-Wörter über alle Chunks des Satzes (Piper teilt nur bei Satzzeichen-Grenzen, die wir schon getrennt haben)
-        words, off = [], 0
+        words, off, sph = [], 0, []
         for c in chunks:
             if c.phoneme_alignments is None: aligned = False; break
             words += [(s + off, e + off) for s, e in phoneme_words(c.phoneme_alignments)]
+            pos = off
+            for al in c.phoneme_alignments:
+                n = int(al.num_samples); sph.append((pos, pos + n, al.phoneme)); pos += n
             off += len(c.audio_float_array)
         want = sum(len(u["spoken"].split()) for u in sent)
         if aligned and len(words) == want:
@@ -79,10 +83,11 @@ def synth_line(ln):
         else:
             aligned = False
             spans += [None] * len(sent)
+        phones += [(cursor + max(0, ps - a), cursor + max(0, pe - a), sym) for ps, pe, sym in sph]
         seg = x[a:b]
         parts += [seg, np.zeros(int(p["sentenceGap"] * sr), dtype=np.float32)]
         cursor += len(seg) + int(p["sentenceGap"] * sr)
-    return np.concatenate(parts[:-1]), sr, spans if aligned else None
+    return np.concatenate(parts[:-1]), sr, spans if aligned else None, phones if aligned else None
 
 def write_wav(path, x, sr):
     with wave.open(str(path), "wb") as w:
@@ -129,7 +134,7 @@ def fallback_spans(units, dur):
 results = {}
 for ln in job["lines"]:
     raw, final = OUT / f"_raw_{ln['id']}.wav", OUT / f"vo_{ln['id']}.wav"
-    x, sr, spans = synth_line(ln)
+    x, sr, spans, phones = synth_line(ln)
     write_wav(raw, x * 0.9, sr)
     fx, pitch = ffmpeg_chain(ln["profile"])
     af = ",".join(fx).replace("{SR_PITCH:.0f}", str(int(sr * pitch))).replace("{SR}", str(sr))
@@ -145,6 +150,10 @@ for ln in job["lines"]:
         sp = fallback_spans(ln["units"], dur)
         words = [{"w": u["display"], "start": round(s, 3), "end": round(e, 3)} for u, (s, e) in zip(ln["units"], sp)]
         mode = "proportional"
-    results[ln["id"]] = {"seconds": round(dur, 3), "timingMode": mode, "words": words, "env": env_of(y, fsr)}
+    res = {"seconds": round(dur, 3), "timingMode": mode, "words": words, "env": env_of(y, fsr)}
+    if phones is not None:   # IPA-Phoneme mit Zeiten (Sekunden, auf die fertige Datei skaliert) – daraus entstehen die Mundformen
+        k = dur / dur_raw
+        res["phonemes"] = [[round(min(ps / sr * k, dur), 3), round(min(pe / sr * k, dur), 3), sym] for ps, pe, sym in phones if pe > ps]
+    results[ln["id"]] = res
     print(f"  {ln['id']}: {dur:5.2f} s  Wort-Timing: {mode}")
 (OUT / "result.json").write_text(json.dumps(results, ensure_ascii=False))

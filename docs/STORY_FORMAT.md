@@ -163,6 +163,10 @@ npm run story -- render stories/x.yaml --force         # Gesamtvideo neu zusamme
 
 **Technik-Test ohne finales Video:** `--test-scale 0.25` rendert dieselbe Kette verkleinert (270×480) nach `out/final/<id>-TEST.mp4` mit eigenem Cache; die Freigabe wird trotzdem verlangt. Beispiel-Fixture: `stories/_test-export.yaml`.
 
+## Rig `person2` (begrenzte Integration)
+Neuer Figurentyp neben `finn`, `dragon`, `person` (diese sind unverändert). In der YAML nur `rig: person2` in `cast` – **alle Eigenschaften von `person` gelten gleich**: Posen `idle walk sneak run sit wave point shock`, Gesichter `neutral smile grin worry shock angry determined`, Gegenstände `phone cup`, `look` (skin, hair, hairStyle, eyes, shirt, pants, shoes, coat, apron, hat, glasses), `scale`, `ghost`, `at`/`path`/`yaw`. Zusätzliche, optionale `params` je Figur: `gaze` (`auto` Standard | `off` | `camera` | Figuren-ID), `gestures` (true/false), `energy` (Idle-Lebendigkeit, 1), `speed` (Tempo bei `walk` ohne `path`).
+Automatisch (ohne YAML-Angaben): Atmen/Gewichtsverlagerung/Kopfbewegung, Blinzeln (unregelmäßig, je Figur versetzt), weiche Posenübergänge (smootherstep statt linear), Kopf/Augen zum Sprecher (Zuhörer) bzw. zum Gegenüber (Sprecher), Kopfnicken und Handbewegung je Wort (Stärke nach Wortlänge/Satzende), Gehzyklus mit Fußkontakt (Zwei-Knochen-IK, Schrittphase aus der zurückgelegten Strecke, Schrittlänge wächst mit dem Tempo, Standfüße rutschen nicht), Mundformen aus Piper-Phonemen (`src/story/visemes.ts`; ohne Phonemdaten Rückfall auf die Hüllkurve). Phoneme entstehen mit `story voice` (Pipeline-Version 4; ältere Sprachdateien mit `--force` neu erzeugen). Demo/Test: `stories/demo-person2.yaml`, Standbilder: `npm run story -- still <datei> --scene <id> --times 0.5,1.2 --out <ordner>`; Ergebnisse und Grenzen: `docs/person2/ERGEBNIS.md`.
+
 ## Noch NICHT umgesetzt
 | Schritt | Inhalt |
 |---|---|

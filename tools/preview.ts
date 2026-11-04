@@ -164,3 +164,26 @@ export const runPreview = async (file: string, f: PreviewFlags): Promise<number>
   console.log(`\n✔ ${path.relative(root, outFile)}  ·  ${frames} Bilder  ·  Gesamt ${((Date.now() - T0) / 1000).toFixed(1)} s (Bundle ${(tBundle / 1000).toFixed(1)} s, Browser+Komposition ${(tBrowser / 1000).toFixed(1)} s, Zusammenfügen ${(tConcat / 1000).toFixed(1)} s)`);
   return 0;
 };
+
+/** Standbilder einer Szene zu bestimmten Zeiten (Sekunden relativ zur Szene): `story still <datei> --scene id --times 0.5,1.2 --out ordner [--scale 0.4]` */
+export const runStills = async (file: string, f: {scene: string; times: string; out: string; scale?: number}): Promise<number> => {
+  const {story, timeline: tl} = loadStoryProps(file);
+  const i = story.scenes.findIndex((s) => s.id === f.scene);
+  if (i < 0) throw new Error(`Szene "${f.scene}" gibt es nicht (vorhanden: ${story.scenes.map((s) => s.id).join(', ')})`);
+  const fps = story.format.fps, scale = f.scale ?? 0.4;
+  fs.mkdirSync(f.out, {recursive: true});
+  const bdir = await ensureBundle(codeHash());
+  const browser = await openBrowser('chrome', {browserExecutable: BROWSER, chromiumOptions: {gl: 'swangle'}});
+  try {
+    const props = {story, timeline: tl};
+    const comp = await selectComposition({serveUrl: bdir, puppeteerInstance: browser, inputProps: props, id: 'StoryAny'});
+    const {renderStill} = await import('@remotion/renderer');
+    for (const tt of f.times.split(',').map(Number)) {
+      const frame = Math.min(tl.totalFrames - 1, tl.scenes[i].startFrame + Math.round(tt * fps));
+      const out = path.join(f.out, `${story.meta.id}_${f.scene}_${tt.toFixed(2)}s.png`);
+      await renderStill({composition: comp, serveUrl: bdir, puppeteerInstance: browser, inputProps: props, frame, output: out, imageFormat: 'png', scale});
+      console.log(path.relative(root, out));
+    }
+  } finally { await browser.close({silent: true}); }
+  return 0;
+};

@@ -40,6 +40,14 @@ export const RIGS: Record<string, RigDef> = {
     params: {}, tracks: [],
     looks: {skin: 'color', hair: 'color', hairStyle: ['short', 'long', 'bald'], eyes: 'color', shirt: 'color', pants: 'color', shoes: 'color', coat: 'color', apron: 'color', hat: 'color', glasses: 'boolean'},
   },
+  person2: {
+    status: 'ready', doc: 'Moderne Blockfigur (src/world/Person2.tsx): abgerundet, Kunststoff-Look mit Kontur, Gesicht als Decal, Mundformen aus Phonemen, prozedurale Bewegung (Atmen, Blinzeln, Blickführung zum Sprecher, Gesten beim Sprechen, weiche Posenübergänge, Gehzyklus mit Fußkontakt). Gleiche Posen/Gesichter/Gegenstände/look wie "person". params: gaze ("auto" | "off" | "camera" | Figuren-ID), gestures (true/false), energy (Idle-Lebendigkeit, 1), speed (Gehtempo bei Pose walk ohne path, Einheiten/s).',
+    poses: ['idle', 'walk', 'sneak', 'run', 'sit', 'wave', 'point', 'shock'],
+    faces: ['neutral', 'smile', 'grin', 'worry', 'shock', 'angry', 'determined'],
+    props: ['none', 'phone', 'cup'],
+    params: {gaze: 'string', gestures: 'boolean', energy: 'number', speed: 'number'}, tracks: [],
+    looks: {skin: 'color', hair: 'color', hairStyle: ['short', 'long', 'bald'], eyes: 'color', shirt: 'color', pants: 'color', shoes: 'color', coat: 'color', apron: 'color', hat: 'color', glasses: 'boolean'},
+  },
 };
 
 export const SETS: Record<string, SetDef> = {

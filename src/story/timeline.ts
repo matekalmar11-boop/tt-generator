@@ -6,6 +6,7 @@
  */
 import type {StoryData} from './schema';
 import type {Clock} from './resolve';
+import {mouthAt, prepare, type Mouth, type Seg} from './visemes';
 
 export const CHARS_PER_SEC = 18; // gemessen an den Mondsplitter-Zeilen (Piper Thorsten, lengthScale 1.08)
 export const estLineSeconds = (text: string) => {
@@ -14,7 +15,7 @@ export const estLineSeconds = (text: string) => {
 };
 
 export type TLWord = {w: string; start: number; end: number};
-export type TLLine = {id: string; who: string; voice?: string; text: string; file: string; startFrame: number; durationFrames: number; words: TLWord[]; env: number[]; real: boolean};
+export type TLLine = {id: string; who: string; voice?: string; text: string; file: string; startFrame: number; durationFrames: number; words: TLWord[]; env: number[]; real: boolean; phonemes?: [number, number, string][]};   // phonemes: [Start, Ende] in Autoren-Frames (absolut), IPA
 export type TLScene = {id: string; startFrame: number; durationFrames: number; lines: TLLine[]};
 export type Timeline = {fps: number; totalFrames: number; scenes: TLScene[]};
 
@@ -43,7 +44,7 @@ const estWords = (text: string, start: number, dur: number): {words: TLWord[]; e
 };
 
 /** Ergebnis von `story voice` (src/story/voices/<story-id>.json): echte Dauer, Wort-Timings (Sekunden) und Mund-Hüllkurve je Zeile. */
-export type VoiceData = {fps: number; lines: Record<string, {text: string; seconds: number; timingMode: string; words: TLWord[]; env: number[]}>};
+export type VoiceData = {fps: number; lines: Record<string, {text: string; seconds: number; timingMode: string; words: TLWord[]; env: number[]; phonemes?: [number, number, string][]}>};
 const norm = (t: string) => t.split(/\s+/).filter(Boolean).join(' ');
 
 export const buildTimeline = (story: StoryData, legacy?: LegacyTL, voices?: VoiceData): Timeline => {
@@ -70,7 +71,8 @@ export const buildTimeline = (story: StoryData, legacy?: LegacyTL, voices?: Voic
         const v = vd.lines[l.id];
         const start = cursor + Math.round(t * fps);
         const words = v.words.map((w) => ({w: w.w, start: start + Math.round(w.start * fps), end: start + Math.max(Math.round(w.end * fps), Math.round(w.start * fps) + 2)}));
-        lines.push({id: l.id, who: l.who, voice: story.cast[l.who]?.voice, text: l.text, file: voiceFile(l.id), startFrame: start, durationFrames: Math.ceil(v.seconds * fps), words, env: v.env, real: true});
+        lines.push({id: l.id, who: l.who, voice: story.cast[l.who]?.voice, text: l.text, file: voiceFile(l.id), startFrame: start, durationFrames: Math.ceil(v.seconds * fps), words, env: v.env, real: true,
+          phonemes: v.phonemes?.map(([a, b, sym]) => [start + a * fps, start + b * fps, sym] as [number, number, string])});
         t += v.seconds + gap;
       }
       duration = Math.round((t - gap + sc.timing.post) * fps);
@@ -108,3 +110,16 @@ export const talkAt = (s: TLScene, voice: string, f: number): number => {
   }
   return 0;
 };
+
+/** Mundform der Stimme `voice` im Szenen-Frame `f` aus den Phonemen (undefined = keine Phonemdaten → Rückfall auf die Hüllkurve). */
+export const mouthFor = (s: TLScene, voice: string, f: number): Mouth | undefined => {
+  const abs = s.startFrame + f;
+  for (const l of s.lines) {
+    if (l.voice !== voice || !l.phonemes || abs < l.startFrame - 3 || abs > l.startFrame + l.durationFrames + 3) continue;
+    let segs = segCache.get(l);
+    if (!segs) { segs = prepare(l.phonemes); segCache.set(l, segs); }
+    return mouthAt(segs, abs);
+  }
+  return undefined;
+};
+const segCache = new WeakMap<TLLine, Seg[]>();

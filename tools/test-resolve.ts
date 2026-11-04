@@ -179,5 +179,48 @@ try {
   assert.ok(!preflight('stories/_demo-fehler-struktur.yaml', process.cwd()).ok);
 } finally { console.log = log; fs.rmSync(tmp, {recursive: true, force: true}); }
 console.log('✔ Schritt 5: Freigabe an Inhalt gebunden (YAML, Timings, Audio, Renderer-Code), falsche/fehlende Bestätigung schreibt nichts, Export ohne gültige Freigabe verweigert, Preflight-Fehler');
+
+// ── Person2: Gehzyklus (Bodenkontakt), Mundformen ──
+import {ANKLE, L1, L2, RUN, WALK, footAt, gaitPose} from '../src/world/person2Motion';
+import {KNOWN, SHAPES, mouthAt, prepare, shapeOf} from '../src/story/visemes';
+for (const g of [WALK, RUN]) {
+  let maxSlip = 0, minAnkle = 9, maxErr = 0;
+  const ref: [number, number] = [NaN, NaN];
+  for (let i = 0; i < 4000; i++) {
+    const phase = i / 400, gp = gaitPose(phase, g), hipsZ = phase * g.D;       // Hüfte bewegt sich mit Geschwindigkeit D je Zyklus
+    [0, 1].forEach((leg) => {
+      const p = (((phase + leg * 0.5) % 1) + 1) % 1, f = footAt(p, g), {th, kn} = gp.legs[leg];
+      const zRel = -L1 * Math.sin(th) - L2 * Math.sin(th + kn), yRel = -L1 * Math.cos(th) - L2 * Math.cos(th + kn);
+      const ankleY = gp.pivotH + yRel;
+      minAnkle = Math.min(minAnkle, ankleY);
+      if (f.stance) { // Standfuß: Weltposition bleibt je Schritt konstant (kein Rutschen)
+        const world = hipsZ + zRel;
+        maxErr = Math.max(maxErr, Math.abs(ankleY - ANKLE)); // Sohle auf dem Boden
+        if (Number.isNaN(ref[leg])) ref[leg] = world;
+        if (p < 1e-9) ref[leg] = world;     // neuer Schritt beginnt am Fersenaufsatz
+        maxSlip = Math.max(maxSlip, Math.abs(world - ref[leg]));
+      }
+    });
+  }
+  assert.ok(maxErr < 1e-6, `Standfuß-Sohle auf Boden (Fehler ${maxErr})`);
+  assert.ok(maxSlip < 1e-6, `Standfüße rutschen nicht (max ${maxSlip})`);
+  assert.ok(minAnkle >= ANKLE - 1e-6, 'Fuß nie unter dem Boden');
+}
+assert.equal(shapeOf('m'), 'closed'); assert.equal(shapeOf('a'), 'a'); assert.equal(shapeOf('u'), 'u'); assert.equal(shapeOf('f'), 'fv'); assert.equal(shapeOf(' '), 'rest'); assert.equal(shapeOf('ʃ'), 'cons');
+const segs = prepare([[0, 3, '^'], [3, 6, 'm'], [6, 8, 'ˈ'], [8, 12, 'a'], [12, 16, 'ː'], [16, 20, 's']]);
+assert.deepEqual(segs.map((x) => [x.start, x.end, x.shape]), [[3, 6, 'closed'], [8, 16, 'a'], [16, 20, 'cons']], 'Betonung weg, Längenzeichen verlängert, ^ ignoriert');
+assert.ok(mouthAt(segs, 4.5)!.open < 0.05); assert.ok(mouthAt(segs, 12)!.open > 0.8);
+assert.equal(mouthAt(segs, 100), undefined, 'außerhalb der Zeile keine Mundform');
+const unknown = new Set<string>();
+for (const f of fs.readdirSync('src/story/voices')) { const d = JSON.parse(fs.readFileSync(`src/story/voices/${f}`, 'utf8')); for (const l of Object.values<any>(d.lines)) for (const ph of l.phonemes ?? []) if (!KNOWN.has(ph[2])) unknown.add(ph[2]); }
+assert.equal(unknown.size, 0, `unbekannte Phonem-Zeichen: ${[...unknown].join(' ')}`);
+const phLines = Object.values<any>(JSON.parse(fs.readFileSync('src/story/voices/demo-person2.json', 'utf8')).lines);
+assert.ok(phLines.every((l) => l.phonemes?.length > 10), 'Phoneme aus Piper vorhanden');
+{ // Szene mit person2 über YAML prüfbar
+  const r = checkStoryFile('stories/demo-person2.yaml'); assert.equal(r.issues.filter((i) => i.level === 'error').length, 0, 'demo-person2.yaml gültig');
+  const bad = fs.readFileSync('stories/demo-person2.yaml', 'utf8').replace('pose: idle, face: neutral}', 'pose: tanzen, face: neutral}'); fs.writeFileSync('/tmp/_p2.yaml', bad);
+  assert.ok(checkStoryFile('/tmp/_p2.yaml').issues.some((i) => i.level === 'error' && i.message.includes('tanzen')), 'ungültige Pose für person2 wird gemeldet');
+}
+console.log('✔ Person2: Gehzyklus ohne Rutschen (Walk/Run), Standfuß-Sohle am Boden, Mundform-Zuordnung, alle Phonem-Zeichen abgedeckt, YAML-Prüfung');
 console.log('✔ Etappe 3: Zeitleiste = alte TTS-Timeline, Untertitel identisch, fehlende Audiodateien gemeldet, Manifest aktuell');
 console.log('✔ alle Funktionstests bestanden');

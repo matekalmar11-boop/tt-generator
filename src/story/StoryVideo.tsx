@@ -12,7 +12,7 @@ import {StoryScene} from './StoryScene';
 import {StoryCaptions, StoryCutFlash, StorySeriesTag} from './StoryOverlays';
 import {buildChunksFrom, SubtitleView, type SubVoice} from '../Subtitles';
 import {Vignette} from '../Overlays';
-import {sceneClock, talkAt, type Timeline} from './timeline';
+import {mouthFor, sceneClock, talkAt, type Timeline} from './timeline';
 import {TimeScale} from './timescale';
 import {toFrames} from './resolve';
 
@@ -80,7 +80,7 @@ export const StoryVideo: React.FC<{story: StoryData; timeline: Timeline; renderF
         {story.scenes.map((sc, i) => (
           <Sequence key={sc.id} from={froms[i]} durationInFrames={(froms[i + 1] ?? total) - froms[i]} layout="none">
             <TimeScale scale={scale} fps={fps} offset={froms[i] * scale - tl.scenes[i].startFrame}>
-              <StoryScene story={story} sceneId={sc.id} clock={clocks[i]} talk={(voice, f) => talkAt(tl.scenes[i], voice, f)} />
+              <StoryScene story={story} sceneId={sc.id} clock={clocks[i]} talk={(voice, f) => talkAt(tl.scenes[i], voice, f)} mouth={(voice, f) => mouthFor(tl.scenes[i], voice, f)} />
             </TimeScale>
           </Sequence>
         ))}
