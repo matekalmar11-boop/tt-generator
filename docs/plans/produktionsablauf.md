@@ -109,3 +109,7 @@ Messung: Bei der Verdopplung ändert sich nur jedes zweite Bild; die sichtbare S
 | FFmpeg-Verdopplung 15→30 | ca. 1,3 s je Sekunde Film |
 
 Ein voller 45–60-s-Lauf wurde bisher nicht gemessen (Hochrechnung aus Abschnitten).
+
+## 8. Praxis-Messung: vollständiges 57-s-Video („Die Truman Show“)
+
+Erster Durchlauf Skript → Storyboard → Vorschau: 13 Szenen, 849 Bilder, **212 s Vorschau-Renderzeit** (cold), Nachbesserungen einzelner Szenen 20–38 s. Storyboard mit `story board` 22 Bilder in 48 s. Details: `docs/plans/truman-show-video.md`.

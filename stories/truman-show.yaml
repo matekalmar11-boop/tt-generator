@@ -322,8 +322,8 @@ scenes:
     sfx:
       - {sound: wind, at: 0, loop: scene, volume: 0.5}
       - {sound: riser, at: 0, volume: 0.5}
-      - {sound: boom, at: "v09.start+30f", volume: 0.9}
-      - {sound: boom, at: "v09.start+66f", volume: 0.9}
+      - {sound: boom, at: "v09.start+30f", volume: 0.7}
+      - {sound: boom, at: "v09.start+66f", volume: 0.7}
       - {sound: rumble, at: "v09.start+30f", volume: 0.6}
 
   # ═══ 10 · DAS BOOT STÖSST GEGEN DIE WAND DER KÜNSTLICHEN WELT (aufgemalter Himmel) ═══
@@ -350,8 +350,8 @@ scenes:
       - {type: callout, from: "v10.word9", to: scene.end, at: [30, 30], text: AUFGEMALT, side: right, ring: 150}
     sfx:
       - {sound: whoosh, at: 0.2s, volume: 0.5}
-      - {sound: boom, at: "v10.word7", volume: 1.0}
-      - {sound: crack, at: "v10.word7", volume: 0.7}
+      - {sound: boom, at: "v10.word7", volume: 0.7}
+      - {sound: crack, at: "v10.word7", volume: 0.45}
 
   # ═══ 11 · DIE TÜR IN DER WAND = DER AUSGANG ═══
   - id: tuer
@@ -419,7 +419,7 @@ scenes:
     lines:
       - {id: v12, who: erzaehler, text: "Er verabschiedet sich und öffnet die Tür."}
     captions:
-      - {type: callout, from: 0.4s, to: scene.end, at: [30, 18], text: "KÜNSTLICHE WELT", side: right, ring: 110}
+      - {type: callout, from: 0.4s, to: scene.end, at: [84, 18], text: "KÜNSTLICHE WELT", side: left, ring: 110}
       - {type: callout, from: "v12.end", to: scene.end, at: [50, 47], text: "ECHTE WELT", side: right, ring: 150}
     sfx:
       - {sound: door_latch, at: "v12.word5", volume: 0.9}
@@ -448,6 +448,6 @@ scenes:
     lines:
       - {id: v13, who: erzaehler, text: "Dann tritt er hinaus in die echte Welt."}
     captions:
-      - {type: end_card, from: "v13.end", title: "TRUMAN SHOW", subtitle: "Kennst du den Film?"}
+      - {type: end_card, from: "v13.end", title: "TRUMAN SHOW", subtitle: "Kennst du den Film?", glow: "#7a1fa2", accent: "#5a1fb0"}
     sfx:
       - {sound: chime, at: "v13.end", volume: 0.8}
