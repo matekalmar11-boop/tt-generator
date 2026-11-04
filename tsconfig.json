@@ -9,8 +9,16 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "lib": ["ES2022", "DOM"],
-    "types": []
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "tools"
+  ]
 }

@@ -3,6 +3,10 @@
 TikTok-Kurzfilm (1080×1920, 30 FPS, H.264 + AAC, 44 s) mit React, TypeScript, Remotion und three.js.
 Fertiges Video: `renders/tiktok-fantasy.mp4` · Prüfbericht: `renders/verifikation.txt`. Alles kostenlos/offline.
 
+## Neu: Story-Format (Schritt 1 von 5)
+Geschichten als YAML (`stories/*.yaml`), Prüfung ohne Rendering: `npm run story -- check stories/mondsplitter.yaml`.
+Details, Status und Migrationsnotizen: [docs/STORY_FORMAT.md](docs/STORY_FORMAT.md). Der bisherige Referenzcode bleibt unverändert und rendert weiterhin.
+
 ## Pipeline
 1. `story/script.json` – Geschichte (Szenen, Sprechzeilen, Sprecher).
 2. `tts/synth.py` – deutsche TTS (Piper-Stimme *Thorsten*, CC0) → `public/audio/vo_*.wav`, Wort-Timing, Lippensync-Hüllkurve → `src/story/timeline.json`.

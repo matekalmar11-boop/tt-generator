@@ -1,0 +1,32 @@
+# Absichtlich fehlerhafte Datei (Teil 2: LOGIKFEHLER – Struktur ist gültig, aber Verweise/Namen/Zeiten stimmen nicht).
+# Zeigt die Querprüfungen von `npm run story -- check`. NICHT zum Rendern gedacht.
+schema: 1
+meta: {id: demo-fehler-logik, title: Logikfehler-Demo, targetDuration: {min: 30, max: 60}}
+voices:
+  erzaehler: {}
+cast:
+  held: {rig: drachen, voice: erzaehler}
+  oma: {rig: finn, voice: spreche}
+  stumm: {rig: finn}
+scenes:
+  - id: a
+    set: {type: hoehle}
+    actors:
+      - {id: h, cast: held, at: [0, 0, 0]}
+      - {id: o, cast: oma, at: [0, 0, 0], pose: sneek, prop: schwert, tracks: {glov: [{t: 0, v: 1}]}}
+      - {id: o, cast: stumm}
+    camera:
+      keys:
+        - {t: 3, pos: [0, 1, 5], look: {rel: niemand}}
+        - {t: 1, pos: [0, 1, 5], look: {obj: ding}}
+        - {t: "l99.start", pos: [0, 1, 5], look: [0, 1, 0]}
+    lines:
+      - {id: l1, who: held, text: "Hallo, ich bin der 1. Held."}
+      - {id: l1, who: opa, text: "Doppelte ID und unbekannter Sprecher."}
+      - {id: l3, who: stumm, text: "Ich habe keine Stimme."}
+    sfx: [{sound: wosh_fast, at: 1}]
+  - id: b
+    set: {type: plateau, params: {laterne: true}}
+    camera: {keys: [{t: "l1.start", pos: [0, 1, 5], look: [0, 1, 0]}, {t: "l2.word9", pos: [0, 1, 5], look: [0, 1, 0]}]}
+    lines: [{id: l2, who: oma, text: "Zweite Szene."}]
+    captions: [{type: lower_third, from: 2, to: 1, title: X}]
