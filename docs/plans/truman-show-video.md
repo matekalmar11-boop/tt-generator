@@ -23,15 +23,15 @@ Eigenständig stilisiert: kein Originalmaterial, kein Originalton, keine nachgeb
 | 7,1–10,4 | **kameras** E4 | „Überall in seiner Stadt hängen versteckte Kameras.“ | Straßenüberblick, 3 Kameras | Marker „KAMERA“ ×3; `rec_beep` ×3 |
 | 10,4–14,7 | **kulisse** E5 | „Seine Stadt ist eine Kulisse, und seine Nachbarn sind Schauspieler.“ | Truman geht an zwei Nachbarn vorbei | Marker „KULISSE“, „SCHAUSPIELER“ |
 | 14,7–20,0 | **licht** E6–E9 | „Doch dann fällt ein Scheinwerfer vom Himmel.“ | Truman bleibt stehen · Froschperspektive Kunsthimmel mit Luke, Scheinwerfer stürzt · Einschlag · Truman erschrickt | Marker „KUNSTHIMMEL“; `cable_snap`, `fall_whistle`, `light_crash` |
-| 20,0–24,1 | **misstrauen** E10 | „Truman wird misstrauisch: Warum verhalten sich alle so seltsam?“ | Kreisfahrt, zwei Nachbarn starren ihn an | `riser`, `heartbeat` |
-| 24,1–30,1 | **regie** E11–E12 | „Hinter den Kulissen sitzt der Regisseur. Er steuert Sonne, Wetter und sogar Trumans Freunde.“ | Regisseur im Regieraum · Nahaufnahme | Titel SONNE → WETTER → FREUNDE auf dem Wort; `chime` ×3 |
-| 30,1–33,5 | **millionen** E13 | „Und Millionen Menschen sehen jeden Tag zu.“ | Truman im Ring aus Kamera-Laternen | Sucher, Zähler 4→31 Mio. |
-| 33,5–37,3 | **segeln** E14 | „Truman will fliehen und segelt mit einem Boot aufs Meer.“ | Truman auf dem Segelboot, das sich entfernt, Blick zurück | Titel FLUCHT – „aufs Meer“; `wind`, `whoosh` |
-| 37,3–41,5 | **sturm** E15 | „Der Regisseur schickt einen Sturm, doch Truman gibt nicht auf.“ | Boot im Sturm: dunkler Himmel, Regen, Blitze, Schaukeln | Titel STURM; `wind`, `boom` ×2, `rumble` |
-| 41,5–45,6 | **wand** E16 | „Dann stößt sein Boot gegen eine Wand: Der Himmel ist nur aufgemalt.“ | Boot fährt auf die Wand der Kulissenwelt zu: aufgemalte Wolken, Stahlträger; Aufprall mit Kamerawackeln | Marker „AUFGEMALT“; `boom`, `crack` |
-| 45,6–49,2 | **tuer** E17 | „Dort findet er eine Tür, den Ausgang.“ | Truman auf dem Bug vor einer Tür in der Wand, Klinke senkt sich, Licht unter der Tür | Marker „AUSGANG“; `magic_hum`, `door_latch` |
-| 49,2–52,0 | **ende** E18 | „Er verabschiedet sich und öffnet die Tür.“ | Truman winkt vor der Wand, die Tür öffnet sich: **helle weiße Welt dahinter** | Marker „KÜNSTLICHE WELT“ (Wand) und „ECHTE WELT“ (Türöffnung) |
-| 52,0–56,6 | **ausgang** E19 | „Dann tritt er hinaus in die echte Welt.“ | Truman geht in die weiße Türöffnung und verschwindet im Licht | Endkarte „TRUMAN SHOW – Kennst du den Film?“; `chime` |
+| 20,0–24,2 | **misstrauen** E10 | „Truman wird misstrauisch: Warum verhalten sich alle so seltsam?“ | Kreisfahrt, zwei Nachbarn starren ihn an | `riser`, `heartbeat` |
+| 24,2–30,2 | **regie** E11–E12 | „Hinter den Kulissen sitzt der Regisseur. Er steuert Sonne, Wetter und sogar Trumans Freunde.“ | Regisseur im Regieraum · Nahaufnahme | Titel SONNE → WETTER → FREUNDE auf dem Wort; `chime` ×3 |
+| 30,2–33,6 | **millionen** E13 | „Und Millionen Menschen sehen jeden Tag zu.“ | Truman im Ring aus Kamera-Laternen | Sucher, Zähler 4→31 Mio. |
+| 33,6–37,6 | **segeln** E14 | „Truman will fliehen und segelt mit einem Boot aufs Meer.“ | Truman auf dem Segelboot, das sich entfernt, Blick zurück | Titel FLUCHT – „aufs Meer“; `wind`, `whoosh` |
+| 37,6–41,7 | **sturm** E15 | „Der Regisseur schickt einen Sturm, doch Truman gibt nicht auf.“ | Boot im Sturm: dunkler Himmel, Regen, Blitze, Schaukeln | Titel STURM; `wind`, `boom` ×2, `rumble` |
+| 41,7–46,0 | **wand** E16 | „Dann stößt sein Boot gegen eine Wand: Der Himmel ist nur aufgemalt.“ | Boot fährt auf die Wand der Kulissenwelt zu: aufgemalte Wolken, Stahlträger; Aufprall mit Kamerawackeln | Marker „AUFGEMALT“; `boom`, `crack` |
+| 46,0–49,7 | **tuer** E17 | „Dort findet er eine Tür, den Ausgang.“ | Truman auf dem Bug vor einer Tür in der Wand, Klinke senkt sich, Licht unter der Tür | Marker „AUSGANG“; `magic_hum`, `door_latch` |
+| 49,7–52,9 | **ende** E18 | „Er verabschiedet sich und öffnet die Tür.“ | Truman winkt vor der Wand, die Tür öffnet sich: **helle weiße Welt dahinter** | Marker „KÜNSTLICHE WELT“ (Wand) und „ECHTE WELT“ (Türöffnung) |
+| 52,9–56,6 | **ausgang** E19 | „Dann tritt er hinaus in die echte Welt.“ | Truman geht in die weiße Türöffnung und verschwindet im Licht | Endkarte „TRUMAN SHOW – Kennst du den Film?“; `chime` |
 
 Musik: `music_show_long` (eigene Synthese, 56 s, leise unter der Stimme). Schnittblitz zwischen den Szenen.
 
