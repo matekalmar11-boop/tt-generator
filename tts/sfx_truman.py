@@ -95,8 +95,11 @@ def music_show(d=22.0):              # Sendermusik: fröhlich, leicht überzucke
     y += np.sin(2 * np.pi * 58 * t) * 0.28 * ramp + np.sin(2 * np.pi * 61.5 * t) * 0.22 * ramp
     return reverb(y, 0.15, 1.2)
 
+def music_show_long():
+    return music_show(56.0)
+
 JOBS = {"rec_beep": rec_beep, "live_sting": live_sting, "cam_servo": cam_servo, "cable_snap": cable_snap,
-        "fall_whistle": fall_whistle, "light_crash": light_crash, "music_show": music_show}
+        "fall_whistle": fall_whistle, "light_crash": light_crash, "music_show": music_show, "music_show_long": music_show_long}
 
 if __name__ == "__main__":
     for name in (sys.argv[1:] or JOBS):

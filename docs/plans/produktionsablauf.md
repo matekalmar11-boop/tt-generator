@@ -64,6 +64,10 @@ Ein gültiges Story-YAML mit **13 fertigen Szenenblöcken** (Kamera + Kulisse + 
 - `callout`-Ringe nur bei feststehender Kamera; Position als Prozent des Bildes.
 - Unbeleuchtete Flächen (`Glow`) für aufgemalte Dinge (Himmel, Wolken); beleuchtete Blöcke werden zu dunkel.
 - Hindernisse und Positionen vor jedem Dreh mit `story board` prüfen, nicht raten.
+- Wortanker (`t06.word9`) zählen **ab 1** (1. Wort = `word1`); Satzzeichen wie „–“ im Text verhindern echte Wort-Timings (Meldung `proportional`) – lieber Komma/Punkt verwenden.
+- Kamera-Positionen dürfen Verweise sein (`pos: {rel: truman, off: [-1.4, 2.7, 4.4]}`): die Kamera folgt der Figur; Objekte (Hecke, Mauer) nicht in der Kameraposition platzieren (schwarzes Bild).
+- Fällt ein Objekt ins Bild (Scheinwerfer), Kamera mindestens 8–10 Einheiten entfernt lassen, sonst verdeckt es die Reaktion der Figur.
+- Endkarten (`end_card`) liegen im oberen Mittelfeld: Kamera so führen, dass die Figur darunter steht (Zielpunkt `off` ca. 3,5 Einheiten über dem Boden).
 
 ## 4. Rhythmus-Regeln für TikTok
 
