@@ -15,9 +15,11 @@ import {ANKLE, L1, L2, PIVOT, RUN, STAND_HIPS, WALK, blinkAmount, gaitPose, idle
 import type {Mouth} from '../story/visemes';
 
 export type Gaze = {yaw: number; pitch: number};
+/** person2 kennt zusätzlich zur Posenbibliothek von Finn/Person die Pose "call" (telefonieren). */
+export type P2Pose = PoseName | 'call';
 export type Person2Props = {
   t: number;
-  pose?: PoseName | [PoseName, PoseName, number];
+  pose?: P2Pose | [P2Pose, P2Pose, number];
   face?: FaceName | [FaceName, FaceName, number];
   talk?: number;                 // Mundöffnung aus der Sprach-Hüllkurve (Rückfall, wenn keine Phoneme vorliegen)
   mouth?: Mouth;                 // Mundform aus Phonemen
@@ -33,6 +35,7 @@ export type Person2Props = {
   beatIdx?: number;              // wechselt je Wort (wählt Arm/Stärke)
   gait?: {walk: {phase: number; D: number}; run: {phase: number; D: number}; speed: number};   // Schrittphase (Zyklen), Schrittlänge D und Tempo (Einheiten/s)
   energy?: number;               // Lebendigkeit der Idle-Ebene, 0 = aus
+  blink?: boolean;               // false = kein Blinzeln (z. B. unheimlicher Doppelgänger)
 };
 
 /* ───────────── Gesicht (Decal) ───────────── */
@@ -76,11 +79,11 @@ const drawFace = (ctx: CanvasRenderingContext2D, F: Face, eyes: Eyes, m: Mouth, 
 };
 
 const MOUTH_REST: Mouth = {open: 0, wide: 0, round: 0, teeth: 0, fv: 0};
-const GESTURE_POSES = new Set<PoseName>(['idle', 'sit']);
+const GESTURE_POSES = new Set<P2Pose>(['idle', 'sit']);
 const lerpQ = lerp;
 
 export const Person2: React.FC<Person2Props> = ({
-  t, pose = 'idle', face = 'neutral', talk = 0, mouth, prop = 'none', position = [0, 0, 0], rotationY = 0, scale = 1, ghost = false, look, seed = 0, gaze, beat = 0, beatIdx = 0, gait, energy = 1,
+  t, pose = 'idle', face = 'neutral', talk = 0, mouth, prop = 'none', position = [0, 0, 0], rotationY = 0, scale = 1, ghost = false, look, seed = 0, gaze, beat = 0, beatIdx = 0, gait, energy = 1, blink = true,
 }) => {
   const L = {...PERSON_LOOK_DEFAULTS, ...look};
   const SKIN = L.skin, HAIR = L.hair, sleeve = L.coat ?? L.shirt;
@@ -88,10 +91,10 @@ export const Person2: React.FC<Person2Props> = ({
   /* ── Pose: weicher Übergang (smootherstep); "walk"/"run" nutzen unten den Gehzyklus statt der Winkel-Schwingung ── */
   const pa = Array.isArray(pose) ? pose : [pose, pose, 0] as const;
   const kk = smoother(pa[2]);
-  const gaitKind = (n: PoseName) => (n === 'walk' ? WALK : n === 'run' ? RUN : null);
+  const gaitKind = (n: P2Pose) => (n === 'walk' ? WALK : n === 'run' ? RUN : null);
   const gA = gaitKind(pa[0]), gB = gaitKind(pa[1]);
   const wGait = (gA ? 1 - kk : 0) + (gB ? kk : 0);
-  const baseName = (n: PoseName): PoseName => (n === 'walk' || n === 'run' ? 'idle' : n);
+  const baseName = (n: P2Pose): PoseName => (n === 'walk' || n === 'run' || n === 'call' ? 'idle' : n);
   const P: Pose = {...mix(poseFor(baseName(pa[0]), t), poseFor(baseName(pa[1]), t), kk)};
 
   /* ── Ebenen: Atmen/Idle ── */
@@ -114,9 +117,16 @@ export const Person2: React.FC<Person2Props> = ({
     else { P.armLx += -0.4 * beat * strong; P.elbL += -0.6 * beat * strong; P.armLz += 0.12 * beat; }
   }
   // Gegenstand in der rechten Hand hebt den Arm (wie bei "person")
-  if (prop !== 'none' && !(['wave', 'point', 'shock', 'run', 'walk'] as PoseName[]).some((n) => n === pa[0] || n === pa[1])) {
+  if (prop !== 'none' && !(['wave', 'point', 'shock', 'run', 'walk', 'call'] as P2Pose[]).some((n) => n === pa[0] || n === pa[1])) {
     const k = prop === 'phone' ? 1 : 0.8;
     P.armRx = lerpQ(P.armRx, -0.7, k); P.elbR = lerpQ(P.elbR, -1.35, k); P.armRz = lerpQ(P.armRz, -0.12, k);
+  }
+
+  /* ── Telefonieren: rechter Arm hebt das Handy ans Ohr, Kopf neigt sich leicht dazu ── */
+  const callW = (pa[0] === 'call' ? 1 - kk : 0) + (pa[1] === 'call' ? kk : 0);
+  if (callW > 0.001) {
+    P.armRx = lerp(P.armRx, -0.45, callW); P.armRz = lerp(P.armRz, -0.22, callW); P.elbR = lerp(P.elbR, -2.65, callW);
+    P.headZ += -0.1 * callW; P.torsoZ += -0.02 * callW; P.armLz = lerp(P.armLz, 0.05, callW);
   }
 
   /* ── Gehzyklus: Beine per IK mit Bodenkontakt, Hüfthöhe aus den Standbeinen ── */
@@ -142,7 +152,7 @@ export const Person2: React.FC<Person2Props> = ({
   const fa = Array.isArray(face) ? face : [face, face, 0] as const;
   const A = faceFor(fa[0]), B = faceFor(fa[1]), fk = smoother(fa[2]);
   const Fc: Face = Object.fromEntries(Object.keys(A).map((k) => [k, lerp((A as any)[k], (B as any)[k], fk)])) as Face;
-  const closure = blinkAmount(t, seed);
+  const closure = blink ? blinkAmount(t, seed) : 0;
   const eyes: Eyes = {open: Math.min(1.2, Fc.open) * (1 - closure), lookX: eyeX + Fc.look, lookY: eyeY};
   const surprise = Math.max(0, (Fc.open - 1) * 0.9);
   const m0 = mouth ?? {...MOUTH_REST, open: talk * 0.8, wide: 0.1};

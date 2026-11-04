@@ -1628,6 +1628,58 @@
          "properties": {
           "type": {
            "type": "string",
+           "const": "message"
+          },
+          "from": {},
+          "to": {},
+          "style": {
+           "default": "chat",
+           "description": "chat = Smartphone-Chatkarte (Absender, Nachricht, Zeit) · photo = Foto-Rahmen mit Zeitstempel (+ optional Kamerablitz) · lock = Sperrbildschirm mit Uhrzeit und Datum.",
+           "type": "string",
+           "enum": [
+            "chat",
+            "photo",
+            "lock"
+           ]
+          },
+          "sender": {
+           "description": "chat: Absendername (Avatar-Initiale wird automatisch gezeichnet); photo: kleines Etikett oben.",
+           "type": "string"
+          },
+          "text": {
+           "description": "chat: Nachrichtentext · lock: Datumszeile (z. B. \"Dienstag\").",
+           "type": "string"
+          },
+          "time": {
+           "description": "chat: kleine Zeitangabe · photo: Zeitstempel unten · lock: große Uhrzeit.",
+           "type": "string"
+          },
+          "status": {
+           "description": "chat: Zeile unter der Nachricht (z. B. \"Zugestellt\").",
+           "type": "string"
+          },
+          "flash": {
+           "description": "photo: Kamerablitz (weißes Aufblitzen) zu Beginn.",
+           "type": "boolean"
+          },
+          "accent": {
+           "description": "chat: Farbe der Nachrichtenblase (Vorgabe #2f6bff).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "to"
+         ],
+         "additionalProperties": false
+        },
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
            "const": "title"
           },
           "from": {},

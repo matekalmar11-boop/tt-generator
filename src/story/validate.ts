@@ -362,6 +362,12 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
     sc.captions.forEach((c, i) => {
       const CP = `${P}.captions[${i}]`;
       const a = toSec(c.from, `${CP}.from`);
+      if (c.type === 'message') {
+        const b = toSec(c.to, `${CP}.to`);
+        if (a !== undefined && b !== undefined && b <= a) err(CP, 'Nachricht: "to" liegt vor oder bei "from".');
+        if (c.style === 'chat' && !c.text) err(`${CP}.text`, 'Chat-Nachricht braucht "text".');
+        if (c.style === 'lock' && !c.time) err(`${CP}.time`, 'Sperrbildschirm braucht "time" (Uhrzeit).');
+      }
       if (c.type === 'lower_third' || c.type === 'title') { const b = toSec(c.to, `${CP}.to`); if (a !== undefined && b !== undefined && b <= a) err(CP, 'Namensschild: "to" liegt vor oder bei "from".'); }
     });
   });

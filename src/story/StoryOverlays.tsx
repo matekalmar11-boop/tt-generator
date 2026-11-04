@@ -7,6 +7,55 @@ import {toFrames} from './resolve';
 import {sceneClock, type Timeline} from './timeline';
 
 type Props = {story: StoryData; timeline: Timeline};
+type MessageCap = Extract<StoryData['scenes'][number]['captions'][number], {type: 'message'}>;
+
+/**
+ * Smartphone-Einblendungen: chat (Karte mit Absender/Nachricht), photo (Foto-Rahmen mit Zeitstempel und Blitz), lock (Sperrbildschirm-Uhr).
+ * Lesbar auf dem Handy: große Schrift, hoher Kontrast, Platz oberhalb der TikTok-Untertitelzone.
+ */
+const MessageCard: React.FC<{c: MessageCap; local: number; total: number; fps: number}> = ({c, local, total, fps}) => {
+  const inK = spring({frame: local, fps, config: {damping: 13, stiffness: 190}});
+  const outK = Math.min(1, Math.max(0, (total - local) / 6));
+  const font = 'Inter, "DejaVu Sans", sans-serif';
+  if (c.style === 'photo') {
+    const flash = c.flash ? Math.max(0, 1 - local / 7) ** 2 : 0;
+    return (
+      <AbsoluteFill style={{pointerEvents: 'none', opacity: outK}}>
+        <AbsoluteFill style={{border: '46px solid #f3f0e9', borderBottomWidth: 150, borderRadius: 38, boxShadow: 'inset 0 0 140px rgba(0,0,0,0.45), 0 0 0 600px #f3f0e9', background: 'linear-gradient(rgba(150,170,255,0.07), rgba(150,170,255,0.07))'}} />
+        {c.sender && <div style={{position: 'absolute', top: 78, left: 82, fontFamily: font, fontWeight: 800, fontSize: 34, letterSpacing: 4, color: '#fff', background: 'rgba(15,15,25,0.7)', padding: '8px 22px', borderRadius: 30}}>{c.sender}</div>}
+        {c.time && <div style={{position: 'absolute', bottom: 40, left: 0, right: 0, textAlign: 'center', fontFamily: '"DejaVu Sans Mono", "Courier New", monospace', fontWeight: 800, fontSize: 74, letterSpacing: 4, color: '#ff9f1a', textShadow: '0 0 18px rgba(255,150,0,0.55)', transform: `scale(${0.92 + 0.08 * inK})`}}>{c.time}</div>}
+        {flash > 0 && <AbsoluteFill style={{background: '#fff', opacity: flash}} />}
+      </AbsoluteFill>
+    );
+  }
+  if (c.style === 'lock') {
+    return (
+      <AbsoluteFill style={{pointerEvents: 'none', alignItems: 'center', paddingTop: 250, opacity: outK * inK}}>
+        <div style={{textAlign: 'center', fontFamily: font, color: '#fff', textShadow: '0 4px 28px rgba(0,0,0,0.75)', transform: `translateY(${(1 - inK) * -40}px)`}}>
+          {c.text && <div style={{fontWeight: 600, fontSize: 56, letterSpacing: 2, marginBottom: -6}}>{c.text}</div>}
+          <div style={{fontWeight: 300, fontSize: 250, lineHeight: 1.0, letterSpacing: -6}}>{c.time}</div>
+        </div>
+      </AbsoluteFill>
+    );
+  }
+  const accent = c.accent ?? '#2f6bff', initial = (c.sender ?? '?').trim().charAt(0).toUpperCase();
+  const glow = Math.max(0, 1 - local / 10);
+  return (
+    <AbsoluteFill style={{pointerEvents: 'none', alignItems: 'center', paddingTop: 262, opacity: outK}}>
+      <div style={{width: 940, fontFamily: font, transform: `translateY(${(1 - inK) * -170}px) scale(${0.94 + 0.06 * inK})`, opacity: Math.min(1, inK * 1.4)}}>
+        <div style={{background: 'rgba(20,22,32,0.94)', borderRadius: 60, padding: '34px 38px 40px', boxShadow: `0 28px 80px rgba(0,0,0,0.6), 0 0 ${40 + glow * 90}px ${accent}${glow > 0.05 ? '88' : '33'}`, border: '2px solid rgba(255,255,255,0.1)'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 24}}>
+            <div style={{width: 92, height: 92, borderRadius: 46, background: `linear-gradient(135deg, ${accent}, #8a5bff)`, color: '#fff', fontWeight: 800, fontSize: 54, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>{initial}</div>
+            <div style={{flex: 1, color: '#fff', fontWeight: 800, fontSize: 50, letterSpacing: 1}}>{c.sender ?? ''}</div>
+            {c.time && <div style={{color: 'rgba(255,255,255,0.55)', fontWeight: 600, fontSize: 36}}>{c.time}</div>}
+          </div>
+          <div style={{marginTop: 26, background: accent, color: '#fff', fontWeight: 700, fontSize: 64, lineHeight: 1.16, padding: '30px 40px', borderRadius: '46px 46px 46px 10px'}}>{c.text}</div>
+          {c.status && <div style={{marginTop: 16, textAlign: 'right', color: 'rgba(255,255,255,0.5)', fontWeight: 600, fontSize: 32}}>{c.status}</div>}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
 
 export const StorySeriesTag: React.FC<Props> = ({story}) => {
   const t = story.overlays.seriesTag;
@@ -51,6 +100,10 @@ export const StoryCaptions: React.FC<Props> = ({story, timeline}) => {
             </div>
           </AbsoluteFill>,
         );
+      } else if (c.type === 'message') {
+        const total = toFrames(c.to, clock) - toFrames(c.from, clock);
+        if (local > total) return;
+        out.push(<MessageCard key={key} c={c} local={local} total={total} fps={fps} />);
       } else {
         if (f - ts.startFrame > toFrames(c.to, clock)) return;
         const s = spring({frame: local, fps, config: {damping: 12, stiffness: 150}});

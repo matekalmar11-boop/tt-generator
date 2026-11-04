@@ -222,5 +222,18 @@ assert.ok(phLines.every((l) => l.phonemes?.length > 10), 'Phoneme aus Piper vorh
   assert.ok(checkStoryFile('/tmp/_p2.yaml').issues.some((i) => i.level === 'error' && i.message.includes('tanzen')), 'ungültige Pose für person2 wird gemeldet');
 }
 console.log('✔ Person2: Gehzyklus ohne Rutschen (Walk/Run), Standfuß-Sohle am Boden, Mundform-Zuordnung, alle Phonem-Zeichen abgedeckt, YAML-Prüfung');
+
+// ── Nachricht von morgen: message-Einblendung, Pose call, blink, Tür ──
+{
+  const y = fs.readFileSync('stories/nachricht-von-morgen.yaml', 'utf8');
+  const errs = (txt: string) => { fs.writeFileSync('/tmp/_nm.yaml', txt); return checkStoryFile('/tmp/_nm.yaml').issues.filter((i) => i.level === 'error').map((i) => i.path + ': ' + i.message); };
+  assert.deepEqual(errs(y), [], 'nachricht-von-morgen.yaml gültig');
+  assert.ok(errs(y.replace('text: "Geh morgen nicht zur Schule."', 'text: ""')).length > 0 || errs(y.replace(', text: "Geh morgen nicht zur Schule."', '')).some((m) => m.includes('text')), 'Chat-Nachricht ohne Text wird gemeldet');
+  assert.ok(errs(y.replace('time: "19:42"}', '}').replace('text: Dienstag, ', 'text: Dienstag')).some((m) => m.includes('time')), 'Sperrbildschirm ohne Uhrzeit wird gemeldet');
+  assert.ok(errs(y.replace('{t: 1.25s, pose: call, ease: io}', '{t: 1.25s, pose: telefon, ease: io}')).some((m) => m.includes('telefon')), 'unbekannte Pose wird gemeldet');
+  assert.ok(errs(y.replace('blink: false', 'blink: nein')).some((m) => m.includes('blink')), 'blink erwartet true/false');
+  assert.ok(errs(y.replace('type: door_handle', 'type: door')).some((m) => m.includes('door')), 'unbekannter Objekttyp wird gemeldet');
+}
+console.log('✔ Nachricht von morgen: message (chat/photo/lock) validiert, Pose call, blink, door_handle');
 console.log('✔ Etappe 3: Zeitleiste = alte TTS-Timeline, Untertitel identisch, fehlende Audiodateien gemeldet, Manifest aktuell');
 console.log('✔ alle Funktionstests bestanden');

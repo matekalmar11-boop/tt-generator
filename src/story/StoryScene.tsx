@@ -18,6 +18,7 @@ import {beatSignal, gaitSignal, gaitTrack, gazeSignal, type SignalCtx} from './p
 import type {Mouth} from './visemes';
 import {EmptyStage, RoomSet} from '../world/Interiors';
 import {CityStreet} from '../world/City';
+import {Door} from '../world/Door';
 import {Dust, Moon, Sky, Stars} from '../world/Nature';
 import {OBJECTS, RIGS, SETS} from './registry';
 import type {SceneData, StoryData} from './schema';
@@ -53,7 +54,7 @@ const actorPosAt = (a: ActorD, f: number, c: Clock): V3 =>
 
 const dragonCoil = (a: ActorD, f: number, c: Clock) => trackAt(a.tracks, 'coil', f, c, typeof a.params?.coil === 'number' ? a.params.coil : 0);
 
-const makeEnv = (story: StoryData, scene: SceneData, c: Clock, fps: number): RefEnv => {
+export const makeEnv = (story: StoryData, scene: SceneData, c: Clock, fps: number): RefEnv => {
   const actor = (id: string) => {
     const a = scene.actors.find((x) => x.id === id);
     if (!a) throw new StoryError(`Verweis auf unbekannte Figur "${id}" in Szene "${scene.id}"`);
@@ -178,7 +179,7 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
       node = <Person2 t={t} pose={pose as any} face={face as any} prop={prop as any} talk={speech} mouth={member.voice ? mouth?.(member.voice, f) : undefined}
         position={pos} rotationY={yaw} scale={a.scale} ghost={a.ghost} look={member.look as any} seed={(scene.actors.indexOf(a) + 1) * 1.37 + a.id.length * 0.31}
         gaze={gazeSignal(a, f, sx)} beat={bt.beat} beatIdx={bt.idx} gait={gaitSignal(dists[a.id], f)}
-        energy={typeof a.params?.energy === 'number' ? a.params.energy : 1} />;
+        energy={typeof a.params?.energy === 'number' ? a.params.energy : 1} blink={a.params?.blink !== false} />;
     } else if (member.rig === 'dragon') {
       const p = a.params ?? {};
       node = <Dragon t={t} position={pos} rotationY={yaw} scale={a.scale} coil={dragonCoil(a, f, c)} roar={trackAt(a.tracks, 'roar', f, c, 0)}
@@ -249,6 +250,8 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
         return <Dust key={key} t={t} count={p.count} center={at} spread={p.spread} color={p.color} size={p.size} speed={p.speed} seed={p.seed} rise={trackAt(o.tracks, 'rise', f, c, p.rise ?? 0)} />;
       case 'point_light':
         return <pointLight key={key} position={at} color={p.color} intensity={trackAt(o.tracks, 'intensity', f, c, 1)} distance={p.distance} />;
+      case 'door_handle':
+        return <Door key={key} position={at} handle={trackAt(o.tracks, 'handle', f, c, 0)} light={trackAt(o.tracks, 'light', f, c, 0)} color={p.color} door={p.door} />;
       case 'cracking_ground':
         return <CrackingGround key={key} frame={f} start={toFrames(p.start, c)} size={p.size} />;
       default:

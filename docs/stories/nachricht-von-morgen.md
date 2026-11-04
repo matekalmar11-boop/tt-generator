@@ -1,4 +1,6 @@
-# „Die Nachricht von morgen“ – Drehbuch und Umsetzungsplan (ENTWURF zur Freigabe)
+# „Die Nachricht von morgen“ – Drehbuch und Umsetzung (Stand: Vorschau erzeugt, noch ohne Freigabe/Export)
+
+> **Aktuelle Fassung** (nach Anpassungen): Sprechtexte, Szenen und Ergebnisse stehen im Abschnitt „Umsetzung (Vorschau)“ ganz unten; der ursprüngliche Entwurf folgt unverändert darunter.
 
 Format: 1080×1920, 30 FPS, deutsch, ca. 35–38 s. Figuren: Rig `person2`. Noch nichts produziert: keine YAML, keine Sprache, kein Rendering, keine Freigabe.
 
@@ -92,3 +94,38 @@ Gesamt ohne Option 5: ≈ 2–3 Arbeitstage; mit Option 5: ≈ 3–5.
 - „Foto“ nur durch Inszenierung erkennbar (starr, kalt, Zeitstempel) – ohne `message`/Rahmen weniger eindeutig.
 - Straßenszenen (`city_street`) sind am teuersten im Rendern; sie sind nur 5,1 s der Geschichte.
 - Länge hängt von der echten Sprachdauer ab (±10 %); Ziel 35–38 s, Reserve zum Kürzen: L04, B03.
+
+
+---
+# Umsetzung (Vorschau) – Stand und Ergebnisse
+Datei: `stories/nachricht-von-morgen.yaml` · Sprache: `src/story/voices/nachricht-von-morgen.json` · Vorschau: `out/preview/nachricht-von-morgen-vorschau.mp4` (nicht im Repo).
+
+## Angepasstes Drehbuch (Gesamtlänge 32,0 s, 11 Szenen)
+| Zeit | Szene | Inhalt |
+|---|---|---|
+| 0,0 | Nachricht | Ping, Chatkarte „Ich (meine Nummer): Geh morgen nicht zur Schule.“ – LEON: „Von meiner eigenen Nummer?“ |
+| 2,6 | Foto 1 | Foto-Rahmen „MITTWOCH · 08:17“, Blitz, starre Kamera |
+| 4,7 | Datum | LEON: „Mittwoch, acht Uhr siebzehn?“ – Sperrbildschirm „Dienstag 19:42“ – LEON: „Heute ist erst Dienstag.“ |
+| 9,1 | Anruf | Klingeln – BEN: „Alter, was machst du vor eurem Haus?“ – LEON: „Was? Ich bin zu Hause.“ |
+| 14,5 | Ben | Subjektive der Gestalt – BEN: „Du stehst genau vor mir. Und grinst.“ |
+| 17,9 | Leon | stumme Reaktion |
+| 19,3 | Foto 2 | „DIENSTAG · 19:44“, Ben neben der Gestalt (identisch zu Leon, blinzelt nicht) |
+| 21,6 | Warnung | LEON: „Ben, lauf weg!“ – BEN: „Leon? Jetzt sag doch was!“ – Piep (Leitung weg) |
+| 26,2 | Letzte Nachricht | Chatkarte „Das bin nicht ich.“ (rot), Herzschlag, Schritte |
+| 28,5 | Tür | Klinke senkt sich langsam, Licht unter der Tür, Knarren/Klacken, Boom |
+| 30,7 | Ende | Schwarz, Endkarte „TEIL 2 · MITTWOCH · 08:17“ |
+Letzte Szene (Nachricht → Schwarz) 5,8 s. 8 Sprechzeilen (statt 11), keine erklärenden Wiederholungen.
+
+## Prüfungen (technisch gemessen)
+- **Datei:** 360×640, 15,000 FPS, 481 Bilder, 32,067 s Video / 32,066 s Ton, H.264 + AAC, −17,3 LUFS, Spitze −3,4 dBFS.
+- **Sprache ↔ Bild:** Position jeder Sprechzeile im fertigen Ton gegen die Zeitleiste: Abweichung −1 / +34 ms (= 15-FPS-Raster), Korrelation 0,90–0,99.
+- **Untertitel:** aus den echten Wort-Timings der Piper-Ausrichtung (aligned), Sprecherfarben/-schilder in den Standbildern geprüft.
+- **Kamera (`story shots`):** größter Winkel zum Gesicht 15°, keine Profile, alle Köpfe im Bildausschnitt; Straßenszenen ohne Laternenmasten (verdeckten das Bild).
+- **Stimmen Leon / Ben (objektiv, nicht abgehört):** Grundfrequenz-Median 132 Hz vs. 105 Hz = **4,0 Halbtöne** Abstand; Ben hat durch den Telefonfilter 7× weniger Energie über 3,4 kHz (0,1 % vs. 0,7 %). Beide stammen aus **demselben** deutschen Piper-Modell (ein Sprecher): Klangfarbe und Sprechweise sind gleich, Leon klingt mit 132 Hz eher wie ein junger Mann als wie ein Junge. **Einschätzung:** durch Tonhöhenabstand, Telefonklang (Ben spricht immer über das Telefon), Untertitelfarbe/-schild und Bildzuordnung voraussichtlich ausreichend unterscheidbar, aber **nicht durch Hören bestätigt** – Hörprobe nötig. Hebel falls nicht: Leons Tonhöhe auf 1,2–1,3 (jünger, mit Klangverlust), Ben tiefer/langsamer.
+- **Regression:** Mondsplitter (Main und YAML-Video) und Rig `person` (Etappe2Test): Standbilder identisch (0,0000/255).
+
+## Bekannte Grenzen
+- Der Doppelgänger ist optisch identisch; Wiedererkennung läuft über Kleidung und Szene, nicht über Mimik. Handy-Glühen ist eine einfache Punktleuchte.
+- Gesichter wirken in den Nahaufnahmen sehr groß/cartoonhaft; Ben und Leon unterscheiden sich in Hautfarbe, Pulli und Kappe, nicht in der Kopfform.
+- Die Sounds (ping, ring, shutter, beep_drop, door_latch, music_mystery) sind prozedural erzeugt und **nicht abgehört**; Pegel/Dauer wurden nur gemessen.
+- Vorschau nur 360×640/15 FPS; Finalexport nicht erzeugt, keine Freigabe erteilt.

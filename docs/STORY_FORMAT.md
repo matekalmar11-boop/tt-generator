@@ -167,6 +167,14 @@ npm run story -- render stories/x.yaml --force         # Gesamtvideo neu zusamme
 Neuer Figurentyp neben `finn`, `dragon`, `person` (diese sind unverändert). In der YAML nur `rig: person2` in `cast` – **alle Eigenschaften von `person` gelten gleich**: Posen `idle walk sneak run sit wave point shock`, Gesichter `neutral smile grin worry shock angry determined`, Gegenstände `phone cup`, `look` (skin, hair, hairStyle, eyes, shirt, pants, shoes, coat, apron, hat, glasses), `scale`, `ghost`, `at`/`path`/`yaw`. Zusätzliche, optionale `params` je Figur: `gaze` (`auto` Standard | `off` | `camera` | Figuren-ID), `gestures` (true/false), `energy` (Idle-Lebendigkeit, 1), `speed` (Tempo bei `walk` ohne `path`).
 Automatisch (ohne YAML-Angaben): Atmen/Gewichtsverlagerung/Kopfbewegung, Blinzeln (unregelmäßig, je Figur versetzt), weiche Posenübergänge (smootherstep statt linear), Kopf/Augen zum Sprecher (Zuhörer) bzw. zum Gegenüber (Sprecher), Kopfnicken und Handbewegung je Wort (Stärke nach Wortlänge/Satzende), Gehzyklus mit Fußkontakt (Zwei-Knochen-IK, Schrittphase aus der zurückgelegten Strecke, Schrittlänge wächst mit dem Tempo, Standfüße rutschen nicht), Mundformen aus Piper-Phonemen (`src/story/visemes.ts`; ohne Phonemdaten Rückfall auf die Hüllkurve). Phoneme entstehen mit `story voice` (Pipeline-Version 4; ältere Sprachdateien mit `--force` neu erzeugen). Demo/Test: `stories/demo-person2.yaml`, Standbilder: `npm run story -- still <datei> --scene <id> --times 0.5,1.2 --out <ordner>`; Ergebnisse und Grenzen: `docs/person2/ERGEBNIS.md`.
 
+## Erweiterungen für „Die Nachricht von morgen“
+- **Einblendung `message`** (`scenes[].captions`): `style: chat` (Smartphone-Karte mit Avatar, `sender`, `text`, `time`, `status`, `accent`), `style: photo` (Foto-Rahmen mit Zeitstempel `time`, optional `sender`-Etikett und Kamerablitz `flash: true`), `style: lock` (Sperrbildschirm: große Uhrzeit `time`, Datumszeile `text`). Zeiten wie bei den anderen Einblendungen (Anker erlaubt). `check` meldet fehlenden Text (chat) bzw. fehlende Uhrzeit (lock).
+- **Pose `call`** (Rig `person2`): telefonieren, rechter Arm hebt das Handy ans Ohr, Kopf neigt sich leicht; mit `prop: phone`. Weiche Übergänge von/zu anderen Posen.
+- **`params.blink: false`** (Rig `person2`): kein Blinzeln (zusammen mit `energy: 0` regungsloser Doppelgänger).
+- **Objekt `door_handle`**: Tür mit Klinke, Verläufe `handle` (0–1) und `light` (Licht unter der Tür).
+- **Kameraprüfung ohne Rendern:** `npm run story -- shots <datei>` – Blickwinkel auf Gesichter (Profil > 75° wird gemeldet) und Kopf im Bildausschnitt.
+- **Neue Sounds:** `tts/sfx_mystery.py` (ping, ring, shutter, beep_drop, door_latch, music_mystery) – erzeugt nur die neuen Dateien.
+
 ## Noch NICHT umgesetzt
 | Schritt | Inhalt |
 |---|---|

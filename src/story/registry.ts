@@ -41,11 +41,11 @@ export const RIGS: Record<string, RigDef> = {
     looks: {skin: 'color', hair: 'color', hairStyle: ['short', 'long', 'bald'], eyes: 'color', shirt: 'color', pants: 'color', shoes: 'color', coat: 'color', apron: 'color', hat: 'color', glasses: 'boolean'},
   },
   person2: {
-    status: 'ready', doc: 'Moderne Blockfigur (src/world/Person2.tsx): abgerundet, Kunststoff-Look mit Kontur, Gesicht als Decal, Mundformen aus Phonemen, prozedurale Bewegung (Atmen, Blinzeln, Blickführung zum Sprecher, Gesten beim Sprechen, weiche Posenübergänge, Gehzyklus mit Fußkontakt). Gleiche Posen/Gesichter/Gegenstände/look wie "person". params: gaze ("auto" | "off" | "camera" | Figuren-ID), gestures (true/false), energy (Idle-Lebendigkeit, 1), speed (Gehtempo bei Pose walk ohne path, Einheiten/s).',
-    poses: ['idle', 'walk', 'sneak', 'run', 'sit', 'wave', 'point', 'shock'],
+    status: 'ready', doc: 'Moderne Blockfigur (src/world/Person2.tsx): abgerundet, Kunststoff-Look mit Kontur, Gesicht als Decal, Mundformen aus Phonemen, prozedurale Bewegung (Atmen, Blinzeln, Blickführung zum Sprecher, Gesten beim Sprechen, weiche Posenübergänge, Gehzyklus mit Fußkontakt). Gleiche Posen/Gesichter/Gegenstände/look wie "person". params: gaze ("auto" | "off" | "camera" | Figuren-ID), gestures (true/false), energy (Idle-Lebendigkeit, 1), speed (Gehtempo bei Pose walk ohne path, Einheiten/s), blink (false = kein Blinzeln). Pose call = telefonieren (Handy am Ohr, mit prop: phone).',
+    poses: ['idle', 'walk', 'sneak', 'run', 'sit', 'wave', 'point', 'shock', 'call'],
     faces: ['neutral', 'smile', 'grin', 'worry', 'shock', 'angry', 'determined'],
     props: ['none', 'phone', 'cup'],
-    params: {gaze: 'string', gestures: 'boolean', energy: 'number', speed: 'number'}, tracks: [],
+    params: {gaze: 'string', gestures: 'boolean', energy: 'number', speed: 'number', blink: 'boolean'}, tracks: [],
     looks: {skin: 'color', hair: 'color', hairStyle: ['short', 'long', 'bald'], eyes: 'color', shirt: 'color', pants: 'color', shoes: 'color', coat: 'color', apron: 'color', hat: 'color', glasses: 'boolean'},
   },
 };
@@ -93,6 +93,10 @@ export const OBJECTS: Record<string, ObjectDef> = {
   },
   point_light: {status: 'ready', doc: 'Zusätzliches Punktlicht.', params: {color: 'color', distance: 'number'}, tracks: ['intensity']},
   cracking_ground: {status: 'ready', doc: 'Boden, dessen Platten ab einem Zeitpunkt aufbrechen und fallen.', params: {size: 'number', start: 'any'}, tracks: []},
+  door_handle: {
+    status: 'ready', doc: 'Tür mit Klinke (src/world/Door.tsx), steht mit der Vorderseite zur Kamera (+z). Verläufe: handle (0 = Ruhe, 1 = Klinke ganz gedrückt), light (Licht unter der Tür 0–1). params: color (Klinke), door (Türfarbe).',
+    params: {color: 'color', door: 'color'}, tracks: ['handle', 'light'],
+  },
   spotlight_text: {status: 'planned', doc: '3D-Schriftzug im Raum (für Erklärvideos).', params: {text: 'string'}, tracks: []},
 };
 

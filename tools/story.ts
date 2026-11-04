@@ -6,6 +6,7 @@
  *   schema                   schreibt stories/story.schema.json (Autovervollständigung im Editor)
  *   compare-legacy <datei>   vergleicht die YAML mit story/script.json + timeline.json (Migrationsnachweis)
  *   preview <datei> [--scene a,b] [--from 3s --to 8s] [--size 360|270] [--fps 15] [--out f] [--no-cache] [--props f]   schnelle Vorschau (Schritt 4)
+ *   shots <datei>   Kameraprüfung: Blickwinkel auf Gesichter, Kopf im Bildausschnitt (ohne Rendern)
  *   still <datei> --scene id --times 0.5,1.2 --out ordner [--scale 0.4]   Standbilder (Sekunden relativ zur Szene)
  *   approve <datei> [--confirm <hash>] | approval <datei> | revoke <datei>   Freigabe (Schritt 5)
  *   render <datei> [--only a,b] [--force]   finaler Export 1080×1920 @ 30 FPS – nur mit gültiger Freigabe; render wird nie ohne Freigabe laufen
@@ -18,6 +19,7 @@ import {OBJECTS, RIGS, SETS} from '../src/story/registry';
 import {checkStoryFile, type Issue} from '../src/story/validate';
 import {runVoice} from './voice';
 import {runPreview, runStills} from './preview';
+import {runShots} from './shotcheck';
 import {runApprovalStatus, runApprove, runExport, runRevoke} from './export';
 
 const root = process.cwd();
@@ -139,6 +141,7 @@ else if (cmd === 'preview' && arg) {
       out: opt('--out'), noCache: flags.includes('--no-cache'), jpegQuality: opt('--jpeg-quality') ? Number(opt('--jpeg-quality')) : undefined, concurrency: opt('--concurrency') ? Number(opt('--concurrency')) : undefined, props: opt('--props'), crf: opt('--crf') ? Number(opt('--crf')) : undefined});
   } catch (e) { console.log(`✖ ${(e as Error).message}`); code = 1; }
 }
+else if (cmd === 'shots' && arg) { try { code = runShots(arg); } catch (e) { console.log(`✖ ${(e as Error).message}`); code = 1; } }
 else if (cmd === 'still' && arg) {
   try { code = await runStills(arg, {scene: opt('--scene') ?? '', times: opt('--times') ?? '0', out: opt('--out') ?? 'out/stills', scale: opt('--scale') ? Number(opt('--scale')) : undefined}); }
   catch (e) { console.log(`✖ ${(e as Error).message}`); code = 1; }
