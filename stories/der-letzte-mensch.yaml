@@ -1,0 +1,474 @@
+# yaml-language-server: $schema=./story.schema.json
+# „Der letzte Mensch“ – Mystery-TikTok (≈ 50 s, 1080×1920 @ 30 FPS). Ein Erzähler, eine Telefonstimme. Rig person2.
+# Aussehen: Hauptfigur („du“) mit türkiser Kapuzenjacke; Doppelgänger identisch, nur Augen eine Spur zu hell, blinzelt nie.
+schema: 1
+meta: {id: der-letzte-mensch, title: Der letzte Mensch, genre: mystery, targetDuration: {min: 45, max: 56}}
+format: {fps: 30, width: 1080, height: 1920}
+
+voices:
+  erzaehler:    # ruhig, etwas tiefer und langsamer: Spannung
+    lengthScale: 1.0
+    effect: {pitch: 0.94}
+    loudness: -16
+    subtitle: {accent: "#ffd23d"}
+  anrufer:      # geflüstert wirkende, tiefe Telefonstimme mit Hall
+    lengthScale: 1.12
+    effect: {pitch: 0.8, lowpassHz: 2800, eq: {freqHz: 1500, gainDb: 3}, echo: {delayMs: 110, decay: 0.4}}
+    loudness: -17
+    subtitle: {accent: "#ff5a5a", label: "UNBEKANNTE STIMME"}
+
+cast:
+  erzaehler: {rig: person2, name: Erzähler, voice: erzaehler}      # nie im Bild
+  anrufer: {rig: person2, name: Anrufer, voice: anrufer}           # nie im Bild
+  held:
+    rig: person2
+    name: Du
+    look: {skin: "#e8b894", hair: "#2b1d14", hairStyle: short, shirt: "#2fb5a8", pants: "#3b3f55", shoes: "#f2f2f2", eyes: "#3b6e8f"}
+  doppel:   # sieht exakt aus wie die Hauptfigur (Augen eine Spur zu hell), spricht nie
+    rig: person2
+    name: Doppelgänger
+    look: {skin: "#e8b894", hair: "#2b1d14", hairStyle: short, shirt: "#2fb5a8", pants: "#3b3f55", shoes: "#f2f2f2", eyes: "#e6ecff"}
+
+audio:
+  music: {file: music_mensch, volume: 0.30, duck: {depth: 0.16, attack: 4f, release: 10f}, fadeOut: 1f}
+subtitles: {maxWords: 3, maxChars: 24, font: Inter, maxFontSize: 108, bottomPadding: 420}
+overlays: {vignette: true}
+
+scenes:
+  - id: hook
+    title: Hook – allein zwischen verlassenen Autos
+    timing: {pre: 0.1, post: 1.4}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: false, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#5f86c8", mid: "#ffb88a", bottom: "#ffe6c4"}}
+    light:
+      fog: {color: "#ffd9b8", near: 30, far: 150}
+      hemi: {sky: "#ffe0c0", ground: "#9a7a6a", intensity: 1.1}
+      ambient: 0.35
+      key: {color: "#ffb070", intensity: 2.8, pos: [-22, 9, 14], shadowAt: [0, 0, -6]}
+    actors:
+      - {id: held, cast: held, at: [0, -0.1, -4], yaw: 0, pose: idle, face: worry, params: {gaze: "off", gestures: false, energy: 0.8}}
+    objects:
+      - {id: auto0, type: car, at: [-2.2, -0.02, -8.5], params: {yaw: 0.25, color: "#c94a4a", open: 1, lights: true}}
+      - {id: auto1, type: car, at: [2.0, -0.02, -11.5], params: {yaw: -0.5, color: "#3f78d9", open: 0, lights: false}}
+      - {id: auto2, type: car, at: [-2.6, -0.02, 2.2], params: {yaw: 2.9, color: "#e8c547", open: 0, lights: false}}
+      - {id: auto3, type: car, at: [3.0, -0.02, -3.0], params: {yaw: 0.35, color: "#2fb59a", open: 0, lights: false}}
+      - {id: auto4, type: car, at: [-3.0, -0.02, -15.0], params: {yaw: -1.2, color: "#9a6ad9", open: 0, lights: false}}
+      - {id: auto5, type: car, at: [0.4, -0.02, -19.0], params: {yaw: 3.3, color: "#eeeeee", open: 0, lights: true}}
+      - {id: auto6, type: car, at: [-1.2, -0.02, -26.0], params: {yaw: 0.6, color: "#e07a3a", open: 1, lights: false}}
+    camera:
+      keys:
+        - {t: 0, pos: [-2.4, 0.6, 6.5], look: [0, 2.4, -4], fov: 40}
+        - {t: 1.0s, pos: [-1.6, 0.8, 4.8], look: [0, 2.4, -4], fov: 38, ease: out}
+        - {t: 1.0s, pos: [0.7, 2.9, 0.0], look: [0, 2.7, -4], fov: 26, cut: true}
+        - {t: 2.0s, pos: [0.6, 2.85, -0.6], look: [0, 2.7, -4], fov: 22, ease: lin}
+        - {t: 2.0s, pos: [1.6, 1.0, -2.6], look: [-2.2, 1.2, -8.5], fov: 40, cut: true}
+        - {t: 3.0s, pos: [1.2, 1.0, -3.2], look: [-2.2, 1.25, -8.5], fov: 36, ease: lin}
+        - {t: 3.0s, pos: [7, 15, 9], look: [0, 0.5, -9], fov: 50, cut: true}
+        - {t: 4.2s, pos: [4, 9, 6], look: [0, 0.5, -9], fov: 50, ease: lin}
+        - {t: 4.2s, pos: [-4.5, 1.6, -0.2], look: [0, 2.4, -4], fov: 36, cut: true}
+        - {t: 5.2s, pos: [-4.3, 1.7, -0.8], look: [0, 2.5, -4], fov: 32, ease: lin}
+        - {t: 5.2s, pos: [0.4, 2.8, 0.4], look: [0, 2.7, -4], fov: 24, cut: true}
+        - {t: scene.end, pos: [0.4, 2.8, -0.2], look: [0, 2.7, -4], fov: 21, ease: lin}
+    lines:
+      - {id: v01, who: erzaehler, text: "Stell dir vor, du wachst morgen auf, und alle Menschen sind verschwunden."}
+      - {id: v02, who: erzaehler, text: "Kein einziger ist mehr da."}
+    sfx:
+      - {sound: wind, at: 0, loop: scene, volume: 0.4}
+      - {sound: boom, at: 0.05, volume: 0.6}
+      - {sound: whoosh, at: 1.0s, volume: 0.3}
+      - {sound: whoosh, at: 2.0s, volume: 0.3}
+      - {sound: whoosh, at: 3.0s, volume: 0.35}
+      - {sound: whoosh, at: 4.2s, volume: 0.3}
+
+  - id: rennen
+    title: Er rennt auf die Straße
+    timing: {pre: 0.1, post: 0.9}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: false, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#5f86c8", mid: "#ffb88a", bottom: "#ffe6c4"}}
+    light:
+      fog: {color: "#ffd9b8", near: 30, far: 150}
+      hemi: {sky: "#ffe0c0", ground: "#9a7a6a", intensity: 1.1}
+      ambient: 0.35
+      key: {color: "#ffb070", intensity: 2.8, pos: [-22, 9, 14], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, path: [{t: 0, pos: [0.6, -0.1, -22]}, {t: scene.end, pos: [0.6, -0.1, -3]}], yaw: 0, pose: run, face: shock, params: {gaze: "off"}}
+    objects:
+      - {id: auto6, type: car, at: [-1.2, -0.02, -26.0], params: {yaw: 0.6, color: "#e07a3a", open: 1, lights: false}}
+    camera:
+      keys:
+        - {t: 0, pos: {rel: held, off: [0.3, 0.5, 3.0]}, look: {rel: held, off: [0, 0.9, 0]}, fov: 55}
+        - {t: 0.8s, pos: {rel: held, off: [0.3, 0.5, 3.0]}, look: {rel: held, off: [0, 0.9, 0]}, fov: 55, ease: lin}
+        - {t: 0.8s, pos: {rel: held, off: [-0.6, 2.6, 3.6]}, look: {rel: held, off: [0, 2.6, 0]}, fov: 34, cut: true}
+        - {t: 1.6s, pos: {rel: held, off: [-0.6, 2.6, 3.6]}, look: {rel: held, off: [0, 2.6, 0]}, fov: 34, ease: lin}
+        - {t: 1.6s, pos: {rel: held, off: [-5.0, 1.8, 0.5]}, look: {rel: held, off: [0, 2.0, 0]}, fov: 44, cut: true}
+        - {t: scene.end, pos: {rel: held, off: [-5.0, 1.8, 0.5]}, look: {rel: held, off: [0, 2.0, 0]}, fov: 44, ease: lin}
+    lines:
+      - {id: v03, who: erzaehler, text: "Du rennst auf die Straße."}
+    sfx:
+      - {sound: steps, at: 0, loop: scene, volume: 0.55}
+      - {sound: whoosh_fast, at: 0, volume: 0.5}
+      - {sound: whoosh, at: 0.8s, volume: 0.3}
+      - {sound: whoosh, at: 1.6s, volume: 0.3}
+
+  - id: kreuzung
+    title: Autos stehen mitten auf der Kreuzung
+    timing: {pre: 0.1, post: 1.3}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: false, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#5f86c8", mid: "#ffb88a", bottom: "#ffe6c4"}}
+    light:
+      fog: {color: "#ffd9b8", near: 30, far: 150}
+      hemi: {sky: "#ffe0c0", ground: "#9a7a6a", intensity: 1.1}
+      ambient: 0.35
+      key: {color: "#ffb070", intensity: 2.8, pos: [-22, 9, 14], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, path: [{t: 0, pos: [0.2, -0.1, -13]}, {t: scene.end, pos: [0.2, -0.1, -2]}], yaw: 0, pose: walk, face: worry, params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: auto0, type: car, at: [-2.2, -0.02, -8.5], params: {yaw: 0.25, color: "#c94a4a", open: 1, lights: true}}
+      - {id: auto1, type: car, at: [2.0, -0.02, -11.5], params: {yaw: -0.5, color: "#3f78d9", open: 0, lights: false}}
+      - {id: auto3, type: car, at: [3.0, -0.02, -3.0], params: {yaw: 0.35, color: "#2fb59a", open: 0, lights: false}}
+      - {id: auto4, type: car, at: [-3.0, -0.02, -15.0], params: {yaw: -1.2, color: "#9a6ad9", open: 0, lights: false}}
+      - {id: auto5, type: car, at: [0.4, -0.02, -19.0], params: {yaw: 3.3, color: "#eeeeee", open: 0, lights: true}}
+      - {id: auto6, type: car, at: [-1.2, -0.02, -26.0], params: {yaw: 0.6, color: "#e07a3a", open: 1, lights: false}}
+    camera:
+      keys:
+        - {t: 0, pos: [-1.9, 1.3, 7.0], look: [0.2, 2.0, -6], fov: 52}
+        - {t: 0.9s, pos: [-1.5, 1.3, 6.2], look: [0.2, 2.0, -6], fov: 48, ease: lin}
+        - {t: 0.9s, pos: [4.2, 1.0, -7.0], look: [1.8, 1.2, -11.5], fov: 40, cut: true}
+        - {t: 1.8s, pos: [4.0, 1.1, -7.6], look: [1.8, 1.3, -11.5], fov: 36, ease: lin}
+        - {t: 1.8s, pos: {rel: held, off: [0.4, 2.8, 3.8]}, look: {rel: held, off: [0, 2.7, 0]}, fov: 30, cut: true}
+        - {t: 2.6s, pos: {rel: held, off: [0.4, 2.8, 3.6]}, look: {rel: held, off: [0, 2.7, 0]}, fov: 28, ease: lin}
+        - {t: 2.6s, pos: [-3.5, 4.5, 2.0], look: [0, 1.0, -8], fov: 55, cut: true}
+        - {t: scene.end, pos: [-3.0, 4.0, 1.0], look: [0, 1.0, -8], fov: 55, ease: lin}
+    lines:
+      - {id: v04, who: erzaehler, text: "Autos stehen mitten auf der Kreuzung."}
+    sfx:
+      - {sound: wind, at: 0, loop: scene, volume: 0.35}
+      - {sound: whoosh, at: 0.9s, volume: 0.3}
+      - {sound: whoosh, at: 1.8s, volume: 0.3}
+      - {sound: whoosh, at: 2.6s, volume: 0.3}
+
+  - id: laeden
+    title: Die Geschäfte sind offen
+    timing: {pre: 0.1, post: 1.1}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: false, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#5f86c8", mid: "#ffb88a", bottom: "#ffe6c4"}}
+    light:
+      fog: {color: "#ffd9b8", near: 30, far: 150}
+      hemi: {sky: "#ffe0c0", ground: "#9a7a6a", intensity: 1.1}
+      ambient: 0.35
+      key: {color: "#ffb070", intensity: 2.8, pos: [-22, 9, 14], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, at: [5.4, 0, -7], yaw: -0.5pi, pose: idle, face: worry, params: {gaze: "off", gestures: false, energy: 1.0}}
+    camera:
+      keys:
+        - {t: 0, pos: [1.5, 2.6, -4.5], look: [7, 2.4, -6.5], fov: 40}
+        - {t: 0.8s, pos: [1.8, 2.6, -4.8], look: [7, 2.4, -6.5], fov: 36, ease: lin}
+        - {t: 0.8s, pos: [0.2, 2.8, -6.2], look: [5.4, 2.7, -7], fov: 28, cut: true}
+        - {t: 1.6s, pos: [0.4, 2.8, -6.2], look: [5.4, 2.7, -7], fov: 24, ease: lin}
+        - {t: 1.6s, pos: [-2.5, 2.2, -2], look: [5.8, 2.6, -8.5], fov: 54, cut: true}
+        - {t: scene.end, pos: [-2.0, 2.2, -2.5], look: [5.8, 2.6, -8.5], fov: 50, ease: lin}
+    lines:
+      - {id: v05, who: erzaehler, text: "Die Geschäfte sind offen."}
+    sfx:
+      - {sound: chime, at: 0.1s, volume: 0.35}
+      - {sound: wind, at: 0, loop: scene, volume: 0.3}
+      - {sound: whoosh, at: 0.8s, volume: 0.3}
+      - {sound: whoosh, at: 1.6s, volume: 0.3}
+
+  - id: leer
+    title: Nirgendwo ist jemand
+    timing: {pre: 0.1, post: 1.6}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: false, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#5f86c8", mid: "#ffb88a", bottom: "#ffe6c4"}}
+    light:
+      fog: {color: "#ffd9b8", near: 30, far: 150}
+      hemi: {sky: "#ffe0c0", ground: "#9a7a6a", intensity: 1.1}
+      ambient: 0.35
+      key: {color: "#ffb070", intensity: 2.8, pos: [-22, 9, 14], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, at: [0, -0.1, -8], yaw: 0.15pi, pose: idle, face: worry, params: {gaze: "off", gestures: true, energy: 1.2}}
+    objects:
+      - {id: auto0, type: car, at: [-2.2, -0.02, -8.5], params: {yaw: 0.25, color: "#c94a4a", open: 1, lights: true}}
+      - {id: auto1, type: car, at: [2.0, -0.02, -11.5], params: {yaw: -0.5, color: "#3f78d9", open: 0, lights: false}}
+      - {id: auto2, type: car, at: [-2.6, -0.02, 2.2], params: {yaw: 2.9, color: "#e8c547", open: 0, lights: false}}
+      - {id: auto3, type: car, at: [3.0, -0.02, -3.0], params: {yaw: 0.35, color: "#2fb59a", open: 0, lights: false}}
+      - {id: auto4, type: car, at: [-3.0, -0.02, -15.0], params: {yaw: -1.2, color: "#9a6ad9", open: 0, lights: false}}
+      - {id: auto5, type: car, at: [0.4, -0.02, -19.0], params: {yaw: 3.3, color: "#eeeeee", open: 0, lights: true}}
+      - {id: auto6, type: car, at: [-1.2, -0.02, -26.0], params: {yaw: 0.6, color: "#e07a3a", open: 1, lights: false}}
+    camera:
+      keys:
+        - {t: 0, pos: [-3.4, 2.5, -5.0], look: [0, 2.6, -8], fov: 38}
+        - {t: 0.9s, pos: [0.4, 2.6, -4.2], look: [0, 2.6, -8], fov: 36, ease: io}
+        - {t: 0.9s, pos: [0.5, 18, -7], look: [0, 0, -8], fov: 44, cut: true}
+        - {t: 1.8s, pos: [0.5, 14, -7], look: [0, 0, -8], fov: 44, ease: lin}
+        - {t: 1.8s, pos: [-1.0, 0.5, 0], look: [0, 2.0, -9], fov: 50, cut: true}
+        - {t: scene.end, pos: [-0.6, 0.6, -1], look: [0, 2.0, -9], fov: 46, ease: lin}
+    lines:
+      - {id: v06, who: erzaehler, text: "Aber nirgendwo ist jemand."}
+    sfx:
+      - {sound: wind, at: 0, loop: scene, volume: 0.4}
+      - {sound: whoosh, at: 0.9s, volume: 0.3}
+      - {sound: whoosh, at: 1.8s, volume: 0.3}
+
+  - id: freiheit
+    title: Ein kurzer Moment von Freiheit
+    timing: {pre: 0.1, post: 0.9}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: false, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#5f86c8", mid: "#ffb88a", bottom: "#ffe6c4"}}
+    light:
+      fog: {color: "#ffd9b8", near: 30, far: 150}
+      hemi: {sky: "#ffe0c0", ground: "#9a7a6a", intensity: 1.1}
+      ambient: 0.35
+      key: {color: "#ffb070", intensity: 2.8, pos: [-22, 9, 14], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, path: [{t: 0, pos: [0, -0.1, -9]}, {t: 0.45s, pos: [0, 2.6, -9], ease: out}, {t: 0.95s, pos: [0, -0.1, -9], ease: in}, {t: 2.0s, pos: [0, -0.1, -9]}, {t: 2.45s, pos: [0, 2.6, -9], ease: out}, {t: 2.95s, pos: [0, -0.1, -9], ease: in}], yaw: 0.1pi, pose: wave, face: grin, params: {gaze: camera, gestures: true, energy: 1.6}}
+    objects:
+      - {id: auto2, type: car, at: [-2.6, -0.02, 2.2], params: {yaw: 2.9, color: "#e8c547", open: 0, lights: false}}
+      - {id: auto3, type: car, at: [3.0, -0.02, -3.0], params: {yaw: 0.35, color: "#2fb59a", open: 0, lights: false}}
+      - {id: auto4, type: car, at: [-3.0, -0.02, -15.0], params: {yaw: -1.2, color: "#9a6ad9", open: 0, lights: false}}
+      - {id: auto5, type: car, at: [0.4, -0.02, -19.0], params: {yaw: 3.3, color: "#eeeeee", open: 0, lights: true}}
+      - {id: auto6, type: car, at: [-1.2, -0.02, -26.0], params: {yaw: 0.6, color: "#e07a3a", open: 1, lights: false}}
+    camera:
+      keys:
+        - {t: 0, pos: [1.5, 0.4, -5.5], look: {rel: held, off: [0, 2.5, 0]}, fov: 52}
+        - {t: 0.95s, pos: [1.2, 0.5, -5.6], look: {rel: held, off: [0, 2.5, 0]}, fov: 50, ease: lin}
+        - {t: 0.95s, pos: [-4.5, 1.0, -4.0], look: {rel: held, off: [0, 2.6, 0]}, fov: 46, cut: true}
+        - {t: 1.9s, pos: [4.5, 1.2, -4.5], look: {rel: held, off: [0, 2.6, 0]}, fov: 46, ease: io}
+        - {t: 1.9s, pos: {rel: held, off: [0.8, 2.8, 2.6]}, look: {rel: held, off: [0, 2.7, 0]}, fov: 28, cut: true}
+        - {t: 2.8s, pos: {rel: held, off: [0.6, 2.8, 2.4]}, look: {rel: held, off: [0, 2.7, 0]}, fov: 26, ease: lin}
+        - {t: 2.8s, pos: [6, 12, -1], look: [0, 0, -9], fov: 52, cut: true}
+        - {t: scene.end, pos: [4, 9, -2], look: [0, 0, -9], fov: 52, ease: lin}
+    lines:
+      - {id: v07, who: erzaehler, text: "Zuerst denkst du: Ich kann alles machen, was ich will."}
+    sfx:
+      - {sound: whoosh, at: 0.3s, volume: 0.45}
+      - {sound: chime, at: 0.5s, volume: 0.4}
+      - {sound: whoosh, at: 0.95s, volume: 0.3}
+      - {sound: whoosh, at: 1.9s, volume: 0.3}
+      - {sound: chime, at: 2.45s, volume: 0.35}
+      - {sound: whoosh, at: 2.8s, volume: 0.3}
+
+  - id: klingeln
+    title: Plötzlich klingelt ein Telefon
+    timing: {pre: 0.1, post: 1.6}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: false, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#5f86c8", mid: "#ffb88a", bottom: "#ffe6c4"}}
+    light:
+      fog: {color: "#ffd9b8", near: 30, far: 150}
+      hemi: {sky: "#ffe0c0", ground: "#9a7a6a", intensity: 1.1}
+      ambient: 0.35
+      key: {color: "#ffb070", intensity: 2.8, pos: [-22, 9, 14], shadowAt: {rel: held}}
+    actors:
+      - {id: held, cast: held, at: [0, -0.1, -9], yaw: 0.05pi, pose: idle, face: [{t: 0, face: smile}, {t: "v08.word5", face: shock, ease: cut}], params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: auto0, type: car, at: [-2.2, -0.02, -8.5], params: {yaw: 0.25, color: "#c94a4a", open: 1, lights: true}}
+      - {id: auto1, type: car, at: [2.0, -0.02, -11.5], params: {yaw: -0.5, color: "#3f78d9", open: 0, lights: false}}
+      - {id: auto2, type: car, at: [-2.6, -0.02, 2.2], params: {yaw: 2.9, color: "#e8c547", open: 0, lights: false}}
+      - {id: auto3, type: car, at: [3.0, -0.02, -3.0], params: {yaw: 0.35, color: "#2fb59a", open: 0, lights: false}}
+      - {id: auto4, type: car, at: [-3.0, -0.02, -15.0], params: {yaw: -1.2, color: "#9a6ad9", open: 0, lights: false}}
+      - {id: auto5, type: car, at: [0.4, -0.02, -19.0], params: {yaw: 3.3, color: "#eeeeee", open: 0, lights: true}}
+      - {id: auto6, type: car, at: [-1.2, -0.02, -26.0], params: {yaw: 0.6, color: "#e07a3a", open: 1, lights: false}}
+      - {id: zelle, type: phone_booth, at: [5.4, 0, -36], params: {scale: 2.2, yaw: 0}, tracks: {ring: [{t: 0, v: 1}]}}
+    camera:
+      keys:
+        - {t: 0, pos: [1.3, 2.9, -5.0], look: {rel: held, off: [0, 2.7, 0]}, fov: 34}
+        - {t: "v08.word5", pos: [0.9, 2.85, -5.4], look: {rel: held, off: [0, 2.7, 0]}, fov: 30, ease: lin}
+        - {t: "v08.word5", pos: [0.7, 2.8, -5.3], look: {rel: held, off: [0, 2.7, 0]}, fov: 28, cut: true}
+        - {t: "v08.word5+0.9s", pos: [0.6, 2.8, -5.7], look: {rel: held, off: [0, 2.7, 0]}, fov: 24, ease: lin}
+        - {t: "v08.word5+0.9s", pos: [1.5, 2.6, -12.5], look: [5, 3, -32], fov: 40, cut: true}
+        - {t: scene.end, pos: [1.4, 2.6, -13.5], look: [5, 3, -32], fov: 34, ease: lin}
+    lines:
+      - {id: v08, who: erzaehler, text: "Doch dann hörst du plötzlich ein Telefon klingeln."}
+    sfx:
+      - {sound: wind, at: 0, loop: scene, volume: 0.25}
+      - {sound: ring, at: "v08.word5", volume: 0.9}
+      - {sound: ring, at: "v08.word5+1.1s", volume: 0.9}
+      - {sound: riser, at: "v08.word5", volume: 0.4}
+      - {sound: whoosh, at: "v08.word5+0.9s", volume: 0.3}
+
+  - id: zelle
+    title: Nahaufnahme des klingelnden Telefons
+    timing: {pre: 3.2, post: 0}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: true, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#141a40", mid: "#5a3a7a", bottom: "#d0607a"}}
+    light:
+      fog: {color: "#4a3060", near: 22, far: 110}
+      hemi: {sky: "#8a7ab8", ground: "#2a2040", intensity: 0.75}
+      ambient: 0.28
+      key: {color: "#9ab0ff", intensity: 1.5, pos: [18, 12, 10], shadowAt: [5.4, 0, -11]}
+    actors:
+      - {id: held, cast: held, at: [-1.0, -0.1, -1.0], yaw: pi, pose: idle, face: worry, visible: {from: 99s}}
+    objects:
+      - {id: zelle, type: phone_booth, at: [5.4, 0, -11], params: {scale: 1.0, handset: true}, tracks: {ring: [{t: 0, v: 1}]}}
+      - {id: ruf, type: point_light, at: [5.4, 3.6, -9.5], params: {color: "#ffa63a", distance: 12}, tracks: {intensity: [{t: 0, v: 8}, {t: 0.45s, v: 2, ease: cut}, {t: 0.9s, v: 8, ease: cut}, {t: 1.35s, v: 2, ease: cut}, {t: 1.8s, v: 8, ease: cut}, {t: 2.25s, v: 2, ease: cut}, {t: 2.7s, v: 8, ease: cut}]}}
+    camera:
+      keys:
+        - {t: 0, pos: [6.6, 4.3, -5.4], look: [5.4, 3.4, -11.6], fov: 46}
+        - {t: 0.9s, pos: [6.3, 4.1, -6.4], look: [5.4, 3.4, -11.6], fov: 42, ease: lin}
+        - {t: 0.9s, pos: [5.9, 3.8, -8.9], look: [5.4, 3.5, -11.85], fov: 26, cut: true}
+        - {t: 1.8s, pos: [5.8, 3.75, -9.2], look: [5.4, 3.5, -11.85], fov: 22, ease: lin}
+        - {t: 1.8s, pos: [5.4, 3.6, -8.8], look: [4.72, 3.4, -11.7], fov: 22, cut: true}
+        - {t: scene.end, pos: [5.3, 3.55, -9.1], look: [4.72, 3.4, -11.7], fov: 18, ease: lin}
+    sfx:
+      - {sound: ring, at: 0.05s, volume: 0.9}
+      - {sound: ring, at: 0.95s, volume: 0.9}
+      - {sound: ring, at: 1.85s, volume: 0.9}
+      - {sound: heartbeat, at: 0.2s, volume: 0.4}
+      - {sound: whoosh, at: 0.9s, volume: 0.25}
+      - {sound: whoosh, at: 1.8s, volume: 0.25}
+
+  - id: anruf
+    title: Du gehst ran – die Stimme flüstert
+    timing: {pre: 0.1, post: 2.1}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: true, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#141a40", mid: "#5a3a7a", bottom: "#d0607a"}}
+    light:
+      fog: {color: "#4a3060", near: 22, far: 110}
+      hemi: {sky: "#8a7ab8", ground: "#2a2040", intensity: 0.75}
+      ambient: 0.28
+      key: {color: "#9ab0ff", intensity: 1.5, pos: [18, 12, 10], shadowAt: [5.4, 0, -11]}
+    actors:
+      - {id: held, cast: held, path: [{t: 0, pos: [3.0, 0, -7.5]}, {t: 0.7s, pos: [5.4, 0, -10.7]}, {t: scene.end, pos: [5.4, 0, -10.7]}], yaw: 0, pose: [{t: 0, pose: walk}, {t: 0.7s, pose: call}], prop: [{t: 0, prop: none}, {t: 0.7s, prop: phone}], face: [{t: 0, face: worry}, {t: "v10.word3", face: shock, ease: cut}], params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: zelle, type: phone_booth, at: [5.4, 0, -11], params: {scale: 1.0, handset: false}}
+      - {id: flacker, type: point_light, at: [5.4, 4.2, -9.8], params: {color: "#ff5a3a", distance: 12}, tracks: {intensity: [{t: "v10.start", v: 0}, {t: "v10.start+4f", v: 9, ease: cut}, {t: "v10.start+9f", v: 1, ease: cut}, {t: "v10.start+14f", v: 7, ease: cut}, {t: "v10.start+20f", v: 2}, {t: "v10.end", v: 6}]}}
+    camera:
+      keys:
+        - {t: 0, pos: [1.0, 2.6, -4.5], look: [4.2, 2.5, -9.5], fov: 44}
+        - {t: 0.7s, pos: [2.0, 2.8, -5.2], look: [5.0, 2.7, -10.2], fov: 40, ease: out}
+        - {t: 0.7s, pos: [5.9, 3.5, -7.4], look: [5.0, 3.4, -11.3], fov: 26, cut: true}
+        - {t: "v10.start", pos: [5.9, 3.5, -7.6], look: [5.0, 3.4, -11.3], fov: 24, ease: lin}
+        - {t: "v10.start", pos: [5.9, 3.5, -6.0], look: [5.4, 3.3, -10.7], fov: 30, cut: true}
+        - {t: "v10.start+22f", pos: [5.7, 3.45, -6.4], look: [5.4, 3.3, -10.7], fov: 27, ease: lin}
+        - {t: "v10.start+22f", pos: [5.6, 3.5, -6.2], look: [5.4, 3.35, -10.7], fov: 19, cut: true}
+        - {t: "v10.start+44f", pos: [5.6, 3.5, -6.6], look: [5.4, 3.35, -10.7], fov: 17, ease: lin}
+        - {t: "v10.start+44f", pos: [2.6, 2.8, -3.8], look: [5.2, 3.1, -10.8], fov: 46, cut: true}
+        - {t: scene.end, pos: [3.2, 2.8, -4.4], look: [5.2, 3.1, -10.8], fov: 42, ease: lin}
+    lines:
+      - {id: v09, who: erzaehler, text: "Du gehst ran."}
+      - {id: v10, who: anrufer, text: "Versteck dich. Sie haben dich vergessen."}
+    sfx:
+      - {sound: steps, at: 0, volume: 0.4}
+      - {sound: door_latch, at: 0.7s, volume: 0.6}
+      - {sound: rumble, at: "v10.start", volume: 0.5}
+      - {sound: heartbeat, at: "v10.start", volume: 0.5}
+      - {sound: whoosh, at: "v10.start", volume: 0.3}
+      - {sound: whoosh, at: "v10.start+22f", volume: 0.3}
+      - {sound: whoosh, at: "v10.start+44f", volume: 0.3}
+
+  - id: schritte
+    title: Schritte hinter dir – der Doppelgänger nähert sich
+    timing: {pre: 0.1, post: 2.4}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: true, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#141a40", mid: "#5a3a7a", bottom: "#d0607a"}}
+    light:
+      fog: {color: "#4a3060", near: 22, far: 110}
+      hemi: {sky: "#8a7ab8", ground: "#2a2040", intensity: 0.75}
+      ambient: 0.28
+      key: {color: "#9ab0ff", intensity: 1.5, pos: [18, 12, 10], shadowAt: [5.4, 0, -14]}
+    actors:
+      - {id: held, cast: held, at: [5.4, 0, -10.7], yaw: 0, pose: idle, face: [{t: 0, face: worry}, {t: "v11.word4", face: shock, ease: cut}], params: {gaze: "off", gestures: false}}
+      - {id: doppel, cast: doppel, path: [{t: 0, pos: [3.0, -0.1, -40]}, {t: scene.end, pos: [3.0, -0.1, -19]}], yaw: 0, pose: walk, face: neutral, params: {blink: false, gaze: camera, gestures: false}}
+    objects:
+      - {id: zelle, type: phone_booth, at: [5.4, 0, -11], params: {scale: 1.0, handset: true}}
+    camera:
+      keys:
+        - {t: 0, pos: [3.4, 2.5, -4.2], look: [5, 3.0, -14], fov: 42}
+        - {t: 1.0s, pos: [3.8, 2.55, -4.5], look: [5, 3.0, -14], fov: 40, ease: lin}
+        - {t: 1.0s, pos: [3.0, 0.5, -16.0], look: [3.0, 0.7, -24], fov: 44, cut: true}
+        - {t: 1.9s, pos: [3.0, 0.5, -16.0], look: [3.0, 0.7, -24], fov: 40, ease: lin}
+        - {t: 1.9s, pos: [5.3, 3.4, -6.4], look: [5.4, 3.3, -10.7], fov: 28, cut: true}
+        - {t: 2.8s, pos: [5.3, 3.35, -7.0], look: [5.4, 3.3, -10.7], fov: 24, ease: lin}
+        - {t: 2.8s, pos: [5.5, 3.45, -6.8], look: [5.4, 3.35, -10.7], fov: 21, cut: true}
+        - {t: scene.end, pos: [5.5, 3.45, -7.2], look: [5.4, 3.35, -10.7], fov: 18, ease: lin}
+    lines:
+      - {id: v11, who: erzaehler, text: "Dann hörst du Schritte hinter dir."}
+    sfx:
+      - {sound: steps, at: 0, loop: scene, volume: 0.6}
+      - {sound: heartbeat, at: 0, loop: scene, volume: 0.6}
+      - {sound: riser, at: 0.3s, volume: 0.5}
+      - {sound: whoosh, at: 1.0s, volume: 0.3}
+      - {sound: whoosh, at: 1.9s, volume: 0.3}
+      - {sound: whoosh, at: 2.8s, volume: 0.3}
+
+  - id: umdrehen
+    title: Du drehst dich um und siehst dich selbst
+    timing: {pre: 0.1, post: 1.9}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: false, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#141a40", mid: "#5a3a7a", bottom: "#d0607a"}}
+    light:
+      fog: {color: "#4a3060", near: 22, far: 110}
+      hemi: {sky: "#8a7ab8", ground: "#2a2040", intensity: 0.75}
+      ambient: 0.28
+      key: {color: "#9ab0ff", intensity: 1.5, pos: [18, 12, 10], shadowAt: [3.0, 0, -15]}
+    actors:
+      - {id: held, cast: held, at: [3.0, -0.1, -14.2], yaw: pi, pose: idle, face: [{t: 0, face: worry}, {t: "v12.word6", face: shock, ease: cut}], params: {gaze: "off", gestures: false}}
+      - {id: doppel, cast: doppel, at: [3.0, -0.1, -17.0], yaw: 0, pose: idle, face: neutral, params: {blink: false, gaze: held, gestures: false, energy: 0.3}}
+    objects:
+      - {id: zelle, type: phone_booth, at: [5.4, 0, -11], params: {scale: 1.0, handset: true}}
+      - {id: lichtA, type: point_light, at: [3.0, 6.5, -12], params: {color: "#ffc88a", distance: 22}, tracks: {intensity: [{t: 0, v: 14}]}}
+      - {id: lichtB, type: point_light, at: [3.0, 6.5, -19], params: {color: "#a8b8ff", distance: 22}, tracks: {intensity: [{t: 0, v: 10}]}}
+    camera:
+      keys:
+        - {t: 0, pos: [3.4, 3.2, -9.0], look: [3.0, 2.7, -15.6], fov: 46}
+        - {t: "v12.word6", pos: [3.3, 3.1, -10.4], look: [3.0, 2.7, -15.6], fov: 42, ease: lin}
+        - {t: "v12.word6", pos: [-6.0, 2.8, -15.6], look: [3.0, 2.7, -15.6], fov: 56, cut: true}
+        - {t: "v12.word6+0.9s", pos: [-6.3, 2.8, -15.6], look: [3.0, 2.7, -15.6], fov: 52, ease: lin}
+        - {t: "v12.word6+0.9s", pos: [3.0, 3.0, -16.6], look: [3.0, 3.0, -14.2], fov: 36, cut: true}
+        - {t: "v12.word6+1.8s", pos: [3.0, 3.0, -16.4], look: [3.0, 3.0, -14.2], fov: 30, ease: lin}
+        - {t: "v12.word6+1.8s", pos: [4.0, 3.4, -11.4], look: [3.0, 2.8, -17.0], fov: 32, cut: true}
+        - {t: scene.end, pos: [3.9, 3.35, -12.0], look: [3.0, 2.8, -17.0], fov: 26, ease: lin}
+    lines:
+      - {id: v12, who: erzaehler, text: "Du drehst dich um, und siehst dich selbst."}
+    sfx:
+      - {sound: steps, at: 0, volume: 0.35}
+      - {sound: heartbeat, at: 0, loop: scene, volume: 0.7}
+      - {sound: stinger, at: "v12.word6", volume: 0.5}
+      - {sound: whoosh, at: "v12.word6", volume: 0.3}
+      - {sound: whoosh, at: "v12.word6+0.9s", volume: 0.3}
+      - {sound: whoosh, at: "v12.word6+1.8s", volume: 0.3}
+
+  - id: laecheln
+    title: Das andere Ich lächelt
+    timing: {pre: 0.1, post: 2.0}
+    set: {type: city_street, params: {building: "#c9a58f", road: "#4b4e5c", sidewalk: "#d8cfc0", accent: "#e0865a", windows: 0.45, lamps: true, trees: false, cars: false, seed: mensch}}
+    environment: {type: gradient, colors: {top: "#141a40", mid: "#5a3a7a", bottom: "#d0607a"}}
+    light:
+      fog: {color: "#4a3060", near: 22, far: 110}
+      hemi: {sky: "#8a7ab8", ground: "#2a2040", intensity: 0.75}
+      ambient: 0.28
+      key: {color: "#9ab0ff", intensity: 1.5, pos: [18, 12, 10], shadowAt: [3.0, 0, -17]}
+    actors:
+      - {id: doppel, cast: doppel, at: [3.0, -0.1, -17.0], yaw: 0, pose: idle, face: [{t: 0, face: neutral}, {t: "v13.word3", face: grin, ease: cut}], params: {blink: false, gaze: camera, gestures: false, energy: 0.2}}
+    objects:
+      - {id: unter, type: point_light, at: [3.0, 1.0, -15.5], params: {color: "#ff4a3a", distance: 7}, tracks: {intensity: [{t: 0, v: 0}, {t: "v13.word3", v: 8}]}}
+    camera:
+      keys:
+        - {t: 0, pos: [3.0, 2.6, -9.5], look: [3.0, 2.6, -17], fov: 40}
+        - {t: 0.7s, pos: [3.0, 2.7, -10.5], look: [3.0, 2.6, -17], fov: 36, ease: lin}
+        - {t: 0.7s, pos: [3.0, 3.1, -11.5], look: [3.0, 3.1, -17], fov: 24, cut: true}
+        - {t: "v13.word3", pos: [3.0, 3.1, -12.4], look: [3.0, 3.1, -17], fov: 20, ease: lin}
+        - {t: "v13.word3", pos: [3.0, 3.1, -13.6], look: [3.0, 3.0, -17], fov: 13, cut: true}
+        - {t: scene.end, pos: [3.0, 3.1, -14.2], look: [3.0, 3.0, -17], fov: 10, ease: lin}
+    lines:
+      - {id: v13, who: erzaehler, text: "Aber das andere Ich lächelt."}
+    sfx:
+      - {sound: stinger, at: "v13.word3", volume: 0.8}
+      - {sound: heartbeat, at: 0, volume: 0.6}
+      - {sound: whoosh, at: 0.7s, volume: 0.3}
+
+  - id: schwarz
+    title: Schnitt auf Schwarz
+    timing: {pre: 0.6, post: 0}
+    set: {type: empty_stage, params: {floor: "#000000", grid: false, accent: "#000000"}}
+    environment: {type: gradient, colors: {top: "#000000", mid: "#000000", bottom: "#000000"}}
+    light:
+      fog: {color: "#000000", near: 2, far: 10}
+      hemi: {sky: "#8a7ab8", ground: "#2a2040", intensity: 0.75}
+      ambient: 0.28
+      key: {color: "#9ab0ff", intensity: 1.5, pos: [18, 12, 10], shadowAt: [0, 0, 0]}
+    actors:
+      - {id: doppel, cast: doppel, at: [0, -0.1, 0], yaw: 0, pose: idle, visible: {from: 99s}}
+    camera:
+      keys: [{t: 0, pos: [0, 60, 0], look: [0, 120, 0], fov: 40}]
+

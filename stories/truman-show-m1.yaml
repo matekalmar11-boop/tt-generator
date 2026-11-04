@@ -1,0 +1,176 @@
+# yaml-language-server: $schema=./story.schema.json
+# Film-Erklärtest „Die Truman Show“ – Meilenstein M1 (≈ 14 s): Hook · Stadt mit versteckten Kameras · Scheinwerfer fällt vom Kunsthimmel.
+# Eigenständige Darstellung: kein Originalmaterial, kein Originalton. Rig person2. Hauptfigur Truman: gelbes Oberteil, dunkle Hose – in jeder Einstellung gleich.
+# Gesamtplan: docs/plans/truman-show.md
+schema: 1
+meta: {id: truman-show-m1, title: "Die Truman Show – M1", genre: erklaerfilm, targetDuration: {min: 11, max: 16}}
+format: {fps: 30, width: 1080, height: 1920}
+
+voices:
+  erzaehler:    # ein Erzähler: ruhig, klar, etwas zügiger
+    lengthScale: 0.97
+    loudness: -16
+    subtitle: {accent: "#ffd23d"}
+
+cast:
+  erzaehler: {rig: person2, name: Erzähler, voice: erzaehler}     # nie im Bild
+  truman:
+    rig: person2
+    name: Truman
+    look: {skin: "#e8b894", hair: "#4a2f1e", hairStyle: short, shirt: "#ffd21f", pants: "#272b3a", shoes: "#f2f2f2", eyes: "#3b6e8f"}
+  nachbarin:
+    rig: person2
+    name: Nachbarin
+    look: {skin: "#f0c4a4", hair: "#a8552a", hairStyle: long, shirt: "#ff8fb8", pants: "#4a6fa5", shoes: "#ffffff", eyes: "#4a8a5a"}
+  nachbar:
+    rig: person2
+    name: Nachbar
+    look: {skin: "#d9a07a", hair: "#8a8a92", hairStyle: short, shirt: "#5fb36b", pants: "#6b5a48", shoes: "#3a3a3a", glasses: true, eyes: "#3b4a6a"}
+
+audio:
+  music: {file: music_show, volume: 0.34, duck: {depth: 0.35, attack: 6f, release: 12f}, fadeOut: 20f}
+subtitles: {maxWords: 3, maxChars: 24, font: Inter, maxFontSize: 100, bottomPadding: 430}
+overlays:
+  vignette: true
+
+scenes:
+  # ═══════ 1 · HOOK: Truman wird unwissentlich gefilmt ═══════
+  - id: hook
+    title: Hook – Kamera-Sicht, LIVE, dann Rückblick auf die versteckte Kamera
+    timing: {pre: 0.3, post: 0.45}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: truman}}
+    actors:
+      - id: truman
+        cast: truman
+        path: [{t: 0, pos: [4.6, 0, -15.0]}, {t: scene.end, pos: [4.6, 0, -2.5]}]
+        yaw: 0
+        pose: walk
+        face: smile
+        params: {gaze: "off", gestures: false}
+      - {id: nachbarin, cast: nachbarin, at: [6.1, 0, -12.5], yaw: -0.5pi, pose: wave, face: smile, params: {gaze: "off"}}
+    objects:
+      - {id: kam1, type: hidden_camera, at: [6.0, 0, 0.5], params: {host: hedge, scale: 1.5, aim: {rel: truman, off: [0, 2.7, 0]}}}
+      - {id: kam2, type: hidden_camera, at: [-4.7, 0, -7.5], params: {host: lamp, scale: 1.5, aim: {rel: truman, off: [0, 2.7, 0]}}}
+    camera:
+      keys:
+        - {t: 0, pos: [5.6, 1.9, -2.0], look: {rel: truman, off: [0, 2.5, 0]}, fov: 30}
+        - {t: 1.9s, pos: [5.6, 1.9, -2.0], look: {rel: truman, off: [0, 2.5, 0]}, fov: 46, ease: lin}
+        - {t: 1.9s, pos: [5.0, 3.5, 4.4], look: [4.6, 1.8, -5.0], fov: 46, cut: true}
+        - {t: scene.end, pos: [5.0, 3.5, 4.4], look: [4.6, 1.8, -5.0], fov: 42, ease: lin}
+    lines:
+      - {id: t01, who: erzaehler, text: "Stell dir vor, dein ganzes Leben wird live im Fernsehen gezeigt."}
+    captions:
+      - {type: camera_view, from: 0, to: 1.9s, live: true, viewers: [2.1, 3.4], label: "KAMERA 7"}
+      - {type: lower_third, from: 2.2s, to: scene.end, title: TRUMAN, subtitle: "ahnt nichts"}
+    sfx:
+      - {sound: live_sting, at: 0, volume: 0.8}
+      - {sound: rec_beep, at: 0.05, volume: 0.6}
+      - {sound: cam_servo, at: 1.9s, volume: 0.5}
+
+  # ═══════ 2 · KAMERAS ÜBERALL ═══════
+  - id: kameras
+    title: Versteckte Kameras in Hecke, Laterne, Briefkasten – eindeutig markiert
+    timing: {pre: 0.2, post: 0.35}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: truman}}
+    actors:
+      - id: truman
+        cast: truman
+        path: [{t: 0, pos: [4.2, 0, -14.0]}, {t: scene.end, pos: [4.2, 0, -4.5]}]
+        yaw: 0
+        pose: walk
+        face: smile
+        params: {gaze: "off", gestures: false}
+      - {id: nachbarin, cast: nachbarin, at: [5.3, 0, -17.0], yaw: -0.5pi, pose: wave, face: smile, params: {gaze: "off"}}
+      - {id: nachbar, cast: nachbar, at: [6.0, 0, -22.0], yaw: -0.5pi, pose: idle, face: smile, prop: cup, params: {gaze: "off"}}
+    objects:
+      - {id: kam1, type: hidden_camera, at: [6.0, 0, -2.5], params: {host: hedge, scale: 1.5, aim: {rel: truman, off: [0, 2.7, 0]}}}
+      - {id: kam2, type: hidden_camera, at: [-4.7, 0, -6.5], params: {host: lamp, scale: 1.5, aim: {rel: truman, off: [0, 2.7, 0]}}}
+      - {id: kam4, type: hidden_camera, at: [5.5, 0, -11.5], params: {host: lamp, scale: 1.5, aim: {rel: truman, off: [0, 2.7, 0]}}}
+      - {id: kam3, type: hidden_camera, at: [6.0, 0, -6.5], params: {host: mailbox, scale: 1.5, aim: {rel: truman, off: [0, 2.7, 0]}}}
+    camera:
+      keys:
+        - {t: 0, pos: [2.6, 3.3, 9.0], look: [5.4, 3.0, -8.0], fov: 50}
+        - {t: 2.0s, pos: [2.6, 3.3, 9.0], look: [5.4, 3.0, -8.0], fov: 50}
+        - {t: 2.0s, pos: [1.8, 3.4, -2.5], look: [-4.7, 6.0, -6.5], fov: 30, cut: true}
+        - {t: scene.end, pos: [1.8, 3.4, -2.5], look: [-4.7, 6.0, -6.5], fov: 30, ease: lin}
+    lines:
+      - {id: t02, who: erzaehler, text: "Truman ahnt nichts. Überall hängen versteckte Kameras."}
+    captions:
+      - {type: callout, from: 0.5s, to: 2.0s, at: [47, 32], text: KAMERA, side: left, ring: 110}
+      - {type: callout, from: 0.9s, to: 2.0s, at: [61, 51], text: KAMERA, side: right, ring: 110}
+      - {type: callout, from: 1.3s, to: 2.0s, at: [70, 56], text: KAMERA, side: left, ring: 110}
+      - {type: callout, from: 2.2s, to: scene.end, at: [29, 44], text: KAMERA, side: right, ring: 130}
+    sfx:
+      - {sound: rec_beep, at: 0.5s, volume: 0.5}
+      - {sound: rec_beep, at: 0.9s, volume: 0.5}
+      - {sound: rec_beep, at: 1.3s, volume: 0.5}
+      - {sound: cam_servo, at: 2.1s, volume: 0.55}
+
+  # ═══════ 3 · SCHEINWERFER FÄLLT VOM KUNSTHIMMEL ═══════
+  - id: licht
+    title: Scheinwerfer stürzt aus dem künstlichen Himmel – Truman erschrickt
+    timing: {pre: 1.2, post: 2.0}
+    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: truman}}
+    actors:
+      - id: truman
+        cast: truman
+        path:
+          - {t: 0, pos: [4.6, 0, -6.0]}
+          - {t: "t03.start+12f", pos: [4.6, 0, -2.6]}
+          - {t: "t03.start+60f", pos: [4.6, 0, -2.6]}
+          - {t: "t03.start+72f", pos: [4.6, 0, -3.5], ease: out}
+        yaw: 0
+        pose: [{t: 0, pose: walk}, {t: "t03.start+12f", pose: idle}, {t: "t03.start+60f", pose: shock}]
+        face: [{t: 0, face: smile}, {t: "t03.start+14f", face: worry}, {t: "t03.start+60f", face: shock, ease: cut}]
+        params: {gaze: "off", gestures: false}
+      - {id: nachbarin, cast: nachbarin, at: [6.0, 0, -9.5], yaw: -0.5pi, pose: idle, face: smile, prop: cup, params: {gaze: "off"}}
+    objects:
+      - {id: himmel, type: sky_panel, at: [2.6, 24, -1.2], params: {size: 70, hatch: 5, sky: "#4f9de0"}}
+      - id: scheinwerfer
+        type: stage_light
+        params: {scale: 1.6, cable: 4}
+        path:
+          - {t: "t03.start+14f", pos: [2.6, 22.8, -1.2]}
+          - {t: "t03.start+60f", pos: [2.6, 1.0, -1.2], ease: in}
+        tracks:
+          beam: [{t: 0, v: 1}, {t: "t03.start+60f", v: 1}, {t: "t03.start+64f", v: 0, ease: cut}]
+          rx: [{t: "t03.start+14f", v: 0.3}, {t: "t03.start+52f", v: -0.5}, {t: "t03.start+60f", v: -0.35, ease: out}]
+          rz: [{t: "t03.start+14f", v: 0}, {t: "t03.start+60f", v: 0.25}]
+        visible: {from: "t03.start+14f"}
+      - {id: funken, type: dust, at: [2.6, 0.6, -1.2], params: {count: 40, spread: [2.4, 1.4, 2.4], color: "#ffd88a", size: 0.12, speed: 2.5, seed: spark, rise: 1}, visible: {from: "t03.start+60f", to: "t03.start+95f"}}
+    camera:
+      keys:
+        - {t: 0, pos: [1.8, 2.8, 4.5], look: {rel: truman, off: [0, 2.5, 0]}, fov: 44}
+        - {t: "t03.start+14f", pos: [2.4, 2.8, 3.6], look: {rel: truman, off: [0, 2.5, 0]}, fov: 42, ease: lin}
+        - {t: "t03.start+14f", pos: [2.6, 0.8, 4.2], look: [2.6, 21, -1.2], fov: 62, cut: true}
+        - {t: "t03.start+60f", pos: [2.6, 0.8, 4.2], look: [2.6, 15, -1.2], fov: 62, ease: lin}
+        - {t: "t03.start+60f", pos: [-1.5, 3.3, 8.5], look: [3.6, 1.9, -2.0], fov: 46, cut: true}
+        - {t: "t03.start+84f", pos: [-1.2, 3.3, 8.2], look: [3.6, 1.9, -2.0], fov: 44, ease: out}
+        - {t: "t03.start+84f", pos: [3.4, 2.9, 1.6], look: {rel: truman, off: [0, 2.7, 0]}, fov: 34, cut: true}
+        - {t: scene.end, pos: [3.8, 2.9, 1.2], look: {rel: truman, off: [0, 2.7, 0]}, fov: 28, ease: lin}
+    lines:
+      - {id: t03, who: erzaehler, text: "Doch dann fällt ein Scheinwerfer vom Himmel."}
+    captions:
+      - {type: callout, from: "t03.start+16f", to: "t03.start+58f", at: [38, 9], text: KUNSTHIMMEL, side: right, ring: 160}
+    sfx:
+      - {sound: cable_snap, at: "t03.start+14f", volume: 0.9}
+      - {sound: fall_whistle, at: "t03.start+16f", volume: 0.8}
+      - {sound: light_crash, at: "t03.start+60f", volume: 1.1}

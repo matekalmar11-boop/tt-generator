@@ -1,0 +1,35 @@
+{
+  "title": "Der Mondsplitter",
+  "fps": 30,
+  "scenes": [
+    {"id": "moon", "pre": 0.7, "post": 0.5, "lines": [
+      {"id": "l01", "voice": "narrator", "text": "Jede Nacht verschwindet ein Stück vom Mond."},
+      {"id": "l02", "voice": "narrator", "text": "Und heute Nacht sehe ich endlich, wer es stiehlt."}
+    ]},
+    {"id": "hero", "pre": 0.4, "post": 0.6, "lines": [
+      {"id": "l03", "voice": "narrator", "text": "Ich bin Finn, der letzte Laternenwächter von Himmelsfels."}
+    ]},
+    {"id": "forest", "pre": 0.3, "post": 0.6, "lines": [
+      {"id": "l04", "voice": "narrator", "text": "Eine Spur aus Silberstaub führt mich tief in den Kristallwald."},
+      {"id": "l05", "voice": "narrator", "text": "Etwas beobachtet mich."}
+    ]},
+    {"id": "cave", "pre": 0.4, "post": 0.5, "lines": [
+      {"id": "l06", "voice": "narrator", "text": "Da! Ein Drache aus purem Licht!"},
+      {"id": "l07", "voice": "narrator", "text": "Und in seinem Maul: ein Splitter des Mondes."}
+    ]},
+    {"id": "duel", "pre": 0.3, "post": 0.4, "lines": [
+      {"id": "l08", "voice": "narrator", "text": "Ich ziehe mein Schwert."},
+      {"id": "l09", "voice": "dragon", "text": "Halt! Ich stehle den Mond nicht."}
+    ]},
+    {"id": "twist", "pre": 0.3, "post": 0.7, "lines": [
+      {"id": "l10", "voice": "dragon", "text": "Ich bringe ihn zurück. Denn du, Finn, hast ihn vor tausend Jahren zerbrochen."}
+    ]},
+    {"id": "reveal", "pre": 0.3, "post": 0.5, "lines": [
+      {"id": "l11", "voice": "narrator", "text": "Was? Das ist unmöglich!"},
+      {"id": "l12", "voice": "narrator", "text": "Plötzlich leuchten meine Augen silbern. Der Mond ruft meinen Namen. Und unter mir bricht die Erde auf."}
+    ]},
+    {"id": "end", "pre": 0.3, "post": 1.2, "lines": [
+      {"id": "l13", "voice": "narrator", "text": "Was ist Finn wirklich? Folge mir für Teil zwei."}
+    ]}
+  ]
+}

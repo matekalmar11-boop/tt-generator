@@ -1,0 +1,98 @@
+# yaml-language-server: $schema=./story.schema.json
+# TEST für das Rig "person2" (Schritt: begrenzte Integration): Emotionen, Posen, Gehzyklus (neu vs. alt), Dialog mit Blickführung/Gesten/Mundformen.
+schema: 1
+meta: {id: demo-person2, title: Person2-Test, genre: test}
+voices:
+  anna: {subtitle: {accent: "#ffd23d", label: "ANNA"}}
+  kurz: {effect: {pitch: 0.92}, subtitle: {accent: "#7ff3ff", label: "KURZ"}}
+cast:
+  x: {rig: person2, name: Test}
+  alt: {rig: person, name: Test alt}
+  anna: {rig: person2, name: Anna, voice: anna, look: {skin: "#e0a882", hair: "#7a3b1d", hairStyle: long, shirt: "#d9534f", pants: "#2e3a59"}}
+  kurz: {rig: person2, name: Kurz, voice: kurz, look: {skin: "#8d5a3b", hair: "#1c1c1c", shirt: "#e8e2d0", pants: "#3a3a3a", coat: "#7a5c3a", hat: "#3b2f2a", glasses: true}}
+subtitles: {maxWords: 3, maxChars: 24, font: Inter, maxFontSize: 104, bottomPadding: 560}
+scenes:
+  - id: emotionen
+    timing: {pre: 5.6, post: 0}
+    set: {type: empty_stage}
+    environment: {type: gradient}
+    light: {fog: {color: "#222a4a", near: 30, far: 110}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: [0, 0, 0]}}
+    actors:
+      - id: x
+        cast: x
+        at: [0, 0, 0]
+        yaw: 0
+        pose: idle
+        face:
+          - {t: 0, face: neutral}
+          - {t: 0.8s, face: smile, ease: cut}
+          - {t: 1.6s, face: grin, ease: cut}
+          - {t: 2.4s, face: shock, ease: cut}
+          - {t: 3.2s, face: angry, ease: cut}
+          - {t: 4.0s, face: worry, ease: cut}
+          - {t: 4.8s, face: determined, ease: cut}
+    camera: {keys: [{t: 0, pos: [0, 3.0, 5.2], look: [0, 2.7, 0], fov: 28}]}
+  - id: posen
+    timing: {pre: 4.8, post: 0}
+    set: {type: empty_stage}
+    environment: {type: gradient}
+    light: {fog: {color: "#222a4a", near: 30, far: 110}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: [0, 0, 0]}}
+    actors:
+      - id: x
+        cast: x
+        at: [0, 0, 0]
+        yaw: 0.2
+        face: smile
+        pose:
+          - {t: 0, pose: idle}
+          - {t: 1.2s, pose: idle}
+          - {t: 1.7s, pose: wave, ease: io}
+          - {t: 2.9s, pose: wave}
+          - {t: 3.4s, pose: point, ease: io}
+          - {t: 4.8s, pose: shock, ease: io}
+    camera: {keys: [{t: 0, pos: [0, 2.3, 9.5], look: [0, 1.7, 0], fov: 34}]}
+  - id: sitzen
+    timing: {pre: 2.0, post: 0}
+    set: {type: room}
+    light: {fog: {color: "#3a2f2a", near: 25, far: 90}, hemi: {intensity: 1.1}, key: {intensity: 1.6, pos: [-4, 14, 10], shadowAt: [0, 1, 0]}}
+    actors:
+      - {id: x, cast: x, at: [-1, 0, -0.45], yaw: pi, pose: sit, face: smile, prop: cup}
+    camera: {keys: [{t: 0, pos: [5, 2.4, 3.5], look: [-1, 1.5, -0.6], fov: 38}]}
+  - id: gehen
+    timing: {pre: 4.0, post: 0}
+    set: {type: empty_stage}
+    environment: {type: gradient}
+    light: {fog: {color: "#222a4a", near: 30, far: 110}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: [0, 0, 0]}}
+    actors:
+      - id: x
+        cast: x
+        path: [{t: 0, pos: [-5, 0, 0]}, {t: scene.end, pos: [5, 0, 0], ease: lin}]
+        yaw: 0.5pi
+        pose: walk
+        face: smile
+    camera: {keys: [{t: 0, pos: {rel: x, off: [0, 1.4, 9]}, look: {rel: x, off: [0, 1.5, 0]}, fov: 32}]}   # Kamera fährt seitlich mit
+  - id: gehen_alt
+    timing: {pre: 4.0, post: 0}
+    set: {type: empty_stage}
+    environment: {type: gradient}
+    light: {fog: {color: "#222a4a", near: 30, far: 110}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: [0, 0, 0]}}
+    actors:
+      - id: x
+        cast: alt
+        path: [{t: 0, pos: [-5, 0, 0]}, {t: scene.end, pos: [5, 0, 0], ease: lin}]
+        yaw: 0.5pi
+        pose: walk
+        face: smile
+    camera: {keys: [{t: 0, pos: {rel: x, off: [0, 1.4, 9]}, look: {rel: x, off: [0, 1.5, 0]}, fov: 32}]}   # Kamera fährt seitlich mit
+  - id: dialog
+    timing: {pre: 0.3, post: 0.4}
+    set: {type: empty_stage}
+    environment: {type: gradient}
+    light: {fog: {color: "#222a4a", near: 30, far: 110}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: [0, 0, 0]}}
+    actors:
+      - {id: a, cast: anna, at: [-1.7, 0, 0], yaw: 0.3pi, pose: idle, face: [{t: 0, face: smile}, {t: "p02.start", face: worry, ease: cut}]}
+      - {id: k, cast: kurz, at: [1.7, 0, 0], yaw: -0.3pi, pose: idle, face: neutral}
+    camera: {keys: [{t: 0, pos: [0, 2.4, 14.5], look: [0, 1.9, 0], fov: 34}]}
+    lines:
+      - {id: p01, who: anna, text: "Wo ist mein Schlüssel?"}
+      - {id: p02, who: kurz, text: "Ich suche ihn sofort!"}

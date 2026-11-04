@@ -1,0 +1,27 @@
+# Absichtlich fehlerhafte Datei (Teil 1: STRUKTURFEHLER, Schema-Ebene) – zeigt die Meldungen von `npm run story -- check`. NICHT zum Rendern.
+schema: 1
+meta: {id: demo-fehler-struktur, title: Fehlerdemo}
+voices:
+  erzaehler: {subtitle: {accent: "gelb"}}
+cast:
+  held: {rig: drachen, voice: erzaehler}
+  oma: {rig: finn, voice: spreche}
+scenes:
+  - id: a
+    set: {type: hoehle}
+    actors:
+      - {id: h, cast: held, poze: idle}
+      - {id: o, cast: oma, at: [0, 0], pose: sneek, prop: schwert}
+    camera:
+      keys:
+        - {t: "40 frames", pos: [0, 1, 5], look: [0, 1, 0]}
+        - {t: "l99.start", pos: [0, 1, 5], look: {rel: niemand}}
+    lines:
+      - {id: l1, who: held, text: "Hallo, ich bin der 1. Held."}
+      - {id: l1, who: opa, text: "Doppelte ID und unbekannter Sprecher."}
+    sfx: [{sound: wosh_fast, at: 1}]
+  - id: b
+    set: {type: plateau}
+    camera: {keys: [{t: "l1.word9", pos: [0, 1, 5], look: [0, 1, 0]}]}
+    lines: [{id: l2, who: oma, text: "Zweite Szene."}]
+    captions: [{type: lower_third, from: "l1.start", to: "l1.start", title: X}]

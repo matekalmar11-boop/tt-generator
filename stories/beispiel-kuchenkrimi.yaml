@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=./story.schema.json
+# BEISPIEL aus einem anderen Genre (Alltags-Krimi, humorvoll) – beweist, dass das Format nicht an Finn/Drachen/Fantasy gebunden ist.
+# Nutzt bewusst Bausteine, die erst in Schritt 2+ gebaut werden (rig "person", Kulissen "room"/"empty_stage"):
+# `check` meldet dafür Hinweise (⚠), aber keine Fehler. Gerendert werden kann diese Datei noch nicht.
+schema: 1
+meta: {id: kuchenkrimi, title: Der verschwundene Kuchen, genre: krimi, targetDuration: {min: 8, max: 40}}
+voices:
+  erzaehler: {subtitle: {accent: "#ffd23d"}}
+  baeckerin:
+    lengthScale: 1.0
+    effect: {pitch: 1.12}                      # höhere Stimme für eine zweite Figur
+    subtitle: {accent: "#ff7ad9", label: "FRAU KRÜMEL"}
+cast:
+  kommissar: {rig: person, name: Kommissar Kurz, voice: erzaehler, look: {coat: "#7a5c3a", hat: "#3b2f2a"}}
+  baeckerin: {rig: person, name: Frau Krümel, voice: baeckerin, look: {apron: "#ffffff"}}
+audio:
+  music: {file: music, volume: 0.35}
+overlays:
+  seriesTag: {text: KOMMISSAR KURZ, accent: "· FALL 1"}
+scenes:
+  - id: kueche
+    timing: {pre: 0.5, post: 0.5}
+    set: {type: room}
+    light: {fog: {color: "#3a2f2a", near: 20, far: 90}, hemi: {intensity: 1.1}}
+    actors:
+      - {id: k, cast: kommissar, at: [-2, 0, 3], yaw: 0.3pi, pose: idle, face: worry}
+      - {id: b, cast: baeckerin, at: [2, 0, 3], yaw: -0.3pi, pose: shock, face: shock}
+    camera:
+      keys:
+        - {t: 0, pos: [0, 3, 12], look: [0, 2, 3], fov: 45}
+        - {t: scene.end, pos: [0, 2.5, 7], look: [0, 2.4, 3], fov: 34, ease: io}
+    lines:
+      - {id: k01, who: baeckerin, text: "Herr Kommissar, mein Zitronenkuchen ist weg!"}
+      - {id: k02, who: kommissar, text: "Ruhig bleiben. Ich finde jeden Krümel."}
+    sfx: [{sound: whoosh_fast, at: 0, volume: 0.5}, {sound: chime, at: "k02.start", volume: 0.4}]
+  - id: ende
+    timing: {pre: 0.3, post: 1.0}
+    set: {type: empty_stage}
+    camera: {keys: [{t: 0, pos: [0, 2, 8], look: [0, 2, 0], fov: 40}]}
+    actors: [{id: k, cast: kommissar, at: [0, 0, 0], yaw: 0, pose: point, face: smile}]
+    lines: [{id: k03, who: kommissar, text: "Der Täter hinterließ nur eine Gabel. Fortsetzung folgt."}]
+    captions: [{type: end_card, from: "k03.start", title: FALL 2, subtitle: BALD}]

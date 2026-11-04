@@ -1,0 +1,1836 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "type": "object",
+ "properties": {
+  "schema": {
+   "type": "number",
+   "const": 1,
+   "description": "Schema-Version."
+  },
+  "meta": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string",
+     "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "title": {
+     "type": "string",
+     "minLength": 1
+    },
+    "language": {
+     "default": "de",
+     "type": "string",
+     "const": "de"
+    },
+    "genre": {
+     "type": "string"
+    },
+    "description": {
+     "type": "string"
+    },
+    "targetDuration": {
+     "description": "Soll-Länge in Sekunden; check warnt bei Abweichung.",
+     "type": "object",
+     "properties": {
+      "min": {
+       "type": "number",
+       "exclusiveMinimum": 0
+      },
+      "max": {
+       "type": "number",
+       "exclusiveMinimum": 0
+      }
+     },
+     "required": [
+      "min",
+      "max"
+     ],
+     "additionalProperties": false
+    }
+   },
+   "required": [
+    "id",
+    "title"
+   ],
+   "additionalProperties": false
+  },
+  "format": {
+   "default": {
+    "fps": 30,
+    "width": 1080,
+    "height": 1920
+   },
+   "type": "object",
+   "properties": {
+    "fps": {
+     "default": 30,
+     "type": "integer",
+     "minimum": 15,
+     "maximum": 60
+    },
+    "width": {
+     "default": 1080,
+     "type": "integer",
+     "minimum": 270,
+     "maximum": 9007199254740991
+    },
+    "height": {
+     "default": 1920,
+     "type": "integer",
+     "minimum": 480,
+     "maximum": 9007199254740991
+    }
+   },
+   "additionalProperties": false
+  },
+  "voices": {
+   "type": "object",
+   "propertyNames": {
+    "type": "string",
+    "pattern": "^[A-Za-z][\\w-]*$"
+   },
+   "additionalProperties": {
+    "type": "object",
+    "properties": {
+     "engine": {
+      "default": "piper",
+      "description": "TTS-Engine (offline, kostenlos). Aktuell nur Piper.",
+      "type": "string",
+      "const": "piper"
+     },
+     "model": {
+      "default": "de_DE-thorsten-medium",
+      "description": "Piper-Modellname (Sprache steckt im Modell).",
+      "type": "string"
+     },
+     "lengthScale": {
+      "default": 1.08,
+      "description": "Sprechtempo: >1 = langsamer.",
+      "type": "number",
+      "minimum": 0.5,
+      "maximum": 2
+     },
+     "noiseScale": {
+      "default": 0.6,
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+     },
+     "noiseW": {
+      "default": 0.7,
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+     },
+     "sentenceGap": {
+      "default": 0.24,
+      "description": "Pause zwischen Sätzen einer Zeile (Sekunden).",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 2
+     },
+     "loudness": {
+      "default": -16,
+      "description": "Ziel-Lautheit in LUFS.",
+      "type": "number",
+      "minimum": -30,
+      "maximum": -6
+     },
+     "effect": {
+      "description": "Klangeffekt, z. B. tiefe Drachenstimme. Zeilenlänge bleibt gleich.",
+      "type": "object",
+      "properties": {
+       "pitch": {
+        "default": 1,
+        "description": "Tonhöhe, 1 = unverändert, <1 = tiefer.",
+        "type": "number",
+        "minimum": 0.5,
+        "maximum": 1.5
+       },
+       "lowpassHz": {
+        "type": "number",
+        "minimum": 1000,
+        "maximum": 20000
+       },
+       "eq": {
+        "type": "object",
+        "properties": {
+         "freqHz": {
+          "type": "number"
+         },
+         "gainDb": {
+          "type": "number"
+         }
+        },
+        "required": [
+         "freqHz",
+         "gainDb"
+        ],
+        "additionalProperties": false
+       },
+       "echo": {
+        "type": "object",
+        "properties": {
+         "delayMs": {
+          "type": "number",
+          "minimum": 1
+         },
+         "decay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+         }
+        },
+        "required": [
+         "delayMs",
+         "decay"
+        ],
+        "additionalProperties": false
+       }
+      },
+      "additionalProperties": false
+     },
+     "subtitle": {
+      "default": {
+       "accent": "#ffd23d"
+      },
+      "type": "object",
+      "properties": {
+       "accent": {
+        "default": "#ffd23d",
+        "description": "Farbe des gerade gesprochenen Wortes.",
+        "type": "string",
+        "pattern": "^#[0-9a-fA-F]{6}$"
+       },
+       "label": {
+        "description": "Sprecher-Schild über dem Untertitel.",
+        "type": "string"
+       }
+      },
+      "additionalProperties": false
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  "pronunciations": {
+   "description": "Aussprachehilfe: Wort → Schreibweise für die TTS (Schritt 3).",
+   "type": "object",
+   "propertyNames": {
+    "type": "string"
+   },
+   "additionalProperties": {
+    "type": "string"
+   }
+  },
+  "timing": {
+   "default": {
+    "lineGap": 0.28
+   },
+   "description": "Pause zwischen Sprechzeilen einer Szene.",
+   "type": "object",
+   "properties": {
+    "lineGap": {
+     "default": 0.28,
+     "type": "number",
+     "minimum": 0,
+     "maximum": 3
+    }
+   },
+   "additionalProperties": false
+  },
+  "cast": {
+   "type": "object",
+   "propertyNames": {
+    "type": "string",
+    "pattern": "^[A-Za-z][\\w-]*$"
+   },
+   "additionalProperties": {
+    "type": "object",
+    "properties": {
+     "rig": {
+      "type": "string",
+      "pattern": "^[A-Za-z][\\w-]*$",
+      "description": "Figurentyp aus der Registry (src/story/registry.ts), z. B. \"finn\", \"dragon\"."
+     },
+     "name": {
+      "type": "string"
+     },
+     "role": {
+      "type": "string"
+     },
+     "voice": {
+      "description": "Stimmenprofil aus \"voices\". Ohne Stimme: stumme Figur.",
+      "type": "string",
+      "pattern": "^[A-Za-z][\\w-]*$"
+     },
+     "look": {
+      "description": "Aussehen, z. B. {skin, hair, shirt}. Erlaubte Felder je Figurenart: siehe RIGS[...].looks in src/story/registry.ts.",
+      "type": "object",
+      "propertyNames": {
+       "type": "string"
+      },
+      "additionalProperties": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "string"
+        },
+        {
+         "type": "boolean"
+        }
+       ]
+      }
+     }
+    },
+    "required": [
+     "rig"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "audio": {
+   "default": {},
+   "type": "object",
+   "properties": {
+    "music": {
+     "type": "object",
+     "properties": {
+      "file": {
+       "type": "string",
+       "description": "Datei in public/audio (ohne .wav)."
+      },
+      "volume": {
+       "default": 0.5,
+       "type": "number",
+       "minimum": 0,
+       "maximum": 1
+      },
+      "duck": {
+       "default": {
+        "depth": 0.3,
+        "attack": "6f",
+        "release": "12f"
+       },
+       "type": "object",
+       "properties": {
+        "depth": {
+         "default": 0.3,
+         "description": "Absenkung unter Sprache (Lautstärke − depth).",
+         "type": "number",
+         "minimum": 0,
+         "maximum": 1
+        },
+        "attack": {
+         "default": "6f"
+        },
+        "release": {
+         "default": "12f"
+        }
+       },
+       "additionalProperties": false
+      },
+      "fadeOut": {
+       "default": "45f"
+      }
+     },
+     "required": [
+      "file"
+     ],
+     "additionalProperties": false
+    }
+   },
+   "additionalProperties": false
+  },
+  "subtitles": {
+   "default": {
+    "maxWords": 3,
+    "maxChars": 24,
+    "font": "Inter",
+    "maxFontSize": 104,
+    "bottomPadding": 560
+   },
+   "type": "object",
+   "properties": {
+    "maxWords": {
+     "default": 3,
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 6
+    },
+    "maxChars": {
+     "default": 24,
+     "type": "integer",
+     "minimum": 8,
+     "maximum": 60
+    },
+    "font": {
+     "default": "Inter",
+     "type": "string"
+    },
+    "maxFontSize": {
+     "default": 104,
+     "type": "integer",
+     "minimum": -9007199254740991,
+     "maximum": 9007199254740991
+    },
+    "bottomPadding": {
+     "default": 560,
+     "description": "Abstand der Untertitel zum unteren Bildrand (px bei 1920 hoch; TikTok-UI beachten).",
+     "type": "integer",
+     "minimum": -9007199254740991,
+     "maximum": 9007199254740991
+    }
+   },
+   "additionalProperties": false
+  },
+  "transitions": {
+   "default": {},
+   "type": "object",
+   "properties": {
+    "cutFlash": {
+     "type": "object",
+     "properties": {
+      "color": {
+       "default": "#e9efff",
+       "type": "string",
+       "pattern": "^#[0-9a-fA-F]{6}$"
+      },
+      "peak": {
+       "default": 0.9,
+       "type": "number"
+      },
+      "lead": {
+       "default": "3f"
+      },
+      "tail": {
+       "default": "9f"
+      }
+     },
+     "additionalProperties": false
+    }
+   },
+   "additionalProperties": false
+  },
+  "overlays": {
+   "default": {},
+   "type": "object",
+   "properties": {
+    "seriesTag": {
+     "description": "Kleiner Titel oben links.",
+     "type": "object",
+     "properties": {
+      "text": {
+       "type": "string"
+      },
+      "accent": {
+       "description": "Zusatztext in Akzentfarbe, z. B. \"· TEIL 1\".",
+       "type": "string"
+      },
+      "accentColor": {
+       "type": "string",
+       "pattern": "^#[0-9a-fA-F]{6}$"
+      }
+     },
+     "required": [
+      "text"
+     ],
+     "additionalProperties": false
+    },
+    "vignette": {
+     "description": "Dunkle Ränder (Vorgabe: an).",
+     "type": "boolean"
+    }
+   },
+   "additionalProperties": false
+  },
+  "scenes": {
+   "minItems": 1,
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][\\w-]*$"
+     },
+     "title": {
+      "type": "string"
+     },
+     "notes": {
+      "type": "string"
+     },
+     "set": {
+      "type": "object",
+      "properties": {
+       "type": {
+        "type": "string",
+        "description": "Kulissentyp aus der Registry, z. B. \"plateau\", \"forest\", \"cave\", \"abyss\"."
+       },
+       "params": {
+        "type": "object",
+        "propertyNames": {
+         "type": "string"
+        },
+        "additionalProperties": {}
+       },
+       "tracks": {
+        "type": "object",
+        "propertyNames": {
+         "type": "string"
+        },
+        "additionalProperties": {
+         "minItems": 1,
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "t": {},
+           "v": {
+            "type": "number"
+           },
+           "ease": {
+            "type": "string",
+            "enum": [
+             "lin",
+             "io",
+             "in",
+             "out",
+             "snap",
+             "cut"
+            ]
+           }
+          },
+          "required": [
+           "t",
+           "v"
+          ],
+          "additionalProperties": false
+         }
+        }
+       }
+      },
+      "required": [
+       "type"
+      ],
+      "additionalProperties": false
+     },
+     "environment": {
+      "type": "object",
+      "properties": {
+       "type": {
+        "type": "string",
+        "description": "\"night_sky\" (Himmel+Mond+Wolken+Inseln), \"starry_sky\" (Himmel+Sterne, optional Mond), \"gradient\" (nur Farbverlauf) oder \"none\"."
+       },
+       "colors": {
+        "type": "object",
+        "properties": {
+         "top": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+         },
+         "mid": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+         },
+         "bottom": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+         }
+        },
+        "required": [
+         "top",
+         "mid",
+         "bottom"
+        ],
+        "additionalProperties": false
+       },
+       "stars": {
+        "type": "object",
+        "properties": {
+         "rotation": {
+          "default": 0,
+          "type": "number"
+         }
+        },
+        "additionalProperties": false
+       },
+       "moon": {
+        "type": "object",
+        "properties": {
+         "pos": {},
+         "radius": {
+          "default": 26,
+          "type": "number",
+          "exclusiveMinimum": 0
+         },
+         "crack": {
+          "default": 0,
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+         }
+        },
+        "required": [
+         "pos"
+        ],
+        "additionalProperties": false
+       },
+       "islands": {
+        "type": "boolean"
+       },
+       "clouds": {
+        "type": "boolean"
+       },
+       "tracks": {
+        "description": "z. B. crack (Mondrisse).",
+        "type": "object",
+        "propertyNames": {
+         "type": "string"
+        },
+        "additionalProperties": {
+         "minItems": 1,
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "t": {},
+           "v": {
+            "type": "number"
+           },
+           "ease": {
+            "type": "string",
+            "enum": [
+             "lin",
+             "io",
+             "in",
+             "out",
+             "snap",
+             "cut"
+            ]
+           }
+          },
+          "required": [
+           "t",
+           "v"
+          ],
+          "additionalProperties": false
+         }
+        }
+       }
+      },
+      "required": [
+       "type"
+      ],
+      "additionalProperties": false
+     },
+     "light": {
+      "default": {
+       "fog": {
+        "color": "#2a2250",
+        "near": 30,
+        "far": 140
+       },
+       "hemi": {
+        "sky": "#8aa0ff",
+        "ground": "#2a1f4a",
+        "intensity": 0.8
+       },
+       "ambient": 0.15,
+       "key": {
+        "color": "#cdd8ff",
+        "intensity": 2.4,
+        "pos": [
+         -8,
+         22,
+         12
+        ],
+        "shadowAt": [
+         0,
+         0,
+         0
+        ]
+       }
+      },
+      "type": "object",
+      "properties": {
+       "fog": {
+        "default": {
+         "color": "#2a2250",
+         "near": 30,
+         "far": 140
+        },
+        "type": "object",
+        "properties": {
+         "color": {
+          "default": "#2a2250",
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+         },
+         "near": {
+          "default": 30,
+          "type": "number"
+         },
+         "far": {
+          "default": 140,
+          "type": "number"
+         }
+        },
+        "additionalProperties": false
+       },
+       "hemi": {
+        "default": {
+         "sky": "#8aa0ff",
+         "ground": "#2a1f4a",
+         "intensity": 0.8
+        },
+        "type": "object",
+        "properties": {
+         "sky": {
+          "default": "#8aa0ff",
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+         },
+         "ground": {
+          "default": "#2a1f4a",
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+         },
+         "intensity": {
+          "default": 0.8,
+          "type": "number"
+         }
+        },
+        "additionalProperties": false
+       },
+       "ambient": {
+        "default": 0.15,
+        "type": "number"
+       },
+       "key": {
+        "default": {
+         "color": "#cdd8ff",
+         "intensity": 2.4,
+         "pos": [
+          -8,
+          22,
+          12
+         ],
+         "shadowAt": [
+          0,
+          0,
+          0
+         ]
+        },
+        "type": "object",
+        "properties": {
+         "color": {
+          "default": "#cdd8ff",
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+         },
+         "intensity": {
+          "default": 2.4,
+          "type": "number"
+         },
+         "pos": {
+          "default": [
+           -8,
+           22,
+           12
+          ]
+         },
+         "shadowAt": {
+          "default": [
+           0,
+           0,
+           0
+          ]
+         }
+        },
+        "additionalProperties": false
+       }
+      },
+      "additionalProperties": false
+     },
+     "timing": {
+      "default": {
+       "pre": 0.3,
+       "post": 0.5
+      },
+      "description": "Stille vor der ersten und nach der letzten Zeile (Sekunden). Die Szenenlänge ergibt sich aus der Sprache.",
+      "type": "object",
+      "properties": {
+       "pre": {
+        "default": 0.3,
+        "type": "number",
+        "minimum": 0,
+        "maximum": 10
+       },
+       "post": {
+        "default": 0.5,
+        "type": "number",
+        "minimum": 0,
+        "maximum": 10
+       }
+      },
+      "additionalProperties": false
+     },
+     "actors": {
+      "default": [],
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "id": {
+         "type": "string",
+         "pattern": "^[A-Za-z][\\w-]*$"
+        },
+        "cast": {
+         "type": "string",
+         "pattern": "^[A-Za-z][\\w-]*$",
+         "description": "Verweis auf eine Figur in \"cast\". Dieselbe Figur kann mehrfach auftreten (z. B. Rückblick-Geist)."
+        },
+        "at": {
+         "description": "Feste Position. Alternativ \"path\"."
+        },
+        "path": {
+         "description": "Bewegung der Figur über Keyframes.",
+         "minItems": 1,
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "t": {},
+           "pos": {},
+           "ease": {
+            "type": "string",
+            "enum": [
+             "lin",
+             "io",
+             "in",
+             "out",
+             "snap",
+             "cut"
+            ]
+           }
+          },
+          "required": [
+           "t",
+           "pos"
+          ],
+          "additionalProperties": false
+         }
+        },
+        "yaw": {
+         "default": 0,
+         "description": "Blickrichtung um die Hochachse. 0 = +z (zur Kamera), \"pi\" = -z (weg von der Kamera)."
+        },
+        "scale": {
+         "default": 1,
+         "type": "number",
+         "exclusiveMinimum": 0
+        },
+        "ghost": {
+         "default": false,
+         "description": "Durchscheinende Silhouette (Rückblick).",
+         "type": "boolean"
+        },
+        "visible": {
+         "type": "object",
+         "properties": {
+          "from": {},
+          "to": {}
+         },
+         "additionalProperties": false
+        },
+        "pose": {
+         "description": "Pose konstant oder als Keyframes (Überblendung von Key zu Key).",
+         "anyOf": [
+          {
+           "type": "string"
+          },
+          {
+           "minItems": 1,
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "t": {},
+             "pose": {
+              "type": "string"
+             },
+             "mix": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+             },
+             "ease": {
+              "type": "string",
+              "enum": [
+               "lin",
+               "io",
+               "in",
+               "out",
+               "snap",
+               "cut"
+              ]
+             }
+            },
+            "required": [
+             "t",
+             "pose"
+            ],
+            "additionalProperties": false
+           }
+          }
+         ]
+        },
+        "face": {
+         "anyOf": [
+          {
+           "type": "string"
+          },
+          {
+           "minItems": 1,
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "t": {},
+             "face": {
+              "type": "string"
+             },
+             "mix": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+             },
+             "ease": {
+              "type": "string",
+              "enum": [
+               "lin",
+               "io",
+               "in",
+               "out",
+               "snap",
+               "cut"
+              ]
+             }
+            },
+            "required": [
+             "t",
+             "face"
+            ],
+            "additionalProperties": false
+           }
+          }
+         ]
+        },
+        "prop": {
+         "description": "Gehaltener Gegenstand; wechselt hart.",
+         "anyOf": [
+          {
+           "type": "string"
+          },
+          {
+           "minItems": 1,
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "t": {},
+             "prop": {
+              "type": "string"
+             }
+            },
+            "required": [
+             "t",
+             "prop"
+            ],
+            "additionalProperties": false
+           }
+          }
+         ]
+        },
+        "params": {
+         "description": "Konstante Rig-Parameter, z. B. coil, flap.",
+         "type": "object",
+         "propertyNames": {
+          "type": "string"
+         },
+         "additionalProperties": {
+          "anyOf": [
+           {
+            "type": "number"
+           },
+           {
+            "type": "boolean"
+           },
+           {
+            "type": "string"
+           },
+           {}
+          ]
+         }
+        },
+        "tracks": {
+         "description": "Zeitverläufe numerischer Rig-Parameter, z. B. glow, coil, roar.",
+         "type": "object",
+         "propertyNames": {
+          "type": "string"
+         },
+         "additionalProperties": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "t": {},
+            "v": {
+             "type": "number"
+            },
+            "ease": {
+             "type": "string",
+             "enum": [
+              "lin",
+              "io",
+              "in",
+              "out",
+              "snap",
+              "cut"
+             ]
+            }
+           },
+           "required": [
+            "t",
+            "v"
+           ],
+           "additionalProperties": false
+          }
+         }
+        },
+        "rotate": {
+         "type": "object",
+         "properties": {
+          "base": {
+           "default": [
+            0,
+            0,
+            0
+           ]
+          },
+          "amp": {
+           "default": [
+            0,
+            0,
+            0
+           ]
+          },
+          "freq": {
+           "default": [
+            0,
+            0,
+            0
+           ]
+          },
+          "rate": {
+           "default": [
+            0,
+            0,
+            0
+           ]
+          }
+         },
+         "additionalProperties": false,
+         "description": "Dauerhafte Drehung/Taumeln: rot = base + amp·sin(freq·t) + rate·t (Radiant, t in Sekunden)."
+        }
+       },
+       "required": [
+        "id",
+        "cast"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "objects": {
+      "default": [],
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "id": {
+         "type": "string",
+         "pattern": "^[A-Za-z][\\w-]*$"
+        },
+        "type": {
+         "type": "string",
+         "description": "Objekttyp aus der Registry (src/story/registry.ts)."
+        },
+        "at": {},
+        "path": {
+         "minItems": 1,
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "t": {},
+           "pos": {},
+           "ease": {
+            "type": "string",
+            "enum": [
+             "lin",
+             "io",
+             "in",
+             "out",
+             "snap",
+             "cut"
+            ]
+           }
+          },
+          "required": [
+           "t",
+           "pos"
+          ],
+          "additionalProperties": false
+         }
+        },
+        "visible": {
+         "type": "object",
+         "properties": {
+          "from": {},
+          "to": {}
+         },
+         "additionalProperties": false
+        },
+        "params": {
+         "type": "object",
+         "propertyNames": {
+          "type": "string"
+         },
+         "additionalProperties": {}
+        },
+        "tracks": {
+         "type": "object",
+         "propertyNames": {
+          "type": "string"
+         },
+         "additionalProperties": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "t": {},
+            "v": {
+             "type": "number"
+            },
+            "ease": {
+             "type": "string",
+             "enum": [
+              "lin",
+              "io",
+              "in",
+              "out",
+              "snap",
+              "cut"
+             ]
+            }
+           },
+           "required": [
+            "t",
+            "v"
+           ],
+           "additionalProperties": false
+          }
+         }
+        }
+       },
+       "required": [
+        "type"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "camera": {
+      "type": "object",
+      "properties": {
+       "keys": {
+        "default": [],
+        "type": "array",
+        "items": {
+         "type": "object",
+         "properties": {
+          "t": {},
+          "pos": {},
+          "look": {},
+          "fov": {
+           "default": 50,
+           "type": "number",
+           "minimum": 10,
+           "maximum": 120
+          },
+          "roll": {
+           "default": 0
+          },
+          "ease": {
+           "description": "Kurve des Segments, das bei DIESEM Key ankommt (Standard: io).",
+           "type": "string",
+           "enum": [
+            "lin",
+            "io",
+            "in",
+            "out",
+            "snap",
+            "cut"
+           ]
+          },
+          "cut": {
+           "description": "Harter Schnitt: springt zu diesem Key, ohne vom vorigen zu überblenden.",
+           "type": "boolean"
+          }
+         },
+         "required": [
+          "t",
+          "pos",
+          "look"
+         ],
+         "additionalProperties": false
+        }
+       },
+       "orbits": {
+        "default": [],
+        "type": "array",
+        "items": {
+         "type": "object",
+         "properties": {
+          "from": {},
+          "to": {},
+          "center": {
+           "description": "Mittelpunkt: [x,y,z] oder {rel: <Figur>, off: [..]} (folgt der Figur)."
+          },
+          "radius": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "angle": {
+           "type": "array",
+           "prefixItems": [
+            {},
+            {}
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "height": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "look": {
+           "type": "array",
+           "prefixItems": [
+            {},
+            {}
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2,
+           "description": "Blickziel am Anfang und am Ende."
+          },
+          "fov": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "steps": {
+           "default": 6,
+           "description": "Anzahl Zwischenkeys.",
+           "type": "integer",
+           "minimum": 1,
+           "maximum": 40
+          },
+          "ease": {
+           "default": "lin",
+           "type": "string",
+           "enum": [
+            "lin",
+            "io",
+            "in",
+            "out",
+            "snap",
+            "cut"
+           ]
+          }
+         },
+         "required": [
+          "from",
+          "to",
+          "center",
+          "radius",
+          "angle",
+          "height",
+          "look",
+          "fov"
+         ],
+         "additionalProperties": false,
+         "description": "Kreisfahrt um einen Punkt; wird zu Keyframes ausgerollt und mit \"keys\" nach Zeit gemischt. center und look dürfen Verweise sein."
+        }
+       },
+       "shots": {
+        "default": [],
+        "description": "Kamera-Presets (push_in, orbit_in, whip_to, over_shoulder, crane_down, track_behind, dolly_zoom, handheld).",
+        "type": "array",
+        "items": {
+         "type": "object",
+         "properties": {
+          "preset": {
+           "type": "string",
+           "enum": [
+            "push_in",
+            "orbit_in",
+            "whip_to",
+            "over_shoulder",
+            "crane_down",
+            "track_behind",
+            "dolly_zoom",
+            "handheld"
+           ],
+           "description": "Kamera-Preset, siehe CAMERA_PRESETS in src/story/registry.ts."
+          },
+          "from": {
+           "default": 0
+          },
+          "to": {
+           "default": "scene.end"
+          },
+          "target": {
+           "description": "Ziel des Blicks, z. B. {rel: finn, off: [0,1.6,0]}."
+          },
+          "subject": {
+           "description": "Figur (Actor-ID), an der sich over_shoulder/track_behind ausrichten.",
+           "type": "string",
+           "pattern": "^[A-Za-z][\\w-]*$"
+          },
+          "offset": {},
+          "to_offset": {},
+          "look_offset": {},
+          "fov": {
+           "anyOf": [
+            {
+             "type": "number",
+             "minimum": 10,
+             "maximum": 120
+            },
+            {
+             "type": "array",
+             "prefixItems": [
+              {
+               "type": "number",
+               "minimum": 10,
+               "maximum": 120
+              },
+              {
+               "type": "number",
+               "minimum": 10,
+               "maximum": 120
+              }
+             ],
+             "items": false,
+             "minItems": 2,
+             "maxItems": 2
+            }
+           ]
+          },
+          "distance": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "angle": {
+           "type": "array",
+           "prefixItems": [
+            {},
+            {}
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "height": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "push": {
+           "type": "number",
+           "minimum": 0,
+           "maximum": 0.95
+          },
+          "look_from": {},
+          "at": {},
+          "duration": {},
+          "amp": {
+           "type": "number",
+           "minimum": 0,
+           "maximum": 2
+          },
+          "speed": {
+           "type": "number",
+           "minimum": 0.1,
+           "maximum": 6
+          },
+          "transition": {
+           "default": "cut",
+           "description": "Übergang vom vorigen Shot: harter Schnitt oder Überblendung.",
+           "type": "string",
+           "enum": [
+            "cut",
+            "blend"
+           ]
+          },
+          "ease": {
+           "type": "string",
+           "enum": [
+            "lin",
+            "io",
+            "in",
+            "out",
+            "snap",
+            "cut"
+           ]
+          }
+         },
+         "required": [
+          "preset"
+         ],
+         "additionalProperties": false
+        }
+       },
+       "shake": {
+        "default": [],
+        "description": "Handkamera-Wackeln in Zeitabschnitten.",
+        "type": "array",
+        "items": {
+         "type": "object",
+         "properties": {
+          "from": {},
+          "to": {},
+          "amp": {
+           "type": "number",
+           "minimum": 0,
+           "maximum": 2
+          },
+          "speed": {
+           "default": 1,
+           "type": "number",
+           "minimum": 0.1,
+           "maximum": 6
+          }
+         },
+         "required": [
+          "amp"
+         ],
+         "additionalProperties": false
+        }
+       }
+      },
+      "additionalProperties": false
+     },
+     "lines": {
+      "default": [],
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "id": {
+         "type": "string",
+         "pattern": "^[A-Za-z][\\w-]*$"
+        },
+        "who": {
+         "type": "string",
+         "pattern": "^[A-Za-z][\\w-]*$",
+         "description": "Sprecher (Figur aus \"cast\"). Seine Stimme und sein Mund werden verwendet."
+        },
+        "text": {
+         "type": "string",
+         "minLength": 1,
+         "description": "Gesprochener Text (Deutsch). Gleichzeitig der Untertitel."
+        }
+       },
+       "required": [
+        "id",
+        "who",
+        "text"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "sfx": {
+      "default": [],
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "sound": {
+         "type": "string",
+         "description": "Name einer Datei in public/audio (ohne .wav), z. B. \"whoosh_fast\"."
+        },
+        "at": {},
+        "volume": {
+         "default": 1,
+         "type": "number",
+         "minimum": 0,
+         "maximum": 2
+        },
+        "loop": {
+         "description": "\"scene\": läuft bis zum Szenenende.",
+         "type": "string",
+         "enum": [
+          "scene"
+         ]
+        }
+       },
+       "required": [
+        "sound",
+        "at"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "captions": {
+      "default": [],
+      "type": "array",
+      "items": {
+       "oneOf": [
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
+           "const": "lower_third"
+          },
+          "from": {},
+          "to": {},
+          "title": {
+           "type": "string"
+          },
+          "subtitle": {
+           "type": "string"
+          },
+          "color": {
+           "description": "Hintergrund des Titels (Vorgabe #ffd23d).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "bg": {
+           "description": "Hintergrund der Unterzeile (Vorgabe #1a0f3a).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "to",
+          "title"
+         ],
+         "additionalProperties": false
+        },
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
+           "const": "end_card"
+          },
+          "from": {},
+          "title": {
+           "type": "string"
+          },
+          "subtitle": {
+           "type": "string"
+          },
+          "glow": {
+           "description": "Leuchtfarbe des Titels (Vorgabe #ff7ad9).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "accent": {
+           "description": "Farbe der Unterzeile (Vorgabe #ffd23d).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "title"
+         ],
+         "additionalProperties": false
+        },
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
+           "const": "message"
+          },
+          "from": {},
+          "to": {},
+          "style": {
+           "default": "chat",
+           "description": "chat = Smartphone-Chatkarte (Absender, Nachricht, Zeit) · photo = Foto-Rahmen mit Zeitstempel (+ optional Kamerablitz) · lock = Sperrbildschirm mit Uhrzeit und Datum.",
+           "type": "string",
+           "enum": [
+            "chat",
+            "photo",
+            "lock"
+           ]
+          },
+          "sender": {
+           "description": "chat: Absendername (Avatar-Initiale wird automatisch gezeichnet); photo: kleines Etikett oben.",
+           "type": "string"
+          },
+          "text": {
+           "description": "chat: Nachrichtentext · lock: Datumszeile (z. B. \"Dienstag\").",
+           "type": "string"
+          },
+          "time": {
+           "description": "chat: kleine Zeitangabe · photo: Zeitstempel unten · lock: große Uhrzeit.",
+           "type": "string"
+          },
+          "status": {
+           "description": "chat: Zeile unter der Nachricht (z. B. \"Zugestellt\").",
+           "type": "string"
+          },
+          "flash": {
+           "description": "photo: Kamerablitz (weißes Aufblitzen) zu Beginn.",
+           "type": "boolean"
+          },
+          "accent": {
+           "description": "chat: Farbe der Nachrichtenblase (Vorgabe #2f6bff).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "to"
+         ],
+         "additionalProperties": false
+        },
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
+           "const": "camera_view"
+          },
+          "from": {},
+          "to": {},
+          "live": {
+           "default": true,
+           "description": "LIVE-Abzeichen mit Zuschauerzähler.",
+           "type": "boolean"
+          },
+          "viewers": {
+           "description": "Zuschauerzahl in Millionen: Start- und Endwert (läuft hoch).",
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "label": {
+           "description": "Kleiner Text unten im Sucher, z. B. \"KAMERA 7\".",
+           "type": "string"
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "to"
+         ],
+         "additionalProperties": false,
+         "description": "Kamerasucher-Optik: Eckmarken, blinkender REC-Punkt, LIVE-Abzeichen, Zuschauerzähler."
+        },
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
+           "const": "callout"
+          },
+          "from": {},
+          "to": {},
+          "at": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2,
+           "description": "Mitte des Rings in Prozent des Bildes [x, y] (0–100)."
+          },
+          "text": {
+           "type": "string"
+          },
+          "color": {
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "side": {
+           "default": "right",
+           "description": "Auf welcher Seite des Rings das Etikett steht.",
+           "type": "string",
+           "enum": [
+            "left",
+            "right"
+           ]
+          },
+          "ring": {
+           "default": 150,
+           "description": "Ringdurchmesser in Pixeln (1080-Breite).",
+           "type": "number",
+           "minimum": 40,
+           "maximum": 400
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "to",
+          "at",
+          "text"
+         ],
+         "additionalProperties": false,
+         "description": "Hinweis-Marker: pulsierender Ring mit Etikett, zeigt auf ein Bilddetail (nur für feststehende Kamera exakt)."
+        },
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
+           "const": "title"
+          },
+          "from": {},
+          "to": {},
+          "text": {
+           "type": "string"
+          },
+          "subtitle": {
+           "type": "string"
+          },
+          "position": {
+           "default": "center",
+           "type": "string",
+           "enum": [
+            "top",
+            "center",
+            "bottom"
+           ]
+          },
+          "color": {
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "to",
+          "text"
+         ],
+         "additionalProperties": false
+        }
+       ]
+      }
+     }
+    },
+    "required": [
+     "id",
+     "set",
+     "camera"
+    ],
+    "additionalProperties": false
+   }
+  }
+ },
+ "required": [
+  "schema",
+  "meta",
+  "voices",
+  "cast",
+  "scenes"
+ ],
+ "additionalProperties": false
+}

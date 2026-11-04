@@ -1,0 +1,7 @@
+node_modules
+out
+tts/.venv
+tts/models
+tts/asr
+__pycache__
+tts/cache

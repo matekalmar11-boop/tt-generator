@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "story": "der-letzte-mensch",
+  "file": "stories/der-letzte-mensch.yaml",
+  "contentHash": "87076e3cbbdb773a681edee7f8fa3893caa3d76b1f668d605f427b76e102b82a",
+  "parts": {
+    "code": "380b9c1c81ee877b",
+    "story": "b6408d75b896a34fd962e462171ab0f1f2146a53957f06a22bb60f78fc775a91",
+    "timeline": "71c5ce0e1f6f231c88fe103a445960264c076cc1e91f786cdbd516a973f29d7d",
+    "audio": "ef09f05a00cb8550de0693685e96ef8394a98a6f9790fa437d365f261f7c00aa"
+  },
+  "approvedAt": "2026-11-04T19:28:17.679Z",
+  "approvedBy": "Nutzer (ausdrückliche Anweisung im Chat: Produktion und finaler Export „Der letzte Mensch“)",
+  "note": "Freigabe nur für dieses Video (schnelle TikTok-Schnitte)",
+  "summary": {
+    "scenes": 13,
+    "frames": 1373,
+    "seconds": 45.8,
+    "lines": 13
+  },
+  "codeHash": "380b9c1c81ee877b"
+}

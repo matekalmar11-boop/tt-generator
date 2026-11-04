@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "story": "truman-show",
+  "file": "stories/truman-show.yaml",
+  "contentHash": "1292997eee122c28ff1426797b7c1ca1d65cce7a86657618bd194971604d2dab",
+  "parts": {
+    "code": "c019682c5dff6642",
+    "story": "68c7c0e624d0db227cd85c924d37bb0cb9b5450c3bacdd7f06b2bbdbb984c3c4",
+    "timeline": "3a1153dbaf793f3240ce4285851200f7aff2f2527dbb510d6734cbb23fc6a8a5",
+    "audio": "ebc2398732421ea6c8836857f9bdfb1790755f739f0a2c4533a28b9504206bab"
+  },
+  "approvedAt": "2026-11-04T18:42:04.661Z",
+  "approvedBy": "Nutzer (ausdrückliche Anweisung im Chat: finaler Export)",
+  "note": "Neu freigegeben nach Korrektur: Aussprache Truman wirksam (Bundle-Cache), Musik-Ducking, Limiter",
+  "summary": {
+    "scenes": 13,
+    "frames": 1698,
+    "seconds": 56.6,
+    "lines": 14
+  },
+  "codeHash": "c019682c5dff6642"
+}

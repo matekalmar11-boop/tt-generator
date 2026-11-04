@@ -1,0 +1,527 @@
+# yaml-language-server: $schema=./story.schema.json
+# ─────────────────────────────────────────────────────────────────────────────
+# „Der Mondsplitter“ – Teil 1.  Übertragung der handgeschriebenen Referenzszenen
+# (src/scenes/Scenes.tsx) + story/script.json + src/Main.tsx ins Story-Format.
+# Zeiten: Zahl = Sekunden · "40f" = Frames @30 FPS · "l06.start+22f" = relativ zu einer Sprechzeile
+# · "scene.end" = Szenenende.  Koordinaten: x rechts, y oben, z zur Kamera; yaw 0 = Figur schaut zur Kamera, "pi" = von ihr weg.
+# ─────────────────────────────────────────────────────────────────────────────
+schema: 1
+
+meta:
+  id: mondsplitter
+  title: Der Mondsplitter
+  language: de
+  genre: fantasy
+  description: >-
+    Finn, der letzte Laternenwächter, jagt den Dieb des Mondes – und erfährt, dass er selbst den Mond
+    vor tausend Jahren zerbrochen hat. Cliffhanger zu Teil 2.
+  targetDuration: {min: 30, max: 60}
+
+format: {fps: 30, width: 1080, height: 1920}
+
+# ── Stimmen (Piper, offline). Die Drachenstimme entspricht tts/redo_dragon.py (Tonhöhe 0.9, leichtes Echo). ──
+voices:
+  narrator:
+    model: de_DE-thorsten-medium
+    lengthScale: 1.08
+    noiseScale: 0.6
+    noiseW: 0.7
+    sentenceGap: 0.24
+    loudness: -16
+    subtitle: {accent: "#ffd23d"}
+  dragon:
+    model: de_DE-thorsten-medium
+    lengthScale: 1.05
+    noiseScale: 0.5
+    noiseW: 0.6
+    sentenceGap: 0.24
+    loudness: -14
+    effect:
+      pitch: 0.9
+      lowpassHz: 6000
+      eq: {freqHz: 140, gainDb: 3}
+      echo: {delayMs: 40, decay: 0.15}
+    subtitle: {accent: "#7ff3ff", label: "LUMI, DER LICHTDRACHE"}
+
+timing: {lineGap: 0.28}      # Pause zwischen Sprechzeilen einer Szene
+
+# ── Besetzung: wiederverwendbare Figuren. Finn erzählt selbst (Ich-Erzähler), daher Stimme „narrator“. ──
+cast:
+  finn:
+    rig: finn
+    name: Finn
+    role: Laternenwächter von Himmelsfels
+    voice: narrator
+  lumi:
+    rig: dragon
+    name: Lumi
+    role: Lichtdrache
+    voice: dragon
+
+audio:
+  music: {file: music, volume: 0.5, duck: {depth: 0.3, attack: 6f, release: 12f}, fadeOut: 45f}
+
+subtitles: {maxWords: 3, maxChars: 24, font: Inter, maxFontSize: 104, bottomPadding: 560}
+
+transitions:
+  cutFlash: {color: "#e9efff", peak: 0.9, lead: 3f, tail: 9f}
+
+overlays:
+  seriesTag: {text: DER MONDSPLITTER, accent: "· TEIL 1"}
+
+scenes:
+  # ═══════════════ 1. HOOK: der Mond verliert ein Stück ═══════════════
+  - id: moon
+    title: Hook – Mond und Dieb
+    timing: {pre: 0.7, post: 0.5}
+    set: {type: plateau, params: {lantern: true}}
+    environment:
+      type: night_sky
+      moon: {pos: [24, 38, -90], radius: 26}
+      islands: true
+      clouds: true
+      tracks:
+        crack: [{t: 0, v: 0}, {t: 22f, v: 1, ease: lin}]      # leuchtende Risse wachsen in den ersten 22 Frames
+    light:
+      fog: {color: "#2a2250", near: 60, far: 260}
+      hemi: {intensity: 0.7}
+      key: {intensity: 1.5, pos: [10, 22, 10]}
+    actors:
+      - id: finn
+        cast: finn
+        at: [0, 0.3, 0]
+        yaw: pi-0.15                                           # schaut zum Mond (von der Kamera weg)
+        pose: lantern
+        prop: lantern
+        face: [{t: 0, face: neutral}, {t: 100f, face: determined, ease: cut}]
+    objects:
+      - {id: fragments, type: floating_shards, params: {positions: [[2, 56, -80], [38, 52, -85], [46, 30, -70], [4, 22, -76], [-4, 36, -88]], color: "#dfe8ff"}}
+      - id: moon_chip                                          # der Splitter, der vom Mond wegfliegt
+        type: glow_shard
+        visible: {from: 16f, to: 78f}
+        path: [{t: 16f, pos: [14, 40, -68]}, {t: 78f, pos: [-26, 20, -22], ease: in}]
+        params: {size: [1.6, 3.2, 1.2], halo: [2.6, 5, 2], spin: {x: 3, y: 2}}
+      - {type: dust, params: {count: 60, center: [0, 18, -40], spread: [50, 30, 60], color: "#cfe0ff", size: 0.5, speed: 0.3, seed: mstar}}
+    camera:
+      keys:
+        - {t: 0,       pos: [6, 33, -26],  look: [22, 38, -90], fov: 50}                       # Extrem-Nahaufnahme Mondoberfläche
+        - {t: 40f,     pos: [10, 34, -24], look: [22, 37, -90], fov: 52, ease: lin}
+        - {t: 72f,     pos: [-12, 20, -12], look: [12, 28, -60], fov: 58, ease: io}            # schneller Schwenk nach unten
+        - {t: 112f,    pos: [-7, 7, 26],   look: [0, 3.5, 0],   fov: 56, ease: io}             # Kranfahrt zur Klippe
+        - {t: scene.end, pos: [3.2, 2.5, 9.5], look: [0, 3.0, 0], fov: 40, ease: out}          # Einschieber auf Finn
+      shake:
+        - {to: 40f, amp: 0.12, speed: 1.4}
+        - {from: 40f, amp: 0.03, speed: 1.4}
+    lines:
+      - {id: l01, who: finn, text: "Jede Nacht verschwindet ein Stück vom Mond."}
+      - {id: l02, who: finn, text: "Und heute Nacht sehe ich endlich, wer es stiehlt."}
+    sfx:
+      - {sound: crack, at: 2f, volume: 0.9}
+      - {sound: whoosh, at: 20f, volume: 0.8}
+      - {sound: wind, at: 0, volume: 0.35, loop: scene}
+      - {sound: whoosh, at: 66f, volume: 0.55}
+      - {sound: chime, at: 150f, volume: 0.35}
+
+  # ═══════════════ 2. HELD: Finn stellt sich vor ═══════════════
+  - id: hero
+    title: Finn, der Laternenwächter
+    timing: {pre: 0.4, post: 0.6}
+    set: {type: plateau, params: {lantern: true}}
+    environment:
+      type: night_sky
+      moon: {pos: [26, 40, -85], radius: 26}
+      islands: true
+      clouds: true
+    light:
+      fog: {color: "#2e2459", near: 30, far: 170}
+      hemi: {intensity: 0.9}
+      key: {intensity: 2.0, pos: [-10, 20, 14]}
+    actors:
+      - id: finn
+        cast: finn
+        at: [0, 0.3, 0]
+        yaw: 0.1
+        pose: lantern
+        prop: lantern
+        face:                                                  # lächelt, wird zum Satzende entschlossen (linear überblendet)
+          - {t: 0, face: smile}
+          - {t: "l03.start+40f", face: smile}
+          - {t: "l03.start+62f", face: determined, ease: lin}
+    camera:
+      orbits:                                                  # Kreisfahrt von links-unten nach vorn-oben
+        - from: 0
+          to: 92f
+          center: [0, 2.3, 0]
+          radius: [6.8, 5.2]
+          angle: [-1.35, 0.35]
+          height: [-1.6, 0.7]
+          look: [[0, 1.6, 0], [0, 2.6, 0]]
+          fov: [60, 44]
+          steps: 6
+          ease: lin
+      keys:
+        - {t: 108f, pos: [0.9, 3.1, 2.7], look: [0, 2.95, 0], fov: 32, ease: io}                 # Nahaufnahme Gesicht
+        - {t: scene.end, pos: [0.6, 3.05, 2.3], look: [0, 2.95, 0], fov: 30, ease: lin}
+      shake: [{amp: 0.02, speed: 1}]
+    lines:
+      - {id: l03, who: finn, text: "Ich bin Finn, der letzte Laternenwächter von Himmelsfels."}
+    sfx:
+      - {sound: whoosh_fast, at: 0, volume: 0.6}
+      - {sound: chime, at: 36f, volume: 0.4}
+      - {sound: wind, at: 0, volume: 0.3, loop: scene}
+    captions:
+      - {type: lower_third, from: 34f, to: "scene.end-2f", title: FINN, subtitle: LATERNENWÄCHTER VON HIMMELSFELS}
+
+  # ═══════════════ 3. KRISTALLWALD: Spur und leuchtende Augen ═══════════════
+  - id: forest
+    title: Kristallwald
+    timing: {pre: 0.3, post: 0.6}
+    set: {type: forest}
+    environment:
+      type: starry_sky
+      colors: {top: "#07051c", mid: "#1d1a4a", bottom: "#120d30"}
+      stars: {rotation: 0.5}
+    light:
+      fog: {color: "#2a2a78", near: 10, far: 75}
+      hemi: {sky: "#8fa8ff", ground: "#3a2f6a", intensity: 1.3}
+      ambient: 0.35
+      key: {intensity: 2.4, pos: [-6, 18, 10], shadowAt: {rel: finn}}
+    actors:
+      - id: finn
+        cast: finn
+        path:                                                  # schleicht bis kurz nach Ende der ersten Zeile
+          - {t: 0, pos: [0, 0.3, 4]}
+          - {t: "l04.end+4f", pos: [0, 0.3, -14.975], ease: lin}
+        yaw: pi
+        prop: lantern
+        pose:
+          - {t: 0, pose: sneak}
+          - {t: "l04.end+4f", pose: sneak}
+          - {t: "l04.end+18f", pose: shock, mix: 0.45, ease: lin}      # erstarrt leicht
+        face: [{t: 0, face: neutral}, {t: "l05.start", face: worry, ease: cut}]
+    objects:
+      - id: eyes
+        type: eyes_in_dark
+        at: [4.4, 1.9, -26.475]
+        visible: {from: "l05.start-2f"}
+        params: {color: "#ffd23d", blinkEvery: 1.333}
+    camera:
+      keys:
+        # Verfolgungsfahrt: alle Punkte relativ zu Finn (rel), von hinten links → hinten rechts → seitlich → vor ihn
+        - {t: 0,    pos: {rel: finn, off: [-3.2, 1.3, 6.5]}, look: {rel: finn, off: [0, 2.0, -3]}, fov: 55}
+        - {t: 40f,  pos: {rel: finn, off: [3.8, 2.2, 5.5]},  look: {rel: finn, off: [0, 2.4, -2]}, fov: 52, ease: io}
+        - {t: 62f,  pos: {rel: finn, off: [5.4, 1.6, 0.5]},  look: {rel: finn, off: [0, 2.2, 0]},  fov: 50, ease: lin}
+        - {t: 88f,  pos: {rel: finn, off: [-3.0, 0.9, -4.2]}, look: {rel: finn, off: [0, 2.6, 0]}, fov: 46, ease: io}
+        - {t: "l05.start-8f", pos: {rel: finn, off: [-2.0, 1.0, -3.4]}, look: {rel: finn, off: [0, 2.7, 0]}, fov: 44, ease: lin}
+        # Reißschwenk auf die Augen, dann langsamer Zoom
+        - {t: "l05.start+1f", pos: {rel: finn, off: [-0.4, 1.7, -3.0]}, look: {obj: eyes}, fov: 46, ease: snap}
+        - {t: "l05.start+4f", pos: {rel: finn, off: [-0.4, 1.7, -3.0]}, look: {obj: eyes}, fov: 46, ease: lin}
+        - {t: "l05.end+8f",   pos: {rel: finn, off: [1.2, 1.7, -6.0]},  look: {obj: eyes}, fov: 30, roll: 0.07, ease: lin}
+        # harter Schnitt: Nahaufnahme von Finns erschrockenem Gesicht
+        - {t: "l05.end+8f",   pos: {rel: finn, off: [0.9, 3.0, -2.5]}, look: {rel: finn, off: [0, 2.95, 0]}, fov: 34, cut: true}
+        - {t: scene.end,      pos: {rel: finn, off: [0.6, 3.0, -2.1]}, look: {rel: finn, off: [0, 2.95, 0]}, fov: 29, ease: lin}
+      shake:
+        - {to: "l05.start-8f", amp: 0.04, speed: 1}
+        - {from: "l05.start-8f", to: "l05.end+8f", amp: 0.05, speed: 1.6}
+        - {from: "l05.end+8f", amp: 0.025, speed: 1}
+    lines:
+      - {id: l04, who: finn, text: "Eine Spur aus Silberstaub führt mich tief in den Kristallwald."}
+      - {id: l05, who: finn, text: "Etwas beobachtet mich."}
+    sfx:
+      - {sound: steps, at: 0, volume: 0.55}
+      - {sound: whoosh_fast, at: 111f, volume: 0.8}
+      - {sound: heartbeat, at: 118f, volume: 0.8}
+      - {sound: rumble, at: 120f, volume: 0.3}
+
+  # ═══════════════ 4. HÖHLE: der Lichtdrache ═══════════════
+  - id: cave
+    title: Höhle – Drache entdeckt
+    timing: {pre: 0.4, post: 0.5}
+    set: {type: cave, params: {center: [0, 0, -11]}}           # Lichtstrahl/Teich hinter dem Drachen = Gegenlicht
+    environment: {type: none}
+    light:
+      fog: {color: "#150e2c", near: 14, far: 60}
+      hemi: {intensity: 0.45}
+      key: {intensity: 0.5, pos: [0, 20, 8]}
+    actors:
+      - id: lumi
+        cast: lumi
+        at: [0, 0, -4]
+        yaw: 0.85pi
+        params: {shard: true, flap: 0.6}
+        tracks:
+          coil: [{t: 0, v: 1}, {t: "l06.start+22f", v: 1}, {t: "l06.start+55f", v: 0.5, ease: out}]   # rollt sich auf
+          roar: [{t: 0, v: 0}, {t: "l06.start+24f", v: 1, ease: cut}, {t: "l06.start+50f", v: 0, ease: cut}]
+      - id: finn
+        cast: finn
+        at: [0, 0, 5.5]
+        yaw: pi
+        prop: lantern
+        pose:
+          - {t: 0, pose: sneak}
+          - {t: "l06.start+10f", pose: sneak}
+          - {t: "l06.start+22f", pose: shock, mix: 0.7, ease: lin}
+        face: [{t: 0, face: neutral}, {t: "l06.start+8f", face: shock, ease: cut}]
+    camera:
+      keys:
+        - {t: 0, pos: [2.4, 3.3, 9.8], look: [0, 2, -3], fov: 56}
+        - {t: "l06.start+14f", pos: [1.5, 2.5, 7.4], look: [0, 1.6, -3.5], fov: 50, ease: out}
+        - {t: "l06.start+24f", pos: [1.5, 2.45, 7.2], look: [0, 1.6, -3.5], fov: 50, ease: lin}
+        - {t: "l06.start+56f", pos: [-0.4, 1.7, 1.5], look: [0, 1.5, -4], fov: 42, ease: in}      # Fahrt auf den Drachen zu
+        # harter Schnitt: Kopf des Drachen mit Mondsplitter im Maul (Position folgt dem Kopf)
+        - {t: "l07.start-4f", pos: {rel: lumi.head, off: [3.2, 1.4, 6.6]}, look: {rel: lumi.head, off: [0, -0.1, 0]}, fov: 36, roll: -0.08, cut: true}
+        - {t: scene.end,      pos: {rel: lumi.head, off: [2.4, 1.4, 5.2]}, look: {rel: lumi.head, off: [0, -0.1, 0]}, fov: 30, roll: 0.06, ease: lin}
+      shake:
+        - {to: "l06.start+24f", amp: 0.03, speed: 1.7}
+        - {from: "l06.start+24f", to: "l06.start+52f", amp: 0.12, speed: 1.7}      # Beben beim Brüllen
+        - {from: "l06.start+52f", to: "l07.start-4f", amp: 0.03, speed: 1.7}
+        - {from: "l07.start-4f", amp: 0.02, speed: 1}
+    lines:
+      - {id: l06, who: finn, text: "Da! Ein Drache aus purem Licht!"}
+      - {id: l07, who: finn, text: "Und in seinem Maul: ein Splitter des Mondes."}
+    sfx:
+      - {sound: whoosh_fast, at: 0, volume: 0.5}
+      - {sound: magic_hum, at: 0, volume: 0.35}
+      - {sound: roar, at: 36f, volume: 0.85}
+      - {sound: chime, at: 88f, volume: 0.5}
+
+  # ═══════════════ 5. DUELL: Schwert gegen Drache ═══════════════
+  - id: duel
+    title: Duell – „Halt!“
+    timing: {pre: 0.3, post: 0.4}
+    set: {type: cave, params: {center: [0, 0, -11]}}
+    environment: {type: none}
+    light:
+      fog: {color: "#150e2c", near: 14, far: 60}
+      hemi: {intensity: 0.45}
+      key: {intensity: 0.5, pos: [0, 20, 8]}
+    actors:
+      - id: lumi
+        cast: lumi
+        at: [0, 0, -5]
+        yaw: pi
+        params: {shard: true, flap: 0.8, coil: 0.22}
+        tracks:
+          roar: [{t: 0, v: 0}, {t: "l09.start-8f", v: 1, ease: cut}, {t: "l09.start+6f", v: 0, ease: cut}]
+      - id: finn
+        cast: finn
+        at: [0, 0, 4]
+        yaw: pi
+        pose:
+          - {t: 0, pose: sneak}
+          - {t: "l08.start+2f", pose: sneak}
+          - {t: "l08.start+18f", pose: sword, ease: out}        # Schwert ziehen
+          - {t: "l08.start+22f", pose: sword}
+          - {t: "l08.start+34f", pose: swing, ease: in}         # Hieb
+        face: [{t: 0, face: determined}, {t: "l09.start", face: shock, ease: cut}]
+        prop: [{t: 0, prop: lantern}, {t: "l08.start+7f", prop: sword}]
+    camera:
+      keys:
+        - {t: 0, pos: [-2.6, 0.55, 1.0], look: [0, 2.0, 4], fov: 58, roll: 0.14}                  # Froschperspektive, schiefer Horizont
+        - {t: "l08.start+18f", pos: [-1.4, 0.8, 1.6], look: [0, 2.3, 4], fov: 50, roll: 0.1, ease: out}
+        - {t: "l09.start-6f", pos: [-1.0, 0.9, 1.4], look: [0, 2.4, 4], fov: 46, roll: 0, ease: lin}
+        - {t: "l09.start-4f", pos: {rel: lumi.head, off: [3.0, 0.4, 6.4]}, look: {rel: lumi.head, off: [0, 0.1, 0]}, fov: 42, roll: -0.05, cut: true}
+        - {t: scene.end,      pos: {rel: lumi.head, off: [2.2, 0.4, 5.2]}, look: {rel: lumi.head, off: [0, 0.1, 0]}, fov: 34, roll: 0.05, ease: lin}
+      shake:
+        - {to: "l08.start+20f", amp: 0.02, speed: 1.8}
+        - {from: "l08.start+20f", to: "l09.start-4f", amp: 0.1, speed: 1.8}
+        - {from: "l09.start-4f", amp: 0.025, speed: 1}
+    lines:
+      - {id: l08, who: finn, text: "Ich ziehe mein Schwert."}
+      - {id: l09, who: lumi, text: "Halt! Ich stehle den Mond nicht."}
+    sfx:
+      - {sound: sword, at: 10f, volume: 0.8}
+      - {sound: whoosh_fast, at: 32f, volume: 0.8}
+      - {sound: boom, at: 44f, volume: 0.45}
+
+  # ═══════════════ 6. WENDUNG: Finn hat den Mond zerbrochen ═══════════════
+  - id: twist
+    title: Wendung – tausend Jahre
+    timing: {pre: 0.3, post: 0.7}
+    set:
+      type: cave
+      tracks:
+        beam: [{t: 0, v: 1.1}]
+        runes: [{t: 60f, v: 0}, {t: 110f, v: 0.8, ease: lin}]
+    environment:                                               # Blick durch die Deckenöffnung zum zerbrochenen Mond
+      type: starry_sky
+      moon: {pos: [0, 74, -70], radius: 22, crack: 1}
+    light:
+      fog: {color: "#150e2c", near: 14, far: 450}
+      hemi: {intensity: 0.5}
+      key: {intensity: 0.5, pos: [0, 20, 8]}
+    actors:
+      - id: lumi
+        cast: lumi
+        at: [0, 0, -4]
+        yaw: pi
+        params: {coil: 0.15, flap: 0.7}
+      - id: finn
+        cast: finn
+        at: [0, 0, 3]
+        yaw: pi
+        pose: shock
+        prop: none
+        face: [{t: 0, face: shock}, {t: 60f, face: worry, ease: cut}]
+      - id: finn_past                                          # Rückblick: Silber-Finn zerschlägt den Mond
+        cast: finn
+        ghost: true
+        at: [0, 46, -46]
+        scale: 2.6
+        yaw: 0
+        visible: {from: 119f}
+        prop: sword
+        face: determined
+        pose: [{t: 128f, pose: sword}, {t: 152f, pose: swing, ease: lin}]
+    objects:
+      - id: shard                                              # der Splitter schwebt aus dem Maul und steigt zum Mond
+        type: glow_shard
+        path:
+          - {t: 8f, pos: [0, 1.6, -2.8]}
+          - {t: 36f, pos: [0, 4.0, -2], ease: out}
+          - {t: 118f, pos: [0, 34, -2], ease: in}
+        params: {size: [0.35, 0.8, 0.28], halo: [0.6, 1.3, 0.5], haloColor: "#bcd0ff", light: {color: "#cfe0ff", intensity: 40, distance: 14}, spin: {x: 2, y: 1.4}}
+      - id: ghost_light
+        type: point_light
+        at: [0, 53.8, -38.2]
+        visible: {from: 119f}
+        params: {color: "#9fc4ff", distance: 60}
+        tracks: {intensity: [{t: 0, v: 200}]}
+    camera:
+      orbits:                                                  # Kreisfahrt um Finn und Drache
+        - from: 0
+          to: 108f
+          center: [0, 2.4, 0]
+          radius: [9.5, 7.5]
+          angle: [-0.95, 0.9]
+          height: [0.8, 2.4]
+          look: [[0, 2.4, -1.5], [0, 3.6, -1.5]]
+          fov: [52, 46]
+          steps: 6
+          ease: lin
+      keys:                                                    # dann Blick nach oben – dem Splitter folgend
+        - {t: 126f, pos: [0.4, 2.2, 3.5], look: [0, 20, -30], fov: 52, ease: io}
+        - {t: scene.end, pos: [0.4, 2.4, 3.5], look: [0, 31, -42], fov: 58, ease: lin}
+      shake: [{amp: 0.03, speed: 1}]
+    lines:
+      - {id: l10, who: lumi, text: "Ich bringe ihn zurück. Denn du, Finn, hast ihn vor tausend Jahren zerbrochen."}
+    sfx:
+      - {sound: whoosh_fast, at: 0, volume: 0.5}
+      - {sound: chime, at: 6f, volume: 0.25}
+      - {sound: riser, at: 95f, volume: 0.25}
+      - {sound: boom, at: 148f, volume: 0.9}
+
+  # ═══════════════ 7. ENTHÜLLUNG: silberne Augen, der Boden bricht ═══════════════
+  - id: reveal
+    title: Enthüllung
+    timing: {pre: 0.3, post: 0.5}
+    set:
+      type: cave
+      params: {ground: false}                                  # Boden übernimmt das Objekt „ground“ (bricht auf)
+      tracks:
+        beam: [{t: "l12.start+44f", v: 1}, {t: "l12.start+90f", v: 2.4, ease: lin}]
+        runes: [{t: "l12.start+30f", v: 0}, {t: "l12.start+70f", v: 1, ease: lin}]
+    environment:
+      type: starry_sky
+      moon: {pos: [0, 74, -70], radius: 22, crack: 1}
+    light:
+      fog: {color: "#150e2c", near: 14, far: 450}
+      hemi: {intensity: 0.45}
+      key: {intensity: 0.5, pos: [0, 20, 8]}
+    actors:
+      - id: finn
+        cast: finn
+        path:                                                  # schwebt im Lichtstrahl nach oben
+          - {t: 0, pos: [0, 0, -1]}
+          - {t: "l12.start+40f", pos: [0, 0, -1]}
+          - {t: "l12.start+100f", pos: [0, 1.3, -1], ease: io}
+        yaw: 0
+        pose:
+          - {t: 0, pose: shock}
+          - {t: "l12.start+36f", pose: shock}
+          - {t: "l12.start+56f", pose: power, ease: lin}
+        face: [{t: 0, face: shock}, {t: "l12.start+22f", face: glow, ease: cut}]
+        tracks:
+          glow: [{t: "l12.start+24f", v: 0}, {t: "l12.start+46f", v: 1, ease: lin}]        # Augen leuchten silbern
+    objects:
+      - {id: ground, type: cracking_ground, params: {size: 9, start: "l12.start+100f"}}
+      - id: orbit
+        type: orbiting_shards
+        at: {rel: finn, off: [0, 3.2, 0]}
+        params: {count: 9, radius: 2.2, speed: 1.3}
+        tracks: {scale: [{t: "l12.start+50f", v: 0}, {t: "l12.start+70f", v: 1, ease: lin}]}
+      - id: motes
+        type: dust
+        at: {rel: finn, off: [0, 3, 0]}
+        params: {count: 80, spread: [6, 8, 6], color: "#cfe0ff", size: 0.14, speed: 1.2, seed: rv}
+        tracks: {rise: [{t: "l12.start+24f", v: 0}, {t: "l12.start+46f", v: 3, ease: lin}]}
+      - id: glow_light
+        type: point_light
+        at: {rel: finn, off: [0, 4, 2]}
+        params: {color: "#cfe3ff", distance: 12}
+        tracks: {intensity: [{t: "l12.start+24f", v: 0}, {t: "l12.start+46f", v: 60, ease: lin}]}
+    camera:
+      keys:
+        - {t: 0, pos: [0.3, 2.6, 6.5], look: [0, 2.9, -1], fov: 34}                                 # Dolly-Zoom: Schock
+        - {t: 62f, pos: [0.2, 2.9, 2.2], look: [0, 3.0, -1], fov: 62, ease: lin}
+        - {t: "l12.start+14f", pos: [0.0, 3.2, 1.4], look: [0, 3.1, -1], fov: 34, ease: snap}       # Schnitt auf die Augen
+        - {t: "l12.start+50f", pos: [0.2, 3.3, 0.6], look: {rel: finn, off: [0, 3.25, 0]}, fov: 24, ease: lin}
+        - {t: "l12.start+74f", pos: [3.6, 0.6, 3.4], look: [0, 3.8, -1], fov: 62, ease: out}        # Froschperspektive
+        - {t: "l12.start+112f", pos: [-3.2, 1.0, 4.6], look: [0, 4.2, -1], fov: 58, ease: io}
+        - {t: scene.end, pos: [0.6, 11, 2.6], look: [0, 0.5, -1], fov: 62, ease: io}                # Vogelperspektive auf den berstenden Boden
+      shake:
+        - {to: 62f, amp: 0.07, speed: 1.8}
+        - {from: 62f, to: "l12.start+100f", amp: 0.03, speed: 1.8}
+        - {from: "l12.start+100f", amp: 0.08, speed: 1.8}
+    lines:
+      - {id: l11, who: finn, text: "Was? Das ist unmöglich!"}
+      - {id: l12, who: finn, text: "Plötzlich leuchten meine Augen silbern. Der Mond ruft meinen Namen. Und unter mir bricht die Erde auf."}
+    sfx:
+      - {sound: stinger, at: 0, volume: 0.55}
+      - {sound: heartbeat, at: 10f, volume: 0.8}
+      - {sound: chime, at: 100f, volume: 0.6}
+      - {sound: riser, at: 90f, volume: 0.6}
+      - {sound: rumble, at: 150f, volume: 0.9}
+      - {sound: boom, at: 172f, volume: 0.9}
+
+  # ═══════════════ 8. CLIFFHANGER: der Fall ═══════════════
+  - id: end
+    title: Cliffhanger
+    timing: {pre: 0.3, post: 1.2}
+    set: {type: abyss}
+    environment: {type: none}
+    light:
+      fog: {color: "#07041a", near: 20, far: 80}
+      hemi: {sky: "#b79bff", ground: "#2a1f5a", intensity: 0.7}
+      key: {intensity: 0.8, pos: [4, 14, 8]}
+    actors:
+      - id: finn
+        cast: finn
+        at: [0, -1.5, 0]
+        yaw: 0
+        pose: fall
+        face: shock
+        tracks: {glow: [{t: 0, v: 0.8}]}
+        rotate: {base: [0.6, 0, 0], amp: [0.2, 0, 0.3], freq: [1, 0, 0.8], rate: [0, 0.5, 0]}     # taumelt um den Szenenursprung
+      - id: lumi
+        cast: lumi
+        at: [4, 0.5, -3]
+        yaw: 1.1pi
+        params: {coil: 0, talk: 0.2, flap: 1.4, lights: false}
+    objects:
+      - {id: pink, type: point_light, at: [3, 3, 3], params: {color: "#ff7ad9", distance: 20}, tracks: {intensity: [{t: 0, v: 60}]}}
+      - {id: cyan, type: point_light, at: [-3, -2, 3], params: {color: "#7fe8ff", distance: 20}, tracks: {intensity: [{t: 0, v: 60}]}}
+    camera:
+      keys:
+        - {t: 0, pos: [3.4, 4.5, 8.5], look: [0, 0.4, 0], fov: 55}
+        - {t: 60f, pos: [-3.0, 2.2, 6.5], look: [0, 0.2, 0], fov: 50, ease: io}
+        - {t: scene.end, pos: [0, 5, 22], look: [0, -1, 0], fov: 62, ease: io}                  # Rückzug: Finn wird winzig
+      shake: [{amp: 0.05, speed: 1.6}]
+    lines:
+      - {id: l13, who: finn, text: "Was ist Finn wirklich? Folge mir für Teil zwei."}
+    sfx:
+      - {sound: whoosh, at: 0, volume: 0.7}
+      - {sound: rumble, at: 0, volume: 0.5}
+      - {sound: stinger, at: 70f, volume: 0.9}
+    captions:
+      - {type: end_card, from: 74f, title: "TEIL 2", subtitle: FOLGT MORGEN}
