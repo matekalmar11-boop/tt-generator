@@ -17,6 +17,7 @@ import {bundle} from '@remotion/bundler';
 import {openBrowser, renderMedia, selectComposition} from '@remotion/renderer';
 import {checkStoryFile} from '../src/story/validate';
 import {buildTimeline, type Timeline} from '../src/story/timeline';
+import {assembleSegments} from './assemble';
 import {parseTime} from '../src/story/schema';
 import type {StoryData} from '../src/story/schema';
 
@@ -116,7 +117,11 @@ export const runPreview = async (file: string, f: PreviewFlags): Promise<number>
   fs.mkdirSync(cacheDir, {recursive: true});
   const cfg = {width, renderFps, crf: f.crf ?? 28, jq: f.jpegQuality ?? 70};
   const todo = segs.map((s) => ({s, key: s.scene !== undefined && !f.noCache ? sceneKey(story, tl, s.scene, cfg, code) : undefined}))
-    .map(({s, key}) => ({s, key, file: key ? path.join(cacheDir, `${key}.mp4`) : undefined}));
+    .map(({s, key}) => {
+      // Bildbereich der Komposition: Szenenstart aufgerundet, Ende = Start der nächsten Szene (wie StoryVideo)
+      const a = cf(s.a), b = s.scene !== undefined && s.scene < story.scenes.length - 1 ? cf(tl.scenes[s.scene + 1].startFrame) : s.b >= tl.totalFrames ? compTotal : cf(s.b);
+      return {s, key, a, b, frames: Math.max(1, b - a), file: key ? path.join(cacheDir, `${key}.mp4`) : undefined};
+    });
   const fresh = todo.filter((x) => !x.file || !fs.existsSync(x.file));
 
   const timesMs: Record<string, number> = {};
@@ -132,7 +137,7 @@ export const runPreview = async (file: string, f: PreviewFlags): Promise<number>
     const comp = await selectComposition({...opts, id: 'StoryAny'});
     tBrowser = Date.now() - t;
     for (const x of fresh) {
-      const a = cf(x.s.a), b = x.s.scene !== undefined && x.s.scene < story.scenes.length - 1 ? cf(tl.scenes[x.s.scene + 1].startFrame) : x.s.b >= tl.totalFrames ? compTotal : cf(x.s.b);
+      const {a, b} = x;
       const out = x.file ?? path.join(tmpDir, `seg-${a}.mp4`);
       const t1 = Date.now();
       await renderMedia({...opts, composition: comp, codec: 'h264', outputLocation: out + '.part.mp4', frameRange: [a, Math.max(a, b - 1)], scale: rscale,
@@ -148,14 +153,8 @@ export const runPreview = async (file: string, f: PreviewFlags): Promise<number>
   const outFile = f.out ?? path.join(root, 'out/preview', `${story.meta.id}${f.scene ? '-' + ids.join('+') : ''}${f.from !== undefined || f.to !== undefined ? '-ausschnitt' : ''}.mp4`);
   fs.mkdirSync(path.dirname(outFile), {recursive: true});
   const t2 = Date.now();
-  if (todo.length === 1) fs.copyFileSync(todo[0].file!, outFile);
-  else {
-    const list = path.join(tmpDir, 'list.txt');
-    fs.writeFileSync(list, todo.map((x) => `file '${x.file}'`).join('\n'));
-    // Video unverändert übernehmen, Ton neu verbinden (vermeidet Knackser an AAC-Grenzen)
-    const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', list, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k', outFile], {encoding: 'utf8'});
-    if (r.status !== 0) { console.log('✖ ffmpeg-Zusammenfügen fehlgeschlagen:\n' + r.stderr); return 3; }
-  }
+  // gleiche Zusammenfügung wie beim finalen Export (Video ohne Neukodierung, Ton sample-genau auf Bilder/FPS gekürzt)
+  assembleSegments(todo.map((x) => ({file: x.file!, frames: x.frames})), renderFps, outFile, '128k');
   const tConcat = Date.now() - t2;
   fs.rmSync(tmpDir, {recursive: true, force: true});
 

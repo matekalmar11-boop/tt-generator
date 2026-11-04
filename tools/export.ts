@@ -22,7 +22,8 @@ import {checkStoryFile, type Issue} from '../src/story/validate';
 import {buildTimeline, type Timeline} from '../src/story/timeline';
 import type {StoryData} from '../src/story/schema';
 import {BROWSER_EXE, codeHash, ensureBundle, sceneKey} from './preview';
-import {lineState, planVoice, readVoices} from './voice';
+import {lineState, planVoice} from './voice';
+import {assembleSegments, probe} from './assemble';
 
 const sha = (b: Buffer | string) => crypto.createHash('sha256').update(b).digest('hex');
 export const FINAL = {width: 1080, height: 1920, fps: 30, crf: 20, jpegQuality: 80};
@@ -153,19 +154,6 @@ export const runRevoke = (file: string, root = process.cwd()): number => {
   return 0;
 };
 
-/* ───────────── ffmpeg/ffprobe ───────────── */
-
-const probe = (file: string) => {
-  const r = spawnSync('ffprobe', ['-v', 'error', '-count_frames', '-show_entries', 'stream=codec_type,codec_name,width,height,avg_frame_rate,nb_read_frames,duration', '-of', 'json', file], {encoding: 'utf8'});
-  if (r.status !== 0) throw new Error(`ffprobe fehlgeschlagen für ${file}: ${r.stderr}`);
-  const j = JSON.parse(r.stdout) as {streams: {codec_type: string; codec_name: string; width?: number; height?: number; avg_frame_rate?: string; nb_read_frames?: string; duration?: string}[]};
-  return {video: j.streams.find((s) => s.codec_type === 'video'), audio: j.streams.find((s) => s.codec_type === 'audio')};
-};
-const ff = (args: string[]) => {
-  const r = spawnSync('ffmpeg', ['-v', 'error', '-y', ...args], {encoding: 'utf8'});
-  if (r.status !== 0) throw new Error(`ffmpeg ${args.slice(0, 6).join(' ')} … fehlgeschlagen:\n${r.stderr}`);
-};
-
 /* ───────────── Export ───────────── */
 
 export type RenderFlags = {only?: string; force?: boolean; concurrency?: number; testScale?: number; out?: string};
@@ -232,28 +220,10 @@ export const runExport = async (file: string, f: RenderFlags, root = process.cwd
   const notReady = story.scenes.map((s, i) => ({s, i})).filter(({i}) => !fs.existsSync(segFile(i)));
   if (notReady.length) { refuse('Zusammenfügen nicht möglich – Szenenstücke fehlen:', notReady.map(({s}) => s.id)); return 1; }
 
-  // ── Zusammenfügen: Video unverändert, Ton sample-genau ──
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'export-'));
+  // ── Zusammenfügen: Video unverändert, Ton sample-genau (tools/assemble.ts) ──
+  const fin = outFile + '.part.mp4';
   try {
-    const vlist = path.join(tmpDir, 'v.txt'), alist = path.join(tmpDir, 'a.txt');
-    const vl: string[] = [], al: string[] = [];
-    story.scenes.forEach((_, i) => {
-      const dur = tl.scenes[i].durationFrames / FINAL.fps, seg = segFile(i), wav = path.join(tmpDir, `a${i}.wav`);
-      const has = !!probe(seg).audio;
-      // jedes Stück auf exakt Bilder/30 s (auffüllen/kürzen) – verhindert Ton-Drift durch AAC-Blockgrenzen
-      if (has) ff(['-i', seg, '-vn', '-map', '0:a:0', '-ac', '2', '-ar', '44100', '-af', `apad,atrim=duration=${dur.toFixed(6)}`, wav]);
-      else ff(['-f', 'lavfi', '-i', `anullsrc=r=44100:cl=stereo`, '-t', dur.toFixed(6), wav]);
-      // Video je Stück ohne Ton übernehmen: sonst addiert der Concat-Demuxer die (längere) Containerdauer inkl. Ton und erzeugt Lücken
-      const vseg = path.join(tmpDir, `v${i}.mp4`);
-      ff(['-i', seg, '-an', '-c:v', 'copy', vseg]);
-      vl.push(`file '${vseg}'`); al.push(`file '${wav}'`);
-    });
-    fs.writeFileSync(vlist, vl.join('\n')); fs.writeFileSync(alist, al.join('\n'));
-    const vid = path.join(tmpDir, 'video.mp4'), aud = path.join(tmpDir, 'audio.wav'), fin = outFile + '.part.mp4';
-    ff(['-f', 'concat', '-safe', '0', '-i', vlist, '-an', '-c:v', 'copy', vid]);
-    ff(['-f', 'concat', '-safe', '0', '-i', alist, '-c', 'copy', aud]);
-    ff(['-i', vid, '-i', aud, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', fin]);
-
+    assembleSegments(story.scenes.map((_, i) => ({file: segFile(i), frames: tl.scenes[i].durationFrames})), FINAL.fps, fin);
     // ── Ausgabe prüfen ──
     const pr = probe(fin), expW = cfg.width, expH = Math.round(FINAL.height * scale);
     const vdur = tl.totalFrames / FINAL.fps, adur = Number(pr.audio?.duration ?? 0);
@@ -270,7 +240,7 @@ export const runExport = async (file: string, f: RenderFlags, root = process.cwd
     fs.mkdirSync(path.dirname(outFile), {recursive: true});
     fs.renameSync(fin, outFile);
     fs.writeFileSync(sidecar, JSON.stringify({story: story.meta.id, contentHash: st.approval!.contentHash, approvedBy: st.approval!.approvedBy, codeHash: code, keys, test, frames: tl.totalFrames, exportedAt: new Date().toISOString()}, null, 1));
-  } finally { fs.rmSync(tmpDir, {recursive: true, force: true}); }
+  } finally { fs.rmSync(fin, {force: true}); }
   console.log(`\n✔ ${path.relative(root, outFile)}${test ? '  (TECHNIK-TEST, kein finales Video)' : ''}  ·  ${((Date.now() - T0) / 1000).toFixed(1)} s gesamt, ${reuse} Szene(n) aus dem Cache`);
   return 0;
 };
