@@ -34,6 +34,6 @@ export const assembleSegments = (segs: {file: string; frames: number}[], fps: nu
     fs.writeFileSync(vlist, vl.join('\n')); fs.writeFileSync(alist, al.join('\n'));
     ff(['-f', 'concat', '-safe', '0', '-i', vlist, '-an', '-c:v', 'copy', vid]);
     ff(['-f', 'concat', '-safe', '0', '-i', alist, '-c', 'copy', aud]);
-    ff(['-i', vid, '-i', aud, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy', '-c:a', 'aac', '-b:a', audioBitrate, '-movflags', '+faststart', outFile]);
+    ff(['-i', vid, '-i', aud, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy', '-af', 'alimiter=limit=0.93:level=disabled', '-c:a', 'aac', '-b:a', audioBitrate, '-movflags', '+faststart', outFile]);   // Limiter: keine Übersteuerung/Spitzen über −0,6 dBFS (AAC-Überschwinger)
   } finally { fs.rmSync(tmpDir, {recursive: true, force: true}); }
 };

@@ -40,8 +40,21 @@ export const loadStoryProps = (file: string) => {
 };
 
 /** Webpack-Bundle je Code-Stand unter out/bundle-cache/<code>/ (wird nur neu gebaut, wenn sich der Code geändert hat). */
+/** Fingerabdruck von public/ (Pfad, Größe, Änderungszeit): das Bundle enthält eine KOPIE von public/ – neu erzeugte Sprach-/Sounddateien müssen ein neues Bundle auslösen. */
+const publicPrint = (): string => {
+  const h = crypto.createHash('sha256');
+  const walk = (d: string) => {
+    for (const e of fs.readdirSync(d, {withFileTypes: true}).sort((a, b) => a.name.localeCompare(b.name))) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else { const st = fs.statSync(p); h.update(`${path.relative(root, p)}|${st.size}|${Math.round(st.mtimeMs)};`); }
+    }
+  };
+  if (fs.existsSync(path.join(root, 'public'))) walk(path.join(root, 'public'));
+  return h.digest('hex').slice(0, 8);
+};
+
 export const ensureBundle = async (code: string): Promise<string> => {
-  const bdir = path.join(root, 'out/bundle-cache', code);
+  const bdir = path.join(root, 'out/bundle-cache', `${code}-${publicPrint()}`);
   if (!fs.existsSync(path.join(bdir, 'index.html'))) {
     fs.rmSync(path.join(root, 'out/bundle-cache'), {recursive: true, force: true});
     await bundle({entryPoint: path.join(root, 'src/index.ts'), outDir: bdir, webpackOverride: (c) => ({...c, module: {...c.module, rules: [...(c.module?.rules ?? []), {test: /\.ya?ml$/, type: 'asset/source'}]}})});

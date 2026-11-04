@@ -35,7 +35,7 @@ cast:
     look: {skin: "#e0b08c", hair: "#9a9aa6", hairStyle: short, shirt: "#f2f2f8", pants: "#1f2230", shoes: "#111111", coat: "#2b2f4e", glasses: true, eyes: "#3b4a6a"}
 
 audio:
-  music: {file: music_show_long, volume: 0.30, duck: {depth: 0.35, attack: 6f, release: 12f}, fadeOut: 45f}
+  music: {file: music_show_long, volume: 0.28, duck: {depth: 0.18, attack: 6f, release: 12f}, fadeOut: 45f}   # unter Sprache 0,10, in Pausen 0,28
 subtitles: {maxWords: 3, maxChars: 24, font: Inter, maxFontSize: 100, bottomPadding: 430}
 transitions:
   cutFlash: {color: "#ffffff", peak: 0.35, lead: 2f, tail: 5f}
