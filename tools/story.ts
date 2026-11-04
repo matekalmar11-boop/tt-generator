@@ -56,7 +56,7 @@ const check = (file: string) => {
     console.log(`Länge       ≈ ${timing.total.toFixed(1)} s (${basis})${s.meta.targetDuration ? `  ·  Soll ${s.meta.targetDuration.min}–${s.meta.targetDuration.max} s` : ''}`);
     console.log('\n  Szene         Kulisse     Zeit    Figuren  Kamera  Zeilen  Töne');
     for (const sc of s.scenes) {
-      console.log(`  ${sc.id.padEnd(13)} ${sc.set.type.padEnd(11)} ${timing.scenes[sc.id].duration.toFixed(1).padStart(5)}s  ${String(sc.actors.length).padStart(5)}    ${String(sc.camera.keys.length + sc.camera.orbits.length).padStart(4)}   ${String(sc.lines.length).padStart(4)}   ${String(sc.sfx.length).padStart(4)}`);
+      console.log(`  ${sc.id.padEnd(13)} ${sc.set.type.padEnd(11)} ${timing.scenes[sc.id].duration.toFixed(1).padStart(5)}s  ${String(sc.actors.length).padStart(5)}    ${String(sc.camera.keys.length + sc.camera.orbits.length + sc.camera.shots.length).padStart(4)}   ${String(sc.lines.length).padStart(4)}   ${String(sc.sfx.length).padStart(4)}`);
     }
   }
   console.log(`\n${errs ? '✖' : '✔'} ${errs} Fehler, ${warns} Hinweise${errs ? ' – bitte beheben, bevor es weitergeht.' : ' – Konfiguration ist gültig. Es wurde nichts gerendert.'}`);

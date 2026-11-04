@@ -266,7 +266,7 @@
       "pattern": "^[A-Za-z][\\w-]*$"
      },
      "look": {
-      "description": "Aussehen (Farben etc.). Wird erst in Schritt 2 ausgewertet.",
+      "description": "Aussehen, z. B. {skin, hair, shirt}. Erlaubte Felder je Figurenart: siehe RIGS[...].looks in src/story/registry.ts.",
       "type": "object",
       "propertyNames": {
        "type": "string"
@@ -518,7 +518,7 @@
       "properties": {
        "type": {
         "type": "string",
-        "description": "\"night_sky\" (Himmel+Mond+Wolken+Inseln), \"starry_sky\" (Himmel+Sterne, optional Mond) oder \"none\"."
+        "description": "\"night_sky\" (Himmel+Mond+Wolken+Inseln), \"starry_sky\" (Himmel+Sterne, optional Mond), \"gradient\" (nur Farbverlauf) oder \"none\"."
        },
        "colors": {
         "type": "object",
@@ -1204,7 +1204,9 @@
          "properties": {
           "from": {},
           "to": {},
-          "center": {},
+          "center": {
+           "description": "Mittelpunkt: [x,y,z] oder {rel: <Figur>, off: [..]} (folgt der Figur)."
+          },
           "radius": {
            "type": "array",
            "prefixItems": [
@@ -1299,7 +1301,155 @@
           "fov"
          ],
          "additionalProperties": false,
-         "description": "Kreisfahrt um einen Punkt; wird in Schritt 2 zu Keyframes ausgerollt und mit \"keys\" nach Zeit gemischt."
+         "description": "Kreisfahrt um einen Punkt; wird zu Keyframes ausgerollt und mit \"keys\" nach Zeit gemischt. center und look dürfen Verweise sein."
+        }
+       },
+       "shots": {
+        "default": [],
+        "description": "Kamera-Presets (push_in, orbit_in, whip_to, over_shoulder, crane_down, track_behind, dolly_zoom, handheld).",
+        "type": "array",
+        "items": {
+         "type": "object",
+         "properties": {
+          "preset": {
+           "type": "string",
+           "enum": [
+            "push_in",
+            "orbit_in",
+            "whip_to",
+            "over_shoulder",
+            "crane_down",
+            "track_behind",
+            "dolly_zoom",
+            "handheld"
+           ],
+           "description": "Kamera-Preset, siehe CAMERA_PRESETS in src/story/registry.ts."
+          },
+          "from": {
+           "default": 0
+          },
+          "to": {
+           "default": "scene.end"
+          },
+          "target": {
+           "description": "Ziel des Blicks, z. B. {rel: finn, off: [0,1.6,0]}."
+          },
+          "subject": {
+           "description": "Figur (Actor-ID), an der sich over_shoulder/track_behind ausrichten.",
+           "type": "string",
+           "pattern": "^[A-Za-z][\\w-]*$"
+          },
+          "offset": {},
+          "to_offset": {},
+          "look_offset": {},
+          "fov": {
+           "anyOf": [
+            {
+             "type": "number",
+             "minimum": 10,
+             "maximum": 120
+            },
+            {
+             "type": "array",
+             "prefixItems": [
+              {
+               "type": "number",
+               "minimum": 10,
+               "maximum": 120
+              },
+              {
+               "type": "number",
+               "minimum": 10,
+               "maximum": 120
+              }
+             ],
+             "items": false,
+             "minItems": 2,
+             "maxItems": 2
+            }
+           ]
+          },
+          "distance": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "angle": {
+           "type": "array",
+           "prefixItems": [
+            {},
+            {}
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "height": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "push": {
+           "type": "number",
+           "minimum": 0,
+           "maximum": 0.95
+          },
+          "look_from": {},
+          "at": {},
+          "duration": {},
+          "amp": {
+           "type": "number",
+           "minimum": 0,
+           "maximum": 2
+          },
+          "speed": {
+           "type": "number",
+           "minimum": 0.1,
+           "maximum": 6
+          },
+          "transition": {
+           "default": "cut",
+           "description": "Übergang vom vorigen Shot: harter Schnitt oder Überblendung.",
+           "type": "string",
+           "enum": [
+            "cut",
+            "blend"
+           ]
+          },
+          "ease": {
+           "type": "string",
+           "enum": [
+            "lin",
+            "io",
+            "in",
+            "out",
+            "snap",
+            "cut"
+           ]
+          }
+         },
+         "required": [
+          "preset"
+         ],
+         "additionalProperties": false
         }
        },
        "shake": {
@@ -1328,10 +1478,6 @@
          ],
          "additionalProperties": false
         }
-       },
-       "preset": {
-        "description": "Reserviert für Kamera-Presets (Schritt 2).",
-        "type": "string"
        }
       },
       "additionalProperties": false

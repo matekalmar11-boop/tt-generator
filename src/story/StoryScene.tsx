@@ -12,11 +12,13 @@ import {clamp01, type V3} from '../lib/anim';
 import {Cam, AbyssSet, CaveSet, CrackingGround, ForestSet, Lights, NightSky, Plateau} from '../world/Sets';
 import {Finn} from '../world/Finn';
 import {Dragon, dragonHead} from '../world/Dragon';
+import {Person} from '../world/Person';
+import {EmptyStage, RoomSet} from '../world/Interiors';
 import {Dust, Moon, Sky, Stars} from '../world/Nature';
 import {OBJECTS, RIGS, SETS} from './registry';
 import type {SceneData, StoryData} from './schema';
 import {
-  StoryError, angle, applyShake, buildCameraKeys, resolveRef, sampleCamera, sampleHard, sampleName, sampleNum, samplePath,
+  StoryError, angle, applyShake, buildCamera, resolveRef, sampleCamera, sampleHard, sampleName, sampleNum, samplePath,
   toFrames, visibleAt, type CamState, type Clock, type NameKey, type NumKey, type PathKey, type RefEnv,
 } from './resolve';
 
@@ -53,6 +55,7 @@ const makeEnv = (story: StoryData, scene: SceneData, c: Clock, fps: number): Ref
   };
   const env: RefEnv = {
     actorPos: (id, f) => actorPosAt(actor(id), f, c),
+    actorYaw: (id) => angle(actor(id).yaw),
     actorHead: (id, f) => {
       const a = actor(id);
       if (story.cast[a.cast]?.rig !== 'dragon') throw new StoryError(`"${id}.head": einen Kopf-Verweis gibt es bisher nur für Figurenart "dragon"`);
@@ -79,14 +82,14 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
   const scene = story.scenes.find((s) => s.id === sceneId);
   if (!scene) throw new StoryError(`Szene "${sceneId}" existiert nicht in der Geschichte "${story.meta.id}"`);
   const env = React.useMemo(() => makeEnv(story, scene, c, fps), [story, scene, c, fps]);
-  const camKeys = React.useMemo(() => buildCameraKeys(scene.camera, c), [scene, c]);
+  const cam = React.useMemo(() => buildCamera(scene.camera, c), [scene, c]);
   for (const a of scene.actors) {
     const rig = RIGS[story.cast[a.cast]?.rig];
     if (!rig) throw new StoryError(`Figur "${a.cast}" (Szene "${scene.id}") hat eine unbekannte Figurenart`);
     if (rig.status !== 'ready') throw new StoryError(`Figurenart "${story.cast[a.cast].rig}" ist in der Registry nur geplant, nicht gebaut (Szene "${scene.id}", Figur "${a.id}")`);
   }
 
-  const shot = (ff: number): CamState => applyShake(sampleCamera(camKeys, ff, env), scene.camera.shake, ff, c);
+  const shot = (ff: number): CamState => applyShake(sampleCamera(cam.keys, ff, env), cam.shake, ff, c);
 
   /* Kulisse */
   const setDef = SETS[scene.set.type];
@@ -101,6 +104,8 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
       setNode = <CaveSet t={t} bc={sp.center} ground={sp.ground ?? true} beam={trackAt(scene.set.tracks, 'beam', f, c, 1)} runes={trackAt(scene.set.tracks, 'runes', f, c, 0)} />;
       break;
     case 'abyss': setNode = <AbyssSet frame={f} />; break;
+    case 'room': setNode = <RoomSet wall={sp.wall} floor={sp.floor} trim={sp.trim} accent={sp.accent} window={sp.window} furniture={sp.furniture} />; break;
+    case 'empty_stage': setNode = <EmptyStage floor={sp.floor} grid={sp.grid} accent={sp.accent} />; break;
     default: throw new StoryError(`Kulisse "${scene.set.type}" ist in der Registry als "ready" markiert, hat aber noch keine Anbindung in StoryScene`);
   }
 
@@ -121,6 +126,9 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
           {en.moon && <Moon position={en.moon.pos as V3} radius={en.moon.radius} crack={crack} t={t} />}
         </>
       );
+    } else if (en.type === 'gradient') {
+      const col = en.colors ?? {top: '#1b1f3a', mid: '#2a3052', bottom: '#12152a'};
+      envNode = <Sky top={col.top} mid={col.mid} bottom={col.bottom} />;
     } else if (en.type !== 'none') throw new StoryError(`Unbekannter Himmel "${en.type}"`);
   }
 
@@ -144,7 +152,13 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
       const face = typeof a.face === 'string' ? a.face : a.face ? sampleName(nameKeys(a.face, 'face', c), f) : 'neutral';
       const prop = typeof a.prop === 'string' ? a.prop : a.prop ? sampleHard(a.prop.map((k) => ({f: toFrames(k.t, c), name: k.prop})), f, 'none') : 'none';
       node = <Finn t={t} pose={pose as any} face={face as any} prop={prop as any} talk={speech} glow={trackAt(a.tracks, 'glow', f, c, 0)}
-        position={pos} rotationY={yaw} scale={a.scale} ghost={a.ghost} />;
+        position={pos} rotationY={yaw} scale={a.scale} ghost={a.ghost} look={member.look as any} />;
+    } else if (member.rig === 'person') {
+      const pose = typeof a.pose === 'string' ? a.pose : a.pose ? sampleName(nameKeys(a.pose, 'pose', c), f) : 'idle';
+      const face = typeof a.face === 'string' ? a.face : a.face ? sampleName(nameKeys(a.face, 'face', c), f) : 'neutral';
+      const prop = typeof a.prop === 'string' ? a.prop : a.prop ? sampleHard(a.prop.map((k) => ({f: toFrames(k.t, c), name: k.prop})), f, 'none') : 'none';
+      node = <Person t={t} pose={pose as any} face={face as any} prop={prop as any} talk={speech} position={pos} rotationY={yaw} scale={a.scale}
+        ghost={a.ghost} look={member.look as any} />;
     } else if (member.rig === 'dragon') {
       const p = a.params ?? {};
       node = <Dragon t={t} position={pos} rotationY={yaw} scale={a.scale} coil={dragonCoil(a, f, c)} roar={trackAt(a.tracks, 'roar', f, c, 0)}

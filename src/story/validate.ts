@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {LineCounter, parseDocument, type Document} from 'yaml';
 import {Story, parseTime, type ParsedTime, type SceneData, type StoryData} from './schema';
-import {ENVIRONMENTS, OBJECTS, RIGS, SETS} from './registry';
+import {CAMERA_PRESETS, ENVIRONMENTS, OBJECTS, RIGS, SETS} from './registry';
 
 export type Issue = {level: 'error' | 'warn'; path: string; line?: number; message: string; hint?: string};
 
@@ -183,7 +183,17 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
     if (!rig) err(`cast.${id}.rig`, `Unbekannte Figurenart "${c.rig}".`, didYouMean(c.rig, Object.keys(RIGS)));
     else if (rig.status === 'planned') warn(`cast.${id}.rig`, `Figurenart "${c.rig}" ist reserviert, aber noch nicht gebaut (Schritt 2+).`, 'Das Schema akzeptiert sie; gerendert werden kann sie erst nach der Umsetzung.');
     if (c.voice && !story.voices[c.voice]) err(`cast.${id}.voice`, `Stimmenprofil "${c.voice}" existiert nicht.`, didYouMean(c.voice, voiceIds));
-    if (c.look) warn(`cast.${id}.look`, 'Aussehen (look) wird erst in Schritt 2 ausgewertet und hat bis dahin keine Wirkung.');
+    if (c.look && rig) {
+      const specs = rig.looks;
+      if (!Object.keys(specs).length) warn(`cast.${id}.look`, `Figurenart "${c.rig}" hat kein anpassbares Aussehen – "look" hat keine Wirkung.`);
+      else for (const [k, v] of Object.entries(c.look)) {
+        const spec = specs[k];
+        if (!spec) { err(`cast.${id}.look.${k}`, `Figurenart "${c.rig}" kennt das Aussehen "${k}" nicht.`, didYouMean(k, Object.keys(specs))); continue; }
+        if (spec === 'color' && !(typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v))) err(`cast.${id}.look.${k}`, `"${k}" erwartet eine Farbe "#rrggbb", gefunden ${JSON.stringify(v)}.`);
+        else if (spec === 'boolean' && typeof v !== 'boolean') err(`cast.${id}.look.${k}`, `"${k}" erwartet true/false, gefunden ${JSON.stringify(v)}.`);
+        else if (Array.isArray(spec) && !spec.includes(v as string)) err(`cast.${id}.look.${k}`, `"${k}": "${v}" ist nicht erlaubt.`, `Erlaubt: ${spec.join(', ')}`);
+      }
+    }
   }
   if (story.pronunciations) warn('pronunciations', 'Aussprache-Wörterbuch wird erst in Schritt 3 (TTS-Pipeline) ausgewertet.');
 
@@ -313,11 +323,25 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
 
     /* Kamera */
     const cam = sc.camera;
-    if (cam.preset) warn(`${P}.camera.preset`, 'Kamera-Presets werden erst in Schritt 2 umgesetzt; bis dahin "keys"/"orbits" nutzen.');
+    cam.shots.forEach((sh, i) => {
+      const SP = `${P}.camera.shots[${i}]`, def = CAMERA_PRESETS[sh.preset];
+      if (!def) { err(`${SP}.preset`, `Unbekanntes Kamera-Preset "${sh.preset}".`, didYouMean(sh.preset, Object.keys(CAMERA_PRESETS))); return; }
+      for (const r of def.required) if ((sh as any)[r] === undefined) err(`${SP}.${r}`, `Preset "${sh.preset}" braucht das Feld "${r}".`, def.doc);
+      const allowed = new Set(['preset', ...def.required, ...def.optional]);
+      for (const [k, v] of Object.entries(sh)) {
+        if (v === undefined || allowed.has(k) || k === 'from' || k === 'to' || k === 'transition') continue;
+        err(`${SP}.${k}`, `Preset "${sh.preset}" kennt das Feld "${k}" nicht.`, `Erlaubt: ${[...allowed].join(', ')}`);
+      }
+      const a = toSec(sh.from, `${SP}.from`), b = toSec(sh.to, `${SP}.to`);
+      if (a !== undefined && b !== undefined && b <= a) err(SP, `"to" (${b.toFixed(2)} s) muss nach "from" (${a.toFixed(2)} s) liegen.`);
+      if (sh.at !== undefined) checkTime(sh.at, `${SP}.at`);
+      checkVec(sh.target, `${SP}.target`); checkVec(sh.look_from, `${SP}.look_from`);
+      if (sh.subject !== undefined && !actorIds.includes(sh.subject)) err(`${SP}.subject`, `Figur "${sh.subject}" gibt es in dieser Szene nicht.`, didYouMean(sh.subject, actorIds));
+    });
     cam.keys.forEach((k, i) => { checkVec(k.pos, `${P}.camera.keys[${i}].pos`); checkVec(k.look, `${P}.camera.keys[${i}].look`); });
-    cam.orbits.forEach((o, i) => { toSec(o.from, `${P}.camera.orbits[${i}].from`); toSec(o.to, `${P}.camera.orbits[${i}].to`); o.look.forEach((v, j) => checkVec(v, `${P}.camera.orbits[${i}].look[${j}]`)); });
+    cam.orbits.forEach((o, i) => { checkVec(o.center, `${P}.camera.orbits[${i}].center`); toSec(o.from, `${P}.camera.orbits[${i}].from`); toSec(o.to, `${P}.camera.orbits[${i}].to`); o.look.forEach((v, j) => checkVec(v, `${P}.camera.orbits[${i}].look[${j}]`)); });
     times(cam.keys, `${P}.camera.keys`, 'Kamera');
-    const firstT = Math.min(...[...cam.keys.map((k) => toSec(k.t, '')), ...cam.orbits.map((o) => toSec(o.from, ''))].filter((x): x is number => x !== undefined));
+    const firstT = Math.min(...[...cam.keys.map((k) => toSec(k.t, '')), ...cam.orbits.map((o) => toSec(o.from, '')), ...cam.shots.map((x) => toSec(x.from, ''))].filter((x): x is number => x !== undefined));
     if (Number.isFinite(firstT) && firstT > 0.2) warn(`${P}.camera`, `Erster Kamerapunkt erst bei ${firstT.toFixed(2)} s – davor bleibt die Kamera an diesem Punkt stehen.`, 'Meist soll der erste Key bei t: 0 liegen.');
     cam.shake.forEach((s, i) => { checkTime(s.from, `${P}.camera.shake[${i}].from`); checkTime(s.to, `${P}.camera.shake[${i}].to`); });
     checkVec(sc.light.key.shadowAt, `${P}.light.key.shadowAt`);

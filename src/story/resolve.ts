@@ -4,8 +4,11 @@
  * Frames sind immer SZENEN-lokal (0 = erster Frame der Szene).
  */
 import {ease, lerp, lerp3, orbit, shake, type EaseName, type V3} from '../lib/anim';
-import {parseAngle, parseTime, type VecRef} from './schema';
+import {parseAngle, parseTime} from './schema';
 import type {SceneData} from './schema';
+import {addOff, lerpRef, resolveRef, type RefEnv} from './refs';
+import {expandShot, type CamKeyR} from './presets';
+export type {CamKeyR} from './presets';
 
 export type LineClock = {start: number; end: number; words: {start: number; end: number}[]};
 /** Zeitbasis einer Szene in Frames: Länge + Lage der Sprechzeilen (aus der TTS-Timeline). */
@@ -93,51 +96,39 @@ export const visibleAt = (v: {from?: unknown; to?: unknown} | undefined, frame: 
   return true;
 };
 
-/* ───────────── Verweise ───────────── */
-
-/** Was Verweise brauchen: Position einer Figur (und ihres Kopfes) bzw. eines Objekts zu einem Frame. */
-export type RefEnv = {
-  actorPos: (id: string, frame: number) => V3;
-  actorHead: (id: string, frame: number) => V3;
-  objectPos: (id: string, frame: number) => V3;
-};
-const add = (a: V3, b: V3 = [0, 0, 0]): V3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-
-export const resolveRef = (r: VecRef, env: RefEnv, frame: number): V3 => {
-  if (Array.isArray(r)) return r as V3;
-  if ('rel' in r) {
-    const [id, part] = r.rel.split('.');
-    if (part === undefined) return add(env.actorPos(id, frame), r.off);
-    if (part === 'head') return add(env.actorHead(id, frame), r.off);
-    throw new StoryError(`Unbekannter Figurenteil "${r.rel}" (erlaubt: "<id>" oder "<id>.head")`);
-  }
-  return add(env.objectPos(r.obj, frame), r.off);
-};
+export {resolveRef, type RefEnv, type RefX} from './refs';
 
 /* ───────────── Kamera ───────────── */
 
-export type CamKeyR = {f: number; pos: VecRef; look: VecRef; fov: number; roll: number; ease?: string; cut?: boolean};
-
 /** keys + ausgerollte orbits → eine nach Zeit sortierte Keyliste (bei gleicher Zeit bleibt die YAML-Reihenfolge). */
-export const buildCameraKeys = (cam: SceneData['camera'], c: Clock): CamKeyR[] => {
+/** Kamera der Szene → Keys + Wackel-Abschnitte (eigene shake-Einträge plus die der Presets, z. B. handheld). */
+export const buildCamera = (cam: SceneData['camera'], c: Clock): {keys: CamKeyR[]; shake: SceneData['camera']['shake']} => {
   const out: CamKeyR[] = [];
+  const extraShake: SceneData['camera']['shake'] = [...cam.shake];
   for (const o of cam.orbits) {
     const from = toFrames(o.from, c), to = toFrames(o.to, c);
     const [l0, l1] = o.look;
-    if (!Array.isArray(l0) || !Array.isArray(l1)) throw new StoryError('orbits.look: nur feste Koordinaten [x,y,z] werden unterstützt (noch keine {rel}/{obj}-Verweise).');
     const [a0, a1] = [angle(o.angle[0]), angle(o.angle[1])];
     for (let i = 0; i <= o.steps; i++) {
       const k = i / o.steps;
+      const rel = orbit([0, 0, 0], lerp(o.radius[0], o.radius[1], k), lerp(a0, a1, k), lerp(o.height[0], o.height[1], k));
       out.push({
         f: Math.round(from + k * (to - from)),
-        pos: orbit(o.center as V3, lerp(o.radius[0], o.radius[1], k), lerp(a0, a1, k), lerp(o.height[0], o.height[1], k)),
-        look: lerp3(l0 as V3, l1 as V3, k), fov: lerp(o.fov[0], o.fov[1], k), roll: 0, ease: o.ease,
+        // feste Mitte wie bisher (identische Zahlen), sonst Verweis, der der Figur folgt
+        pos: Array.isArray(o.center) ? orbit(o.center as V3, lerp(o.radius[0], o.radius[1], k), lerp(a0, a1, k), lerp(o.height[0], o.height[1], k)) : addOff(o.center, rel),
+        look: lerpRef(l0, l1, k), fov: lerp(o.fov[0], o.fov[1], k), roll: 0, ease: o.ease,
       });
     }
   }
   for (const k of cam.keys) out.push({f: toFrames(k.t, c), pos: k.pos, look: k.look, fov: k.fov, roll: angle(k.roll), ease: k.ease, cut: k.cut});
-  return out.map((k, i) => ({k, i})).sort((x, y) => x.k.f - y.k.f || x.i - y.i).map((x) => x.k);
+  for (const sh of cam.shots) {
+    const r = expandShot(sh, (v) => toFrames(v, c));
+    out.push(...r.keys);
+    extraShake.push(...r.shake);
+  }
+  return {keys: out.map((k, i) => ({k, i})).sort((x, y) => x.k.f - y.k.f || x.i - y.i).map((x) => x.k), shake: extraShake};
 };
+export const buildCameraKeys = (cam: SceneData['camera'], c: Clock): CamKeyR[] => buildCamera(cam, c).keys;
 
 export type CamState = {pos: V3; look: V3; fov: number; roll: number};
 

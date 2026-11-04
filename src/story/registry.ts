@@ -10,7 +10,9 @@ export type Status = 'ready' | 'planned';
 type ParamType = 'number' | 'boolean' | 'vec3' | 'color' | 'string' | 'any';
 type Params = Record<string, ParamType>;
 
-export type RigDef = {status: Status; doc: string; poses: string[]; faces: string[]; props: string[]; params: Params; tracks: string[]};
+/** Aussehen (cast.<id>.look): Name → 'color' oder Liste erlaubter Werte oder 'boolean'. */
+export type LookSpec = Record<string, 'color' | 'boolean' | string[]>;
+export type RigDef = {status: Status; doc: string; poses: string[]; faces: string[]; props: string[]; params: Params; tracks: string[]; looks: LookSpec};
 export type SetDef = {status: Status; doc: string; params: Params; tracks: string[]};
 export type ObjectDef = {status: Status; doc: string; params: Params; tracks: string[]; usesPath?: boolean};
 
@@ -21,18 +23,22 @@ export const RIGS: Record<string, RigDef> = {
     faces: ['neutral', 'smile', 'grin', 'worry', 'shock', 'determined', 'glow'],
     props: ['none', 'lantern', 'sword'],
     params: {}, tracks: ['glow'],
+    looks: {skin: 'color', hair: 'color', tunic: 'color', scarf: 'color', pants: 'color', boots: 'color'},
   },
   dragon: {
     status: 'ready', doc: 'Lichtdrache aus Blöcken mit Flügeln, Kiefer, Mondsplitter (src/world/Dragon.tsx).',
     poses: [], faces: [], props: [],
     params: {coil: 'number', flap: 'number', shard: 'boolean', lights: 'boolean', roar: 'number', talk: 'number'},
     tracks: ['coil', 'roar'],
+    looks: {},
   },
   person: {
-    status: 'planned', doc: 'Allgemeine Blockperson mit konfigurierbarem Aussehen (look) für Alltag-, Krimi-, Sci-Fi-Geschichten.',
-    poses: ['idle', 'walk', 'run', 'sit', 'wave', 'point', 'shock'],
-    faces: ['neutral', 'smile', 'worry', 'shock', 'angry'], props: ['none', 'phone', 'cup'],
+    status: 'ready', doc: 'Allgemeine Blockperson (src/world/Person.tsx) mit gleichem Posen-/Gesichtssystem wie Finn; Aussehen über look. Pose "sit" für Stühle der Kulisse "room".',
+    poses: ['idle', 'walk', 'sneak', 'run', 'sit', 'wave', 'point', 'shock'],
+    faces: ['neutral', 'smile', 'grin', 'worry', 'shock', 'angry', 'determined'],
+    props: ['none', 'phone', 'cup'],
     params: {}, tracks: [],
+    looks: {skin: 'color', hair: 'color', hairStyle: ['short', 'long', 'bald'], eyes: 'color', shirt: 'color', pants: 'color', shoes: 'color', coat: 'color', apron: 'color', hat: 'color', glasses: 'boolean'},
   },
 };
 
@@ -44,15 +50,22 @@ export const SETS: Record<string, SetDef> = {
     params: {center: 'vec3', ground: 'boolean'}, tracks: ['beam', 'runes'],
   },
   abyss: {status: 'ready', doc: 'Abgrund mit Lichtringen und aufsteigendem Licht (Fallszene).', params: {}, tracks: []},
-  room: {status: 'planned', doc: 'Innenraum (Küche, Büro, Wohnung) aus Blöcken.', params: {}, tracks: []},
+  room: {
+    status: 'ready', doc: 'Innenraum (Küche/Wohnraum) aus Blöcken (src/world/Interiors.tsx): Rückwand + Seitenwände, Vorderseite offen. Boden x ±7, z −4…16. Tisch bei (0,0,−1.8), Stühle bei (±1,0,−0.4): sitzende Person at [±1, 0, −0.45], yaw pi, pose sit.',
+    params: {wall: 'color', floor: 'color', trim: 'color', accent: 'color', window: 'boolean', furniture: 'boolean'}, tracks: [],
+  },
   city_street: {status: 'planned', doc: 'Straße mit Häusern, Laternen, Autos.', params: {}, tracks: []},
-  empty_stage: {status: 'planned', doc: 'Neutrale Bühne mit Farbverlauf-Hintergrund für Erklär-/Fakten-Videos.', params: {}, tracks: []},
+  empty_stage: {
+    status: 'ready', doc: 'Neutrale Bühne (src/world/Interiors.tsx): Bodenplatte 30×30 mit Raster und leuchtendem Rand. Hintergrund über environment {type: starry_sky|none, colors}.',
+    params: {floor: 'color', grid: 'boolean', accent: 'color'}, tracks: [],
+  },
 };
 
 export const ENVIRONMENTS: Record<string, {status: Status; doc: string}> = {
   night_sky: {status: 'ready', doc: 'Nachthimmel, Sterne, Mond, Wolken, schwebende Inseln.'},
   starry_sky: {status: 'ready', doc: 'Himmel mit Sternen; Mond optional (für Innen-/Waldszenen).'},
   none: {status: 'ready', doc: 'Kein Himmel (nur Hintergrundfarbe aus dem Nebel).'},
+  gradient: {status: 'ready', doc: 'Nur Farbverlauf (colors top/mid/bottom), ohne Sterne und Mond – für Bühne/Erklärvideos.'},
 };
 
 export const OBJECTS: Record<string, ObjectDef> = {
@@ -73,3 +86,20 @@ export const OBJECTS: Record<string, ObjectDef> = {
 };
 
 export const CAMERA_EASES = ['lin', 'io', 'in', 'out', 'snap', 'cut'];
+
+/**
+ * Kamera-Presets (camera.shots[]). Jedes Preset erzeugt Kamera-Keys für den Zeitraum from…to (Standard 0…scene.end).
+ * `required`/`optional`: erlaubte Felder des Shots; Vorgaben stehen im Doc-Text und in src/story/presets.ts.
+ */
+export type PresetDef = {doc: string; required: string[]; optional: string[]};
+const COMMON = ['from', 'to', 'transition', 'ease', 'look_offset'];
+export const CAMERA_PRESETS: Record<string, PresetDef> = {
+  push_in: {doc: 'Kamera fährt langsam auf das Ziel zu. offset = Kameraposition relativ zum Ziel (Vorgabe [0.9,0.4,6]), push = Anteil der Strecke (0.45), fov [von,bis] (46→34).', required: ['target'], optional: [...COMMON, 'offset', 'push', 'fov']},
+  orbit_in: {doc: 'Kreisfahrt um das Ziel, folgt bewegten Figuren. distance [7,4.5], angle [-0.9,0.5] (Radiant), height [1.2,0.3] relativ zum Ziel, fov [56,42].', required: ['target'], optional: [...COMMON, 'distance', 'angle', 'height', 'fov']},
+  whip_to: {doc: 'Hält den Blick auf look_from, reißt bei "at" (Vorgabe: Mitte) in "duration" (8f) zum Ziel und drückt danach leicht nach. offset [2.5,0.5,6], fov [52,38].', required: ['target', 'look_from'], optional: [...COMMON, 'at', 'duration', 'offset', 'fov']},
+  over_shoulder: {doc: 'Über-die-Schulter: Kamera hinter/über "subject", Blick auf "target" (Figur). offset in den Achsen der Figur (x + = links der Figur, z + = vorn) Vorgabe [-0.8,2.15,-2.7] (Gegenschuss: x-Vorzeichen umdrehen), look_offset [0,1.55,0], fov [40,36].', required: ['subject', 'target'], optional: [...COMMON, 'offset', 'fov']},
+  crane_down: {doc: 'Kranfahrt von oben herab aufs Ziel. offset [3,16,9] → to_offset [1.5,1.8,6], fov [58,42].', required: ['target'], optional: [...COMMON, 'offset', 'to_offset', 'fov']},
+  track_behind: {doc: 'Verfolgungsfahrt hinter "subject" (folgt Position und Blickrichtung). offset [0.6,1.7,-4.2], look_offset in Figurenachsen [0,1.5,1.5], fov 50.', required: ['subject'], optional: [...COMMON, 'offset', 'fov']},
+  dolly_zoom: {doc: 'Dolly-Zoom (Vertigo): Kamera fährt von Entfernung distance[0] nach distance[1] (Vorgabe [8,3]) entlang offset-Richtung, fov startet bei fov (30) und wird so geführt, dass das Ziel gleich groß bleibt.', required: ['target'], optional: [...COMMON, 'offset', 'distance', 'fov']},
+  handheld: {doc: 'Feste Einstellung mit Handkamera-Wackeln: offset [1.2,1.4,5], optional to_offset (langsames Wandern), fov 46, amp 0.06, speed 1.6.', required: ['target'], optional: [...COMMON, 'offset', 'to_offset', 'fov', 'amp', 'speed']},
+};

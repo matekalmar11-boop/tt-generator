@@ -1,6 +1,6 @@
 /** Kleiner Funktionstest der Auflösung (ohne Rendering):  npm run test:story */
 import assert from 'node:assert/strict';
-import {buildCameraKeys, sampleCamera, sampleHard, sampleName, sampleNum, toFrames, locate, StoryError, type Clock} from '../src/story/resolve';
+import {buildCamera, buildCameraKeys, sampleCamera, sampleHard, sampleName, sampleNum, toFrames, locate, StoryError, type Clock} from '../src/story/resolve';
 import {Story} from '../src/story/schema';
 import {parse} from 'yaml';
 import fs from 'node:fs';
@@ -34,11 +34,45 @@ for (const sc of story.scenes) {
     start: l.startFrame - ts.startFrame, end: l.startFrame - ts.startFrame + l.durationFrames, words: l.words.map((w: any) => ({start: w.start - ts.startFrame, end: w.end - ts.startFrame}))}]))};
   const keys = buildCameraKeys(sc.camera, clock);
   for (let i = 1; i < keys.length; i++) assert.ok(keys[i].f >= keys[i - 1].f, `${sc.id}: Kamera-Keys nicht sortiert`);
-  const env = {actorPos: () => [0, 0, 0] as [number, number, number], actorHead: () => [0, 0, 0] as [number, number, number], objectPos: () => [0, 0, 0] as [number, number, number]};
+  const env = {actorPos: () => [0, 0, 0] as [number, number, number], actorYaw: () => 0, actorHead: () => [0, 0, 0] as [number, number, number], objectPos: () => [0, 0, 0] as [number, number, number]};
   for (const f of [0, Math.floor(clock.durationFrames / 2), clock.durationFrames - 1]) {
     const s = sampleCamera(keys, f, env);
     assert.ok([...s.pos, ...s.look, s.fov, s.roll].every(Number.isFinite), `${sc.id}@${f}: NaN in Kamera`);
   }
   console.log(`✔ ${sc.id.padEnd(7)} ${keys.length} Kamera-Keys, ${sc.actors.length} Figuren, ${sc.objects.length} Objekte`);
 }
+
+// ── Etappe 2: Presets, Kreisfahrt mit Verweisen, lokale Figurenachsen ──
+import {resolveRef} from '../src/story/refs';
+import {checkStoryFile} from '../src/story/validate';
+const demo = Story.parse(parse(fs.readFileSync('stories/demo-etappe2.yaml', 'utf8')));
+const dc: Clock = {fps: 30, durationFrames: 120, lines: {}};
+const envAt = (pos: [number, number, number], yaw = 0) => ({actorPos: () => pos, actorYaw: () => yaw, actorHead: () => pos, objectPos: () => pos});
+// lokale Offsets: Figur schaut nach +x (yaw = pi/2): "vorn" (z+) ist Welt-x+
+const loc = resolveRef({local: 'a', off: [0, 1, 2]}, envAt([10, 0, 0], Math.PI / 2), 0);
+eq(loc[0], 12); eq(loc[1], 1); eq(loc[2], 0);
+for (const sc of demo.scenes) {
+  const {keys, shake} = buildCamera(sc.camera, dc);
+  for (let i = 1; i < keys.length; i++) assert.ok(keys[i].f >= keys[i - 1].f);
+  for (const f of [0, 60, 119]) { const cs = sampleCamera(keys, f, envAt([1, 0, 2])); assert.ok([...cs.pos, ...cs.look, cs.fov].every(Number.isFinite), `${sc.id}@${f}`); }
+  if (sc.id === 'schwindel') assert.ok(shake.length === 1, 'handheld erzeugt Wackeln');
+}
+// orbit mit {rel}: Kamera folgt der Figur (gleicher Abstand, wenn die Figur wandert)
+const kreis = demo.scenes.find((x) => x.id === 'kreis')!;
+const kk = buildCamera(kreis.camera, dc).keys;
+const c1 = sampleCamera(kk, 40, envAt([0, 0, 0])), c2 = sampleCamera(kk, 40, envAt([5, 0, 0]));
+eq(c2.pos[0] - c1.pos[0], 5); eq(c2.look[0] - c1.look[0], 5);
+// dolly_zoom: Bildgröße d·tan(fov/2) bleibt konstant
+const dz = buildCamera(demo.scenes.find((x) => x.id === 'schwindel')!.camera, {...dc, durationFrames: 120}).keys.filter((k) => k.f < 90);
+const sizes = dz.map((k) => { const d = Math.hypot(...(resolveRef(k.pos, envAt([0, 0, 0]), 0) as number[]).map((v, i) => v - [0, 1.9, 0][i])); return d * Math.tan((k.fov * Math.PI) / 360); });
+sizes.forEach((v) => eq(v, sizes[0]));
+// Prüfer: Fehlerfälle
+const bad = (yaml: string) => { fs.writeFileSync('/tmp/_t.yaml', yaml); return checkStoryFile('/tmp/_t.yaml').issues.filter((i) => i.level === 'error').map((i) => i.path + ': ' + i.message); };
+const base = fs.readFileSync('stories/demo-etappe2.yaml', 'utf8');
+assert.ok(bad(base.replace('hairStyle: long', 'hairStyle: lang')).some((m) => m.includes('cast.anna.look.hairStyle')), 'ungültiger look-Wert');
+assert.ok(bad(base.replace('shirt: "#d9534f"', 'shirt: rot')).some((m) => m.includes('cast.anna.look.shirt')), 'ungültige Farbe');
+assert.ok(bad(base.replace('preset: whip_to', 'preset: whip')).length > 0, 'unbekanntes Preset');
+assert.ok(bad(base.replace(', look_from: {rel: a, off: [0, 1.9, 0]}', '')).some((m) => m.includes('look_from')), 'Pflichtfeld fehlt');
+assert.ok(bad(base.replace('subject: a, target: {rel: k}', 'subject: zz, target: {rel: k}')).some((m) => m.includes('subject')), 'unbekannte Figur');
+console.log('✔ Etappe 2: Presets, Kreisfahrt mit Verweisen, lokale Achsen, Dolly-Zoom, Prüfer-Fehlerfälle');
 console.log('✔ alle Funktionstests bestanden');

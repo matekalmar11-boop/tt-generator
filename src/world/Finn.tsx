@@ -1,6 +1,7 @@
 import React from 'react';
 import {Box, Glow} from '../lib/Box';
 import {lerp} from '../lib/anim';
+import {shade} from '../lib/color';
 
 /* ---------- Posen ---------- */
 export type Pose = {
@@ -11,7 +12,7 @@ export type Pose = {
 };
 const P0: Pose = {armLx: 0, armLz: 0.08, elbL: -0.15, armRx: 0, armRz: -0.08, elbR: -0.15, legLx: 0, kneeL: 0, legRx: 0, kneeR: 0,
   torsoX: 0, torsoY: 0, torsoZ: 0, headX: 0, headY: 0, headZ: 0, hipsY: 0, bob: 0};
-export type PoseName = 'idle' | 'walk' | 'sneak' | 'run' | 'lantern' | 'sword' | 'swing' | 'shock' | 'fall' | 'power' | 'point';
+export type PoseName = 'idle' | 'walk' | 'sneak' | 'run' | 'lantern' | 'sword' | 'swing' | 'shock' | 'fall' | 'power' | 'point' | 'sit' | 'wave';
 
 export const poseFor = (name: PoseName, t: number, k = 0): Pose => {
   const w = (spd: number, ph = 0) => Math.sin(t * spd * Math.PI * 2 + ph);
@@ -56,16 +57,24 @@ export const poseFor = (name: PoseName, t: number, k = 0): Pose => {
     }
     case 'point': // zeigt nach vorne
       return {...P0, armRx: -1.55, elbR: -0.05, armLx: 0.1, torsoX: 0.05, headY: 0.1, bob: w(0.5) * 0.01};
+    case 'sit': { // sitzt (Oberschenkel waagerecht, Hände im Schoß); Sitzfläche ca. 0.6 über dem Boden
+      const b = w(0.4);
+      return {...P0, legLx: -1.5, legRx: -1.5, kneeL: 1.5, kneeR: 1.5, armLx: -0.55, armRx: -0.55, elbL: -1.0, elbR: -1.0, torsoX: 0.04 + b * 0.015, headY: w(0.15) * 0.1, bob: -0.46 + b * 0.01};
+    }
+    case 'wave': { // winkt mit dem rechten Arm
+      const b = w(0.45);
+      return {...P0, armRz: -2.55 + w(1.6) * 0.28, armRx: 0, elbR: -0.25, headZ: -0.06, headY: -0.1, torsoX: b * 0.02, bob: b * 0.015};
+    }
   }
 };
 
-const mix = (a: Pose, b: Pose, k: number): Pose =>
+export const mix = (a: Pose, b: Pose, k: number): Pose =>
   Object.fromEntries(Object.keys(a).map((key) => [key, lerp((a as any)[key], (b as any)[key], k)])) as Pose;
 
 /* ---------- Gesicht ---------- */
 export type Face = {open: number; brow: number; browY: number; smile: number; mouthW: number; look: number};
 const F0: Face = {open: 1, brow: 0, browY: 0, smile: 0, mouthW: 1, look: 0};
-export type FaceName = 'neutral' | 'smile' | 'worry' | 'shock' | 'determined' | 'glow' | 'grin';
+export type FaceName = 'neutral' | 'smile' | 'worry' | 'shock' | 'determined' | 'glow' | 'grin' | 'angry';
 export const faceFor = (n: FaceName): Face => ({
   neutral: F0,
   smile: {...F0, smile: 0.9, brow: 0.05, open: 0.95},
@@ -74,6 +83,7 @@ export const faceFor = (n: FaceName): Face => ({
   shock: {...F0, brow: 0.1, browY: 0.1, open: 1.25, mouthW: 0.6},
   determined: {...F0, brow: -0.4, open: 0.8, smile: -0.2},
   glow: {...F0, brow: -0.15, browY: 0.04, open: 1.1, smile: 0},
+  angry: {...F0, brow: -0.65, browY: -0.01, open: 0.75, smile: -0.8, mouthW: 0.9},
 }[n]);
 
 type Props = {
@@ -90,13 +100,19 @@ type Props = {
   scale?: number;
   blinkSeed?: number;
   ghost?: boolean; // durchscheinende Silhouette (Rückblick)
+  look?: FinnLook;
 };
 
-const SKIN = '#f2c29b', SKIN_D = '#d9a07a', HAIR = '#5b3a29', TUNIC = '#3f56b5', TRIM = '#f2b134',
-  PANTS = '#2b3050', BOOT = '#6b4226', SCARF = '#ff7a3d', LEATHER = '#4b3425';
+const D_SKIN = '#f2c29b', D_SKIN_D = '#d9a07a', D_HAIR = '#5b3a29', D_TUNIC = '#3f56b5', TRIM = '#f2b134',
+  D_PANTS = '#2b3050', D_BOOT = '#6b4226', D_SCARF = '#ff7a3d', LEATHER = '#4b3425';
+
+/** Aussehen aus der YAML (cast.<id>.look). Ohne Angabe bleibt alles wie im Original. */
+export type FinnLook = {skin?: string; hair?: string; tunic?: string; scarf?: string; pants?: string; boots?: string};
 
 export const Finn: React.FC<Props> = ({t, pose = 'idle', face = 'neutral', talk = 0, glow = 0, swingK = 0, prop = 'none', lanternOn = true,
-  position = [0, 0, 0], rotationY = 0, scale = 1, blinkSeed = 0, ghost = false}) => {
+  position = [0, 0, 0], rotationY = 0, scale = 1, blinkSeed = 0, ghost = false, look}) => {
+  const SKIN = look?.skin ?? D_SKIN, SKIN_D = look?.skin ? shade(look.skin, 0.85) : D_SKIN_D, HAIR = look?.hair ?? D_HAIR, TUNIC = look?.tunic ?? D_TUNIC,
+    PANTS = look?.pants ?? D_PANTS, BOOT = look?.boots ?? D_BOOT, SCARF = look?.scarf ?? D_SCARF;
   const pa = Array.isArray(pose) ? pose : [pose, pose, 0] as const;
   const P = mix(poseFor(pa[0], t, swingK), poseFor(pa[1], t, swingK), pa[2]);
   const fa = Array.isArray(face) ? face : [face, face, 0] as const;

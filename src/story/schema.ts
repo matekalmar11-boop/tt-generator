@@ -113,7 +113,7 @@ export const CastMember = z.strictObject({
   role: z.string().optional(),
   voice: Id.optional().describe('Stimmenprofil aus "voices". Ohne Stimme: stumme Figur.'),
   look: z.record(z.string(), z.union([Color, num, z.string(), z.boolean()])).optional()
-    .describe('Aussehen (Farben etc.). Wird erst in Schritt 2 ausgewertet.'),
+    .describe('Aussehen, z. B. {skin, hair, shirt}. Erlaubte Felder je Figurenart: siehe RIGS[...].looks in src/story/registry.ts.'),
 });
 
 /* ───────────── Keyframes ───────────── */
@@ -171,25 +171,41 @@ export const CamKey = z.strictObject({
 
 export const Orbit = z.strictObject({
   from: Time, to: Time,
-  center: Vec3S,
+  center: VecRefS.describe('Mittelpunkt: [x,y,z] oder {rel: <Figur>, off: [..]} (folgt der Figur).'),
   radius: Pair, angle: z.tuple([Angle, Angle]), height: Pair,
   look: z.tuple([VecRefS, VecRefS]).describe('Blickziel am Anfang und am Ende.'),
   fov: Pair,
   steps: z.number().int().min(1).max(40).default(6).describe('Anzahl Zwischenkeys.'),
   ease: Ease.default('lin'),
-}).describe('Kreisfahrt um einen Punkt; wird in Schritt 2 zu Keyframes ausgerollt und mit "keys" nach Zeit gemischt.');
+}).describe('Kreisfahrt um einen Punkt; wird zu Keyframes ausgerollt und mit "keys" nach Zeit gemischt. center und look dürfen Verweise sein.');
 
 export const Shake = z.strictObject({
   from: Time.optional(), to: Time.optional(),
   amp: num.min(0).max(2), speed: num.min(0.1).max(6).default(1),
 });
 
+export const PRESET_NAMES = ['push_in', 'orbit_in', 'whip_to', 'over_shoulder', 'crane_down', 'track_behind', 'dolly_zoom', 'handheld'] as const;
+const FovS = z.union([num.min(10).max(120), z.tuple([num.min(10).max(120), num.min(10).max(120)])]);
+export const Shot = z.strictObject({
+  preset: z.enum(PRESET_NAMES).describe('Kamera-Preset, siehe CAMERA_PRESETS in src/story/registry.ts.'),
+  from: Time.default(0), to: Time.default('scene.end'),
+  target: VecRefS.optional().describe('Ziel des Blicks, z. B. {rel: finn, off: [0,1.6,0]}.'),
+  subject: Id.optional().describe('Figur (Actor-ID), an der sich over_shoulder/track_behind ausrichten.'),
+  offset: Vec3S.optional(), to_offset: Vec3S.optional(), look_offset: Vec3S.optional(),
+  fov: FovS.optional(), distance: Pair.optional(), angle: z.tuple([Angle, Angle]).optional(), height: Pair.optional(),
+  push: num.min(0).max(0.95).optional(),
+  look_from: VecRefS.optional(), at: Time.optional(), duration: Time.optional(),
+  amp: num.min(0).max(2).optional(), speed: num.min(0.1).max(6).optional(),
+  transition: z.enum(['cut', 'blend']).default('cut').describe('Übergang vom vorigen Shot: harter Schnitt oder Überblendung.'),
+  ease: Ease.optional(),
+});
+
 export const Camera = z.strictObject({
   keys: z.array(CamKey).default([]),
   orbits: z.array(Orbit).default([]),
+  shots: z.array(Shot).default([]).describe('Kamera-Presets (push_in, orbit_in, whip_to, over_shoulder, crane_down, track_behind, dolly_zoom, handheld).'),
   shake: z.array(Shake).default([]).describe('Handkamera-Wackeln in Zeitabschnitten.'),
-  preset: z.string().optional().describe('Reserviert für Kamera-Presets (Schritt 2).'),
-}).refine((c) => c.keys.length + c.orbits.length > 0, {message: 'Kamera braucht mindestens einen Key oder eine Kreisfahrt (orbits).'});
+}).refine((c) => c.keys.length + c.orbits.length + c.shots.length > 0, {message: 'Kamera braucht mindestens einen Key, eine Kreisfahrt (orbits) oder ein Preset (shots).'});
 
 /* ───────────── Kulisse, Himmel, Licht ───────────── */
 
@@ -200,7 +216,7 @@ export const SetSpec = z.strictObject({
 });
 
 export const Environment = z.strictObject({
-  type: z.string().describe('"night_sky" (Himmel+Mond+Wolken+Inseln), "starry_sky" (Himmel+Sterne, optional Mond) oder "none".'),
+  type: z.string().describe('"night_sky" (Himmel+Mond+Wolken+Inseln), "starry_sky" (Himmel+Sterne, optional Mond), "gradient" (nur Farbverlauf) oder "none".'),
   colors: z.strictObject({top: Color, mid: Color, bottom: Color}).optional(),
   stars: z.strictObject({rotation: num.default(0)}).optional(),
   moon: z.strictObject({pos: Vec3S, radius: num.positive().default(26), crack: num.min(0).max(1).default(0)}).optional(),

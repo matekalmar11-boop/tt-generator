@@ -62,12 +62,28 @@ der Zielpose (z. B. `mix: 0.45` = nur halb in die Schockpose). Kamera-`cut: true
 - Test: `npm run test:story` (Auflösung, ohne Rendering) · Vergleich: `npm run story:compare -- <ausgabeordner> <frame> …` rendert dieselben Frames aus Composition `RefBild` (handgeschrieben, nur 3D-Bild) und `StoryTest` (aus der YAML) als Standbilder.
 - Ergebnis Mondsplitter (21 Standbilder, alle 8 Szenen): mittlere Abweichung 0,00/255; einzige Ausnahme Wendung-Frame 815 (0,04/255, 0,02 % der Pixel) – erwartete Folge von Vereinfachung 1 (ein Pfad für den Splitter statt zwei überlagerter Bewegungen). Beispiele: `docs/step2/`.
 - Konventionen: Standard-Easing bei `pose`/`face`/`path`/Verläufen = `lin`, bei Kamera `io`. `mix` am Zielkey = Stärke der Zielpose (Start aus einer bereits gemischten Pose wird nicht berücksichtigt). Noch nicht angebunden bleibt eine Registry-Komponente mit Status `planned`: `<StoryScene>` bricht dann mit klarer Fehlermeldung ab, statt etwas Ähnliches zu zeigen.
-- Noch offen in Schritt 2: Kamera-Presets, Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, `look`, Overlays/Untertitel/Cut-Flash/Ton aus der Config, `orbits.look` mit Verweisen.
+- Noch offen in Schritt 2: Kulisse `city_street`, `look` für den Drachen, Overlays/Untertitel/Cut-Flash/Ton aus der Config.
+
+### Etappe 2: Kamera-Presets, Rig `person`, Kulissen, Aussehen
+**Kamera-Presets** (`camera.shots[]`, dürfen mit `keys`/`orbits` gemischt werden; Details und Vorgaben je Preset: `CAMERA_PRESETS` in `src/story/registry.ts`, Umsetzung `src/story/presets.ts`):
+```yaml
+camera:
+  shots:
+    - {preset: over_shoulder, subject: a, target: {rel: k}, from: 0, to: 2s}          # a = Vordergrund, Blick auf k
+    - {preset: whip_to, target: {rel: k, off: [0,1.9,0]}, look_from: {rel: a, off: [0,1.9,0]}, at: 2.4s, duration: 7f, from: 1.8s, to: scene.end}
+```
+`push_in`, `orbit_in`, `whip_to`, `over_shoulder`, `crane_down`, `track_behind`, `dolly_zoom` (Bildgröße bleibt exakt konstant), `handheld` (fügt Wackeln hinzu). Positionen bleiben Verweise und folgen bewegten Figuren;
+`over_shoulder`/`track_behind` rechnen `offset` in den Achsen der Figur (z + = vorn, x + = links der Figur). `transition: cut` (Vorgabe) oder `blend` zum vorigen Shot. Pflichtfelder prüft `check`.
+**Kreisfahrten** (`orbits`): `center` und `look` dürfen jetzt `{rel: …}`/`{obj: …}` sein; feste Koordinaten rechnen exakt wie vorher.
+**Rig `person`** (`src/world/Person.tsx`): dieselben Gelenke/Posen/Gesichter wie Finn (+ `sit`, `wave`, Gesicht `angry`), Gegenstände `phone`/`cup` (heben den rechten Arm).
+**Aussehen** `cast.<id>.look`, geprüft gegen `RIGS[rig].looks`: person → `skin, hair, hairStyle(short|long|bald), eyes, shirt, pants, shoes, coat, apron, hat, glasses`; finn → `skin, hair, tunic, scarf, pants, boots`. Ohne `look` bleibt Finn exakt wie im Original.
+**Kulissen:** `empty_stage` (Bodenplatte mit Raster, Hintergrund über `environment: {type: gradient, colors}`), `room` (Küche/Wohnraum, Tisch, Stühle bei x = ±1 – Sitzende: `at: [±1, 0, -0.45]`, `yaw: pi`, `pose: sit`).
+Test: `stories/demo-etappe2.yaml` (stumm, Composition `Etappe2Test`), Standbilder: `node scripts/comp-stills.mjs Etappe2Test <ordner> <frame>…`, Beispiel `docs/step2/etappe2_standbilder.png`.
 
 ## Noch NICHT umgesetzt
 | Schritt | Inhalt |
 |---|---|
-| **2** (Etappe 1 ✅, Rest offen) | `<StoryScene>`: YAML → 3D-Szene (Aktoren, Objekte, Kamera aus keys/orbits/shake, Anker auflösen, Verläufe/Posen-Keyframes, `rel`-Verweise), Kamera-Presets (`camera.preset`), `look` (Aussehen), Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, Overlays/Captions/Subtitles/Cut-Flash aus der Config |
+| **2** (Etappe 1+2 ✅, Rest offen) | `<StoryScene>`: YAML → 3D-Szene (Aktoren, Objekte, Kamera aus keys/orbits/shake, Anker auflösen, Verläufe/Posen-Keyframes, `rel`-Verweise), Kamera-Presets (`camera.preset`), `look` (Aussehen), Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, Overlays/Captions/Subtitles/Cut-Flash aus der Config |
 | **3** | Stimmenprofile → TTS (ersetzt `synth.py`/`redo_dragon.py`), TTS-Cache pro Zeile, `pronunciations`, Befehl `voice` |
 | **4** | Schnelle Vorschau (270×480, 15 FPS), Szenen-Vorschau, Kontaktbogen, Befehl `preview` |
 | **5** | Freigabe-Schranke (`approved.json` mit Hash der Story-Datei), Teil-Rendering/Zusammenfügen, Befehl `render` |

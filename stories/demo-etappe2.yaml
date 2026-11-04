@@ -1,0 +1,114 @@
+# yaml-language-server: $schema=./story.schema.json
+# FUNKTIONSTEST Schritt 2, Etappe 2 (stumm, ohne Sprache): Kamera-Presets, Kreisfahrt mit Verweisen,
+# Rig "person" mit look, Kulissen "room" und "empty_stage", Aussehen von Finn.
+# Nur für Standbild-Tests gedacht (Composition "Etappe2Test"), keine Geschichte.
+schema: 1
+meta: {id: demo-etappe2, title: Etappe-2-Test, genre: test}
+voices: {erzaehler: {subtitle: {accent: "#ffd23d"}}}
+cast:
+  anna:
+    rig: person
+    name: Anna
+    voice: erzaehler
+    look: {skin: "#e0a882", hair: "#7a3b1d", hairStyle: long, shirt: "#d9534f", pants: "#2e3a59", apron: "#f4f1ea", eyes: "#3b6e4f"}
+  kurz:
+    rig: person
+    name: Kommissar Kurz
+    look: {skin: "#8d5a3b", hair: "#1c1c1c", hairStyle: short, shirt: "#e8e2d0", pants: "#3a3a3a", coat: "#7a5c3a", hat: "#3b2f2a", glasses: true}
+  finn_rot:
+    rig: finn
+    name: Finn (rot)
+    look: {tunic: "#b5373f", hair: "#222222", skin: "#c68b5e", scarf: "#3fd1c8"}
+scenes:
+  # Über-die-Schulter-Schnittfolge in der Küche (zwei Figuren stehen sich gegenüber)
+  - id: schulter
+    timing: {pre: 2.6, post: 1.4}
+    set: {type: room}
+    light: {fog: {color: "#3a2f2a", near: 25, far: 90}, hemi: {intensity: 1.1}, key: {intensity: 1.6, pos: [-4, 14, 10], shadowAt: [0, 1, 2]}}
+    actors:
+      - {id: a, cast: anna, at: [-1.6, 0, 2], yaw: 0.5pi, pose: idle, face: worry}
+      - {id: k, cast: kurz, at: [1.6, 0, 2], yaw: -0.5pi, pose: idle, face: angry}
+    camera:
+      shots:
+        - {preset: over_shoulder, subject: a, target: {rel: k}, from: 0, to: 2s}
+        - {preset: over_shoulder, subject: k, target: {rel: a}, from: 2s, to: scene.end, offset: [0.8, 2.15, -2.7]}
+  # Sitzen am Tisch, Handy und Tasse, Kreisfahrt (Preset) um die Tischmitte
+  - id: tisch
+    timing: {pre: 2.6, post: 1.4}
+    set: {type: room, params: {accent: "#3f6fb5", wall: "#cfd8c8"}}
+    light: {fog: {color: "#3a2f2a", near: 25, far: 90}, hemi: {intensity: 1.1}, key: {intensity: 1.6, pos: [-4, 14, 10], shadowAt: [0, 1, -1]}}
+    actors:
+      - {id: a, cast: anna, at: [-1, 0, -0.45], yaw: pi, pose: sit, face: smile, prop: cup}
+      - {id: k, cast: kurz, at: [1, 0, -0.45], yaw: pi, pose: sit, face: neutral, prop: phone}
+    camera:
+      shots:
+        - {preset: orbit_in, target: [0, 1.6, -1.2], distance: [6, 4.5], angle: [0.55, 1.35], height: [1.0, 0.4], fov: [48, 40], from: 0, to: scene.end}
+  # Bühne: Winken + Push-in, dann Reißschwenk
+  - id: buehne
+    timing: {pre: 2.6, post: 1.4}
+    set: {type: empty_stage, params: {floor: "#34415f"}}
+    environment: {type: gradient, colors: {top: "#2a3560", mid: "#3d4a7a", bottom: "#161b34"}}
+    light: {fog: {color: "#222a4a", near: 25, far: 90}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: [0, 0, 0]}}
+    actors:
+      - {id: a, cast: anna, at: [-2.6, 0, 0], yaw: 0.15pi, pose: wave, face: grin}
+      - {id: k, cast: kurz, at: [2.6, 0, 0], yaw: -0.15pi, pose: point, face: shock}
+    camera:
+      shots:
+        - {preset: push_in, target: {rel: a, off: [0, 1.9, 0]}, offset: [1.2, 0.2, 7], push: 0.5, from: 0, to: 1.8s}
+        - {preset: whip_to, target: {rel: k, off: [0, 1.9, 0]}, look_from: {rel: a, off: [0, 1.9, 0]}, offset: [-1.5, 0.2, 6], from: 1.8s, to: scene.end, at: 2.4s, duration: 7f}
+  # Laufende Figur: Kran von oben, Verfolgung von hinten, Kreisfahrt (folgt der Figur)
+  - id: lauf
+    timing: {pre: 4.6, post: 0.4}
+    set: {type: empty_stage}
+    environment: {type: gradient}
+    light: {fog: {color: "#1d2240", near: 30, far: 110}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: {rel: k}}}
+    actors:
+      - id: k
+        cast: kurz
+        path: [{t: 0, pos: [0, 0, 7]}, {t: scene.end, pos: [0, 0, -7], ease: lin}]
+        yaw: pi
+        pose: walk
+        face: determined
+    camera:
+      shots:
+        - {preset: crane_down, target: {rel: k, off: [0, 1.5, 0]}, from: 0, to: 1.5s}
+        - {preset: track_behind, subject: k, from: 1.5s, to: 3s}
+        - {preset: orbit_in, target: {rel: k, off: [0, 1.5, 0]}, distance: [6, 5], angle: [-0.4, 1.1], height: [0.6, 0.6], from: 3s, to: scene.end}
+  - id: schwindel
+    timing: {pre: 2.6, post: 1.4}
+    set: {type: empty_stage}
+    environment: {type: gradient}
+    light: {fog: {color: "#1d2240", near: 30, far: 110}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: [0, 0, 0]}}
+    actors:
+      - {id: k, cast: kurz, at: [0, 0, 0], yaw: 0, pose: shock, face: shock}
+      - {id: a, cast: anna, at: [-4, 0, -6], yaw: 0, pose: idle, face: smile}
+      - {id: b, cast: anna, at: [4, 0, -9], yaw: 0, pose: wave, face: smile}
+    camera:
+      shots:
+        - {preset: dolly_zoom, target: {rel: k, off: [0, 1.9, 0]}, offset: [0, 0.2, 8], distance: [9, 3.2], fov: 30, from: 0, to: 3s}
+        - {preset: handheld, target: {rel: k, off: [0, 1.9, 0]}, offset: [0.6, 0.3, 4.5], from: 3s, to: scene.end}
+  # Klassische Kreisfahrt mit Verweisen (center + look relativ zur Figur) und Finn mit eigenem Aussehen
+  - id: kreis
+    timing: {pre: 2.6, post: 1.4}
+    set: {type: plateau}
+    environment: {type: night_sky, moon: {pos: [24, 38, -90], radius: 26}}
+    light: {fog: {color: "#2a2250", near: 60, far: 260}, hemi: {intensity: 0.9}, key: {intensity: 2.0, pos: [-8, 20, 12], shadowAt: {rel: f}}}
+    actors:
+      - id: f
+        cast: finn_rot
+        path: [{t: 0, pos: [-2, 0.3, 0]}, {t: scene.end, pos: [2, 0.3, 0], ease: lin}]
+        yaw: 0.5pi
+        pose: walk
+        prop: lantern
+        face: smile
+    camera:
+      orbits:
+        - from: 0
+          to: scene.end
+          center: {rel: f, off: [0, 2.3, 0]}
+          radius: [7, 5]
+          angle: [-1.0, 0.8]
+          height: [-0.8, 0.6]
+          look: [{rel: f, off: [0, 1.6, 0]}, {rel: f, off: [0, 2.6, 0]}]
+          fov: [58, 44]
+          steps: 8
