@@ -6,6 +6,9 @@ schema: 1
 meta: {id: truman-show, title: Die Truman Show kurz erklärt, genre: erklaerfilm, targetDuration: {min: 45, max: 60}}
 format: {fps: 30, width: 1080, height: 1920}
 
+# Aussprache: englisch „Tru-men“ /ˈtruːmən/ (Untertitel behalten die Schreibweise „Truman“)
+pronunciations: {Truman: Truhmen, Trumans: Truhmens}
+
 voices:
   erzaehler:
     lengthScale: 0.97
@@ -419,7 +422,7 @@ scenes:
     lines:
       - {id: v12, who: erzaehler, text: "Er verabschiedet sich und öffnet die Tür."}
     captions:
-      - {type: callout, from: 0.4s, to: scene.end, at: [84, 18], text: "KÜNSTLICHE WELT", side: left, ring: 110}
+      - {type: callout, from: 0.4s, to: scene.end, at: [91, 28], text: "KÜNSTLICHE WELT", side: left, ring: 110}
       - {type: callout, from: "v12.end", to: scene.end, at: [50, 47], text: "ECHTE WELT", side: right, ring: 150}
     sfx:
       - {sound: door_latch, at: "v12.word5", volume: 0.9}
