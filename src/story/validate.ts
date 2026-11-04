@@ -131,10 +131,13 @@ const estLine = (text: string, gap: number) => {
 };
 
 /** Szenenzeiten: echte Werte aus src/story/timeline.json, falls Zeile (id+Text) dort identisch existiert; sonst Schätzung. */
-export const computeTiming = (story: StoryData, timelineFile?: string): {scenes: Record<string, SceneTiming>; total: number; realLines: number; estLines: number} => {
+export const computeTiming = (story: StoryData, timelineFile?: string, voicesFile?: string): {scenes: Record<string, SceneTiming>; total: number; realLines: number; estLines: number} => {
   const fps = story.format.fps;
   let real: any;
   try { if (timelineFile && fs.existsSync(timelineFile)) real = JSON.parse(fs.readFileSync(timelineFile, 'utf8')); } catch { /* ignorieren */ }
+  let voices: any;
+  try { if (voicesFile && fs.existsSync(voicesFile)) voices = JSON.parse(fs.readFileSync(voicesFile, 'utf8')); } catch { /* ignorieren */ }
+  const nrm = (x: string) => x.split(/\s+/).filter(Boolean).join(' ');
   const realLine = new Map<string, any>();
   const realScene = new Map<string, any>();
   for (const sc of real?.scenes ?? []) { realScene.set(sc.id, sc); for (const l of sc.lines) realLine.set(l.id, l); }
@@ -147,10 +150,11 @@ export const computeTiming = (story: StoryData, timelineFile?: string): {scenes:
     const lines: Record<string, LineTiming> = {};
     for (const l of sc.lines) {
       const r = allReal ? realLine.get(l.id) : undefined;
-      const dur = r ? r.durationFrames / fps : estLine(l.text, 0.24);
-      lines[l.id] = {start: r ? (r.startFrame - rs.startFrame) / fps : t, end: 0, words: l.text.split(/\s+/).length, real: !!r};
+      const v = !r && voices && voices.fps === fps && voices.lines?.[l.id] && nrm(voices.lines[l.id].text) === nrm(l.text) ? voices.lines[l.id] : undefined; // Piper-Ergebnis (story voice)
+      const dur = r ? r.durationFrames / fps : v ? Math.ceil(v.seconds * fps) / fps : estLine(l.text, 0.24);
+      lines[l.id] = {start: r ? (r.startFrame - rs.startFrame) / fps : t, end: 0, words: l.text.split(/\s+/).length, real: !!r || !!v};
       lines[l.id].end = lines[l.id].start + dur;
-      r ? realLines++ : estLines++;
+      r || v ? realLines++ : estLines++;
       t = lines[l.id].end + story.timing.lineGap;
     }
     const duration = sc.lines.length ? t - story.timing.lineGap + sc.timing.post : sc.timing.pre + sc.timing.post;
@@ -162,7 +166,7 @@ export const computeTiming = (story: StoryData, timelineFile?: string): {scenes:
 
 /* ───────────── Querprüfungen ───────────── */
 
-export type Options = {audioDir?: string; timelineFile?: string; lineOf?: (p: ReadonlyArray<PropertyKey>) => number | undefined};
+export type Options = {audioDir?: string; timelineFile?: string; voicesFile?: string; lineOf?: (p: ReadonlyArray<PropertyKey>) => number | undefined};
 
 const isRef = (v: any): v is {rel?: string; obj?: string} => v && typeof v === 'object' && !Array.isArray(v);
 
@@ -170,7 +174,7 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
   const issues: Issue[] = [];
   const err = (path: string, message: string, hint?: string) => issues.push({level: 'error', path, message, hint});
   const warn = (path: string, message: string, hint?: string) => issues.push({level: 'warn', path, message, hint});
-  const timing = computeTiming(story, opts.timelineFile);
+  const timing = computeTiming(story, opts.timelineFile, opts.voicesFile);
   const fps = story.format.fps;
 
   const audioFiles = opts.audioDir && fs.existsSync(opts.audioDir)
@@ -196,7 +200,6 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
       }
     }
   }
-  if (story.pronunciations) warn('pronunciations', 'Aussprache-Wörterbuch wird erst in Schritt 3 (TTS-Pipeline) ausgewertet.');
 
   /* Audio */
   const mu = story.audio.music;
@@ -213,7 +216,7 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
     sc.lines.forEach((l, li) => {
       if (seenLine.has(l.id)) err(`${P}.lines[${li}].id`, `Zeilen-ID "${l.id}" kommt doppelt vor (bereits in Szene "${seenLine.get(l.id)}").`, 'Zeilen-IDs müssen in der ganzen Geschichte eindeutig sein (sie benennen die Audiodateien).');
       seenLine.set(l.id, sc.id);
-      if (voFiles && !voFiles.has(`vo_${l.id}.wav`)) warn(`${P}.lines[${li}]`, `Sprechdatei public/audio/vo_${l.id}.wav fehlt – die Zeile wird stumm gerendert (Untertitel mit geschätzter Zeit).`, 'Die TTS-Erzeugung aus der YAML folgt in Schritt 3; bis dahin Datei von Hand ablegen.');
+      if (voFiles && !voFiles.has(`vo_${l.id}.wav`)) warn(`${P}.lines[${li}]`, `Sprechdatei public/audio/vo_${l.id}.wav fehlt – die Zeile wird stumm gerendert (Untertitel mit geschätzter Zeit).`, 'Erzeugen mit: npm run story -- voice <datei>  (Einrichtung: npm run tts:setup).');
       const c = story.cast[l.who];
       if (!c) err(`${P}.lines[${li}].who`, `Sprecher "${l.who}" steht nicht in "cast".`, didYouMean(l.who, castIds));
       else if (!c.voice) err(`${P}.lines[${li}].who`, `Figur "${l.who}" hat keine Stimme (cast.${l.who}.voice fehlt).`);
@@ -397,7 +400,7 @@ export const checkStoryFile = (file: string, root = process.cwd()): {loaded: Loa
     for (let n = segs.length; n >= 0; n--) { const node: any = doc.getIn(segs.slice(0, n) as (string | number)[], true); if (node?.range) return lc.linePos(node.range[0]).line; }
     return undefined;
   };
-  const sem = validateSemantics(loaded.story, {audioDir: path.join(root, 'public/audio'), timelineFile: path.join(root, 'src/story/timeline.json')});
+  const sem = validateSemantics(loaded.story, {audioDir: path.join(root, 'public/audio'), timelineFile: path.join(root, 'src/story/timeline.json'), voicesFile: path.join(root, 'src/story/voices', `${loaded.story.meta.id}.json`)});
   for (const i of sem.issues) issues.push({...i, line: lineOf(i.path)});
   return {loaded, issues, timing: sem.timing};
 };

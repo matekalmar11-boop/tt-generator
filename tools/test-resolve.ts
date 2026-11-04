@@ -86,12 +86,38 @@ assert.ok(mond.scenes.every((sc, i) => sc.startFrame === tl.scenes[i].startFrame
 const yamlChunks = buildChunksFrom(mond.scenes.flatMap((sc) => sc.lines).map((l) => ({voice: l.voice ?? '', words: l.words})), story.subtitles.maxWords, story.subtitles.maxChars);
 assert.deepEqual(yamlChunks.map((c) => [c.start, c.end, c.words.map((w) => w.w).join(' ')]), CHUNKS.map((c) => [c.start, c.end, c.words.map((w) => w.w).join(' ')]), 'Untertitel aus YAML = bisherige Untertitel');
 assert.deepEqual(missingAudio(story, mond), [], 'Mondsplitter: keine fehlenden Audiodateien');
+import {planVoice, toUnits, lineState, readVoices} from './voice';
+import crypto from 'node:crypto';
 const city = Story.parse(parse(fs.readFileSync('stories/demo-stadtgeschichte.yaml', 'utf8')));
 const ctl = buildTimeline(city);
 assert.ok(ctl.scenes.every((sc) => sc.lines.every((l) => !l.real && l.words.length > 0 && l.startFrame >= sc.startFrame && l.startFrame + l.durationFrames <= sc.startFrame + sc.durationFrames)), 'geschätzte Zeiten liegen in der Szene');
-const miss = missingAudio(city, ctl).map((m) => m.file);
-assert.deepEqual(miss, ['audio/vo_s01.wav', 'audio/vo_s02.wav', 'audio/vo_s03.wav', 'audio/vo_s04.wav', 'audio/vo_s05.wav'], 'fehlende Sprechdateien werden gemeldet (Effekte/Musik vorhanden)');
+assert.deepEqual(missingAudio(city, ctl).map((m) => m.file), [], 'Stadtgeschichte: Sprechdateien, Effekte und Musik vorhanden');
+// die Prüfung meldet fehlende Sprechdateien weiterhin (Datei einer anderen Geschichte simulieren)
+const ghost = Story.parse(parse(fs.readFileSync('stories/demo-stadtgeschichte.yaml', 'utf8').replace('id: s05', 'id: s99')));
+assert.deepEqual(missingAudio(ghost, buildTimeline(ghost)).map((m) => m.file), ['audio/vo_s99.wav'], 'fehlende Sprechdatei wird gemeldet');
 const manifestNow = fs.readdirSync('public/audio').filter((f) => f.endsWith('.wav')).sort().map((f) => `audio/${f}`);
 assert.deepEqual(JSON.parse(fs.readFileSync('src/story/audioManifest.json', 'utf8')), manifestNow, 'audioManifest.json veraltet – "npm run story -- manifest" ausführen');
+
+// ── Schritt 3: Sprachplanung, Cache-Entscheidung, echte Timings (ohne Piper aufzurufen) ──
+assert.deepEqual(toUnits('Die KI lernt, schnell.', {KI: 'Ka I'}).map((u) => [u.display, u.spoken]), [['Die', 'Die'], ['KI', 'Ka I'], ['lernt,', 'lernt,'], ['schnell.', 'schnell.']], 'Aussprachehilfe ändert nur die gesprochene Form');
+const plan = planVoice(city);
+assert.equal(plan.length, 5); assert.deepEqual(plan.map((p) => p.voiceId), ['erzaehler', 'erzaehler', 'opa', 'erzaehler', 'erzaehler']);
+const h0 = plan[0].hash;
+const city2 = Story.parse(parse(fs.readFileSync('stories/demo-stadtgeschichte.yaml', 'utf8').replace('Mira hat', 'Mira hatte')));
+assert.notEqual(planVoice(city2)[0].hash, h0, 'Textänderung → neue Prüfsumme'); assert.equal(planVoice(city2)[1].hash, plan[1].hash, 'andere Zeilen bleiben gleich');
+const city3 = Story.parse(parse(fs.readFileSync('stories/demo-stadtgeschichte.yaml', 'utf8').replace('effect: {pitch: 0.92}', 'effect: {pitch: 0.92}\n    loudness: -14')));
+assert.deepEqual(planVoice(city3).map((p, i) => p.hash === plan[i].hash), [true, true, false, true, true], 'Profiländerung betrifft nur Zeilen dieser Stimme');
+const stored = readVoices('stadtgeschichte')!;
+assert.ok(plan.every((p) => lineState(p, stored) === 'aktuell'), 'erzeugte Sprache ist aktuell (Prüfsumme + Datei)');
+assert.ok(plan.every((p) => stored.lines[p.id].timingMode === 'aligned'), 'Wort-Timings stammen aus den Piper-Phonemausrichtungen');
+for (const p of plan) { // Datei ↔ Eintrag ↔ Manifest
+  const wav = fs.readFileSync(`public/audio/vo_${p.id}.wav`);
+  assert.equal(crypto.createHash('sha256').update(wav).digest('hex'), stored.lines[p.id].wavSha);
+  assert.ok(JSON.parse(fs.readFileSync('src/story/audioManifest.json', 'utf8')).includes(`audio/vo_${p.id}.wav`), `${p.id} im Manifest`);
+  const w = stored.lines[p.id].words; assert.ok(w.every((x, i) => x.start >= 0 && x.end <= stored.lines[p.id].seconds + 1e-6 && x.end >= x.start && (i === 0 || w[i - 1].end <= x.start + 1e-6)), `${p.id}: Wortzeiten geordnet und innerhalb der Datei`);
+}
+const vtl = buildTimeline(city, undefined, stored as any);
+assert.ok(vtl.scenes.every((sc) => sc.lines.every((l) => l.real && l.durationFrames === Math.ceil(stored.lines[l.id].seconds * 30))), 'Zeitleiste nutzt die echte Dauer');
+console.log('✔ Schritt 3: Aussprachehilfe, Prüfsummen/Cache-Entscheidung, Piper-Timings, Datei↔Eintrag↔Manifest, Zeitleiste aus echter Dauer');
 console.log('✔ Etappe 3: Zeitleiste = alte TTS-Timeline, Untertitel identisch, fehlende Audiodateien gemeldet, Manifest aktuell');
 console.log('✔ alle Funktionstests bestanden');

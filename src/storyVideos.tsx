@@ -4,6 +4,7 @@ import {parse} from 'yaml';
 import mondsplitterYaml from '../stories/mondsplitter.yaml';
 import stadtYaml from '../stories/demo-stadtgeschichte.yaml';
 import legacy from './story/timeline.json';
+import stadtVoices from './story/voices/stadtgeschichte.json';
 import {Story} from './story/schema';
 import {buildTimeline} from './story/timeline';
 import {StoryVideo, missingAudio} from './story/StoryVideo';
@@ -15,10 +16,10 @@ export const mondsplitter = (() => {
 })();
 export const MondsplitterYaml: React.FC = () => <StoryVideo story={mondsplitter.story} timeline={mondsplitter.timeline} />;
 
-/** Neue Kurzgeschichte (person + room + city_street); ohne Sprechdateien → geschätzte Zeiten, stumm. */
+/** Neue Kurzgeschichte (person + room + city_street); Sprache aus `npm run story -- voice stories/demo-stadtgeschichte.yaml` (Piper, echte Wort-Timings). */
 export const stadt = (() => {
   const story = Story.parse(parse(stadtYaml));
-  const timeline = buildTimeline(story);
+  const timeline = buildTimeline(story, undefined, stadtVoices as any); // echte Piper-Timings aus `story voice`
   const missing = missingAudio(story, timeline);
   if (missing.length) console.warn(`[stadtgeschichte] ${missing.length} Audiodateien fehlen: ${missing.map((m) => m.file).join(', ')}`);
   return {story, timeline};

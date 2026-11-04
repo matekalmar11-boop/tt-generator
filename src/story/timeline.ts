@@ -42,13 +42,18 @@ const estWords = (text: string, start: number, dur: number): {words: TLWord[]; e
   return {words, env};
 };
 
-export const buildTimeline = (story: StoryData, legacy?: LegacyTL): Timeline => {
+/** Ergebnis von `story voice` (src/story/voices/<story-id>.json): echte Dauer, Wort-Timings (Sekunden) und Mund-Hüllkurve je Zeile. */
+export type VoiceData = {fps: number; lines: Record<string, {text: string; seconds: number; timingMode: string; words: TLWord[]; env: number[]}>};
+const norm = (t: string) => t.split(/\s+/).filter(Boolean).join(' ');
+
+export const buildTimeline = (story: StoryData, legacy?: LegacyTL, voices?: VoiceData): Timeline => {
   const fps = story.format.fps;
   const gap = story.timing.lineGap;
   const scenes: TLScene[] = [];
   let cursor = 0;
   for (const sc of story.scenes) {
     const ls = legacy?.scenes.find((s) => s.id === sc.id);
+    const vd = voices && voices.fps === story.format.fps && sc.lines.length > 0 && sc.lines.every((l) => voices.lines[l.id] && norm(voices.lines[l.id].text) === norm(l.text)) ? voices : undefined;
     const real = !!ls && sc.lines.every((l) => ls.lines.find((x) => x.id === l.id)?.text === l.text);
     const lines: TLLine[] = [];
     let duration: number;
@@ -59,6 +64,16 @@ export const buildTimeline = (story: StoryData, legacy?: LegacyTL): Timeline => 
       }
       duration = ls.durationFrames;
       cursor = ls.startFrame; // echte Zeitleiste ist absolut
+    } else if (vd) { // echte Spracherzeugung (Piper): Dauer, Wortzeiten und Hüllkurve aus der Datei
+      let t = sc.timing.pre;
+      for (const l of sc.lines) {
+        const v = vd.lines[l.id];
+        const start = cursor + Math.round(t * fps);
+        const words = v.words.map((w) => ({w: w.w, start: start + Math.round(w.start * fps), end: start + Math.max(Math.round(w.end * fps), Math.round(w.start * fps) + 2)}));
+        lines.push({id: l.id, who: l.who, voice: story.cast[l.who]?.voice, text: l.text, file: voiceFile(l.id), startFrame: start, durationFrames: Math.ceil(v.seconds * fps), words, env: v.env, real: true});
+        t += v.seconds + gap;
+      }
+      duration = Math.round((t - gap + sc.timing.post) * fps);
     } else {
       let t = sc.timing.pre;
       for (const l of sc.lines) {

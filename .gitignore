@@ -4,3 +4,4 @@ tts/.venv
 tts/models
 tts/asr
 __pycache__
+tts/cache

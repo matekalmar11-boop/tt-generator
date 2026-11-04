@@ -1,10 +1,11 @@
 /**
  * Story-CLI.   npm run story -- <befehl> [datei]
  *   check <datei>            Schema + Querprüfungen, ohne Rendering (Schritt 1, fertig)
+ *   voice <datei> [--check] [--force] [--line <id>]   erzeugt vo_<zeilen-id>.wav mit Piper (Cache, Wort-Timings, Manifest) – Schritt 3
  *   manifest                 schreibt src/story/audioManifest.json (vorhandene Audiodateien)
  *   schema                   schreibt stories/story.schema.json (Autovervollständigung im Editor)
  *   compare-legacy <datei>   vergleicht die YAML mit story/script.json + timeline.json (Migrationsnachweis)
- *   voice | preview | render geplant (Schritt 3–5); render wird nie ohne Freigabe laufen
+ *   preview | render geplant (Schritt 4–5); render wird nie ohne Freigabe laufen
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,13 +13,13 @@ import {z} from 'zod';
 import {Story} from '../src/story/schema';
 import {OBJECTS, RIGS, SETS} from '../src/story/registry';
 import {checkStoryFile, type Issue} from '../src/story/validate';
+import {runVoice} from './voice';
 
 const root = process.cwd();
 const [cmd, arg, ...flags] = process.argv.slice(2);
 const json = flags.includes('--json') || arg === '--json';
 
 const PLANNED: Record<string, string> = {
-  voice: 'Schritt 3 (Stimmenprofile + TTS-Cache)',
   preview: 'Schritt 4 (schnelle Vorschau 270×480 / 15 FPS)',
   render: 'Schritt 5 (Freigabe-Schranke + Teil-Rendering)',
 };
@@ -118,7 +119,7 @@ const writeSchema = () => {
 };
 
 const usage = () => {
-  console.log('Verwendung: npm run story -- <befehl> [datei]\n  check <datei>            Konfiguration prüfen (ohne Rendering)\n  schema                   JSON-Schema für den Editor schreiben\n  compare-legacy <datei>   Migration gegen story/script.json prüfen\n  voice | preview | render  geplant (Schritt 3–5)');
+  console.log('Verwendung: npm run story -- <befehl> [datei]\n  check <datei>            Konfiguration prüfen (ohne Rendering)\n  schema                   JSON-Schema für den Editor schreiben\n  compare-legacy <datei>   Migration gegen story/script.json prüfen\n  manifest                 Audio-Manifest aus public/audio schreiben\n  voice <datei> [--check] [--force] [--line <id>]  Sprache mit Piper erzeugen (Cache, Wort-Timings)\n  preview | render         geplant (Schritt 4–5)');
   return 0;
 };
 
@@ -127,6 +128,7 @@ if (cmd === 'check' && arg) code = check(arg);
 else if (cmd === 'compare-legacy' && arg) code = compareLegacy(arg);
 else if (cmd === 'schema') code = writeSchema();
 else if (cmd === 'manifest') code = manifest();
+else if (cmd === 'voice' && arg) code = runVoice(arg, {check: flags.includes('--check'), force: flags.includes('--force'), line: flags.includes('--line') ? flags[flags.indexOf('--line') + 1] : undefined}, () => manifest());
 else if (cmd && PLANNED[cmd]) { console.log(`„${cmd}“ ist noch nicht umgesetzt – geplant für ${PLANNED[cmd]}. Es wurde nichts ausgeführt.`); code = 2; }
 else code = usage();
 process.exit(code);

@@ -11,6 +11,8 @@ Schritt 2 (Etappe 1): `<StoryScene>` rendert Szenen aus der YAML – Composition
 
 Schritt 2 (Etappe 3): `<StoryVideo>` rendert komplette YAML-Geschichten mit Untertiteln, Einblendungen und Audio – Compositions `MondsplitterYaml` und `StadtDemo` im Studio; `npm run story -- manifest` aktualisiert die Audio-Liste.
 
+Schritt 3: `npm run story -- voice stories/<datei>.yaml` erzeugt die Sprache aus der YAML (Piper, Cache, echte Wort-Timings); Einrichtung `npm run tts:setup`, Details in [docs/STORY_FORMAT.md](docs/STORY_FORMAT.md).
+
 ## Pipeline
 1. `story/script.json` – Geschichte (Szenen, Sprechzeilen, Sprecher).
 2. `tts/synth.py` – deutsche TTS (Piper-Stimme *Thorsten*, CC0) → `public/audio/vo_*.wav`, Wort-Timing, Lippensync-Hüllkurve → `src/story/timeline.json`.

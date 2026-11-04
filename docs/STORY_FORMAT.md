@@ -73,7 +73,7 @@ Compositions: `MondsplitterYaml` (echte TTS-Timeline; Vergleich mit `Main`), `St
 - **Audio**: Stimmen `public/audio/vo_<zeilen-id>.wav`, Effekte `scenes[].sfx` (`loop: scene`), Musik `audio.music` mit Ducking unter der Sprache und Ausblenden (Formeln wie im Mondsplitter-Film). Der Renderer spielt nur Dateien ab, die in `src/story/audioManifest.json` stehen (`npm run story -- manifest` aktualisiert es; `test:story` prüft, dass es aktuell ist). **Fehlende Dateien** meldet `story check` (Sprechdateien als Hinweis, Effekte/Musik als Fehler) und `console.warn` beim Laden – das Video wird dann an dieser Stelle stumm.
 - **Kulisse `city_street`** (`src/world/City.tsx`): Straße entlang z, Fahrbahn x ±4, Gehwege |x| 4…7 (Figuren dort y = 0), Häuser mit Fenstern (ein InstancedMesh), Schaufenstern, Markisen, Laternen (vier mit echtem Licht), Bäume, Autos, Zebrastreifen bei z = 6, Skyline; Tiefe über `light.fog`. Parameter: `building, road, sidewalk, accent, lamps, cars, trees, windows (0–1), seed`.
 - Nachweis: `MondsplitterYaml` und `Main` stimmen in 11 Standbildern (u. a. Untertitel, Namensschild, Endkarte, Cut-Flash-Frames) auf ≤ 0,09/255 überein; `Main` selbst ist vor/nach dem Umbau der Untertitel identisch. Beispiele: `docs/step2/etappe3_*.png`.
-- Test-Geschichte: `stories/demo-stadtgeschichte.yaml` (person + room + city_street, 5 Zeilen, ≈ 14 s). **Es gibt noch keine Sprechdateien** (`vo_s01…s05.wav`): sie wird stumm mit geschätzten Zeiten gerendert; die Erzeugung folgt in Schritt 3.
+- Test-Geschichte: `stories/demo-stadtgeschichte.yaml` (person + room + city_street, 5 Zeilen, ≈ 14 s). Die Sprechdateien `vo_s01…s05.wav` entstehen mit `story voice` (Schritt 3).
 
 ### Etappe 2: Kamera-Presets, Rig `person`, Kulissen, Aussehen
 **Kamera-Presets** (`camera.shots[]`, dürfen mit `keys`/`orbits` gemischt werden; Details und Vorgaben je Preset: `CAMERA_PRESETS` in `src/story/registry.ts`, Umsetzung `src/story/presets.ts`):
@@ -91,11 +91,26 @@ camera:
 **Kulissen:** `empty_stage` (Bodenplatte mit Raster, Hintergrund über `environment: {type: gradient, colors}`), `room` (Küche/Wohnraum, Tisch, Stühle bei x = ±1 – Sitzende: `at: [±1, 0, -0.45]`, `yaw: pi`, `pose: sit`).
 Test: `stories/demo-etappe2.yaml` (stumm, Composition `Etappe2Test`), Standbilder: `node scripts/comp-stills.mjs Etappe2Test <ordner> <frame>…`, Beispiel `docs/step2/etappe2_standbilder.png`.
 
+## Schritt 3: automatische Spracherzeugung (`story voice`)
+```bash
+npm run tts:setup                                   # einmalig: tts/.venv, piper-tts + numpy + onnx, Modell de_DE-thorsten-medium (CC0, GitHub-Release von sherpa-onnx)
+npm run story -- voice stories/<datei>.yaml --check # zeigt je Zeile: aktuell / aus Cache / neu erzeugen + fehlende Voraussetzungen (erzeugt nichts)
+npm run story -- voice stories/<datei>.yaml         # erzeugt nur geänderte/fehlende Zeilen
+npm run story -- voice <datei> --force --line s03   # eine Zeile erzwingen
+```
+- **Stimmenprofil** (`voices.<id>`): `model` (Piper-Modell in `tts/models/<name>/` oder `tts/models/vits-piper-<name>/`), `lengthScale` (Tempo), `noiseScale`, `noiseW`, `sentenceGap`, `loudness` (Ziel-LUFS, zweistufige Messung), `effect {pitch, lowpassHz, eq, echo}` (Tonhöhe ändert die Dauer nicht). Die Figur wählt ihre Stimme über `cast.<id>.voice`, die Zeile über `who`.
+- **Ausgabe:** `public/audio/vo_<zeilen-id>.wav` (44,1 kHz mono), `src/story/voices/<story-id>.json` (Dauer, **echte Wort-Timings**, Mund-Hüllkurve je Videoframe) und automatisch `src/story/audioManifest.json`.
+- **Wort-Timings** kommen aus den Phonem-Ausrichtungen des Piper-Modells (Samples je Phonem; Wortgrenzen = Leerzeichen-Phoneme; Satzzeichen-Pausen zählen nicht zum Wort) und werden auf die fertige Datei umgerechnet (`timingMode: aligned`). Passt die Wortzahl nicht (z. B. Ziffern), fällt der Worker auf Schätzung zurück (`proportional`) und meldet es.
+- **Cache:** Prüfsumme je Zeile aus Text (gesprochene Form), kompletter Stimmenprofil, Pipeline-Version, FPS. Unverändert → nichts passiert; frühere Fassung vorhanden (`tts/cache/`, nicht im Repo) → „aus Cache“; sonst neu. Piper ist nicht deterministisch (Dauer schwankt leicht von Lauf zu Lauf) – deshalb nur bei Änderung neu erzeugen. Dateiänderungen von Hand werden über die Datei-Prüfsumme erkannt.
+- **`pronunciations`:** ersetzt ganze Wörter nur für die Sprache (`KI: "Ka I"`), Untertitel behalten den Originaltext; das Timing bleibt pro Originalwort.
+- **Fehlende Voraussetzungen** (Python-Umgebung, Pakete, Modell, ffmpeg): es wird **nichts** erzeugt, kein stummer Platzhalter; Ausgabe listet genau, was fehlt (Exit 2). Der Renderer (`buildTimeline(story, legacy, voices)`) nutzt `voices/<id>.json` automatisch, solange der Text der Zeile unverändert ist; `story check` rechnet die Länge damit.
+- Mondsplitter bleibt bei seiner alten Pipeline (`tts/synth.py`, `src/story/timeline.json`) und wird von `story voice` nicht angefasst.
+
 ## Noch NICHT umgesetzt
 | Schritt | Inhalt |
 |---|---|
 | **2** (Etappe 1–3 ✅, Rest offen) | `<StoryScene>`: YAML → 3D-Szene (Aktoren, Objekte, Kamera aus keys/orbits/shake, Anker auflösen, Verläufe/Posen-Keyframes, `rel`-Verweise), Kamera-Presets (`camera.preset`), `look` (Aussehen), Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, Overlays/Captions/Subtitles/Cut-Flash aus der Config |
-| **3** | Stimmenprofile → TTS (ersetzt `synth.py`/`redo_dragon.py`), TTS-Cache pro Zeile, `pronunciations`, Befehl `voice` |
+| **3** ✅ | Stimmenprofile → TTS, Cache, `pronunciations`, Befehl `voice` (siehe oben). Offen: Mondsplitter bewusst nicht migriert (`synth.py`/`redo_dragon.py` bleiben), Whisper-Gegenprobe (`tts/verify.py`) nicht an die YAML angebunden |
 | **4** | Schnelle Vorschau (270×480, 15 FPS), Szenen-Vorschau, Kontaktbogen, Befehl `preview` |
 | **5** | Freigabe-Schranke (`approved.json` mit Hash der Story-Datei), Teil-Rendering/Zusammenfügen, Befehl `render` |
 
