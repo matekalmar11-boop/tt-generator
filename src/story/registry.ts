@@ -94,8 +94,8 @@ export const OBJECTS: Record<string, ObjectDef> = {
   point_light: {status: 'ready', doc: 'Zusätzliches Punktlicht.', params: {color: 'color', distance: 'number'}, tracks: ['intensity']},
   cracking_ground: {status: 'ready', doc: 'Boden, dessen Platten ab einem Zeitpunkt aufbrechen und fallen.', params: {size: 'number', start: 'any'}, tracks: []},
   door_handle: {
-    status: 'ready', doc: 'Tür mit Klinke (src/world/Door.tsx), steht mit der Vorderseite zur Kamera (+z). Verläufe: handle (0 = Ruhe, 1 = Klinke ganz gedrückt), light (Licht unter der Tür 0–1). params: color (Klinke), door (Türfarbe).',
-    params: {color: 'color', door: 'color'}, tracks: ['handle', 'light'],
+    status: 'ready', doc: 'Tür mit Klinke (src/world/Door.tsx), steht mit der Vorderseite zur Kamera (+z). Verläufe: handle (0 = Ruhe, 1 = Klinke ganz gedrückt), light (Licht unter der Tür 0–1), open (0 = zu, 1 = Türblatt weit offen, dahinter helle Fläche). params: color (Klinke), door (Türfarbe), scale (Größe, Vorgabe 1).',
+    params: {color: 'color', door: 'color', scale: 'number'}, tracks: ['handle', 'light', 'open'],
   },
   hidden_camera: {
     status: 'ready', doc: 'Versteckte Kamera (src/world/Props.tsx) mit blinkendem REC-Licht. params: host (hedge | lamp | mailbox | none), aim (Position oder {rel: Figur, off}: Linse folgt dem Ziel), scale (Vorgabe 1), color, yaw (ohne aim). Linse zeigt in +z; at = Fußpunkt.',
@@ -106,8 +106,12 @@ export const OBJECTS: Record<string, ObjectDef> = {
     params: {scale: 'number', cable: 'number', cone: 'boolean'}, tracks: ['beam', 'rx', 'ry', 'rz'], usesPath: true,
   },
   sky_panel: {
-    status: 'ready', doc: 'Künstlicher Himmel: Platte mit aufgemalten Wolken, Stahlträgern und Luke (src/world/Props.tsx). at = Mittelpunkt (z. B. y 26); Unterseite sichtbar. params: size, hatch (Lukenbreite), sky (Farbe), seed.',
-    params: {size: 'number', hatch: 'number', sky: 'color', seed: 'string'}, tracks: [],
+    status: 'ready', doc: 'Künstlicher Himmel: Platte mit aufgemalten Wolken, Stahlträgern und Luke (src/world/Props.tsx). at = Mittelpunkt (z. B. y 26); Unterseite sichtbar. params: size, hatch (Lukenbreite, 0 = geschlossene Platte), sky (Farbe), seed, clouds (Anzahl Wolken, Vorgabe 26), rot ([rx,ry,rz]; [-1.5708,0,0] = senkrechte Wand, Bemalung zur Kamera bei +z).',
+    params: {size: 'number', hatch: 'number', sky: 'color', seed: 'string', rot: 'vec3', clouds: 'number'}, tracks: [],
+  },
+  sailboat: {
+    status: 'ready', doc: 'Stilisiertes Segelboot aus Blöcken (src/world/Props.tsx), Bug zeigt in −z (yaw 0), Heck/Steuermann bei +z (≈ 1,3·scale hinter der Mitte). path = Fahrt. params: scale (2), hull (Rumpffarbe), sail (Segelfarbe), bob (Schaukeln, Sturm 3), sails (false = Segel eingeholt), yaw (Radiant, pi = Bug zur Kamera). Deck liegt bei y ≈ 0,72·scale – Figur dort mit y ≈ 1,45 (scale 2) platzieren.',
+    params: {scale: 'number', hull: 'color', sail: 'color', bob: 'number', yaw: 'number', sails: 'boolean'}, tracks: [], usesPath: true,
   },
   spotlight_text: {status: 'planned', doc: '3D-Schriftzug im Raum (für Erklärvideos).', params: {text: 'string'}, tracks: []},
 };

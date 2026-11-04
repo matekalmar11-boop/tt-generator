@@ -19,7 +19,7 @@ import type {Mouth} from './visemes';
 import {EmptyStage, RoomSet} from '../world/Interiors';
 import {CityStreet} from '../world/City';
 import {Door} from '../world/Door';
-import {HiddenCamera, SkyPanel, StageLight} from '../world/Props';
+import {HiddenCamera, SailBoat, SkyPanel, StageLight} from '../world/Props';
 import {Dust, Moon, Sky, Stars} from '../world/Nature';
 import {OBJECTS, RIGS, SETS} from './registry';
 import type {SceneData, StoryData} from './schema';
@@ -252,7 +252,7 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
       case 'point_light':
         return <pointLight key={key} position={at} color={p.color} intensity={trackAt(o.tracks, 'intensity', f, c, 1)} distance={p.distance} />;
       case 'door_handle':
-        return <Door key={key} position={at} handle={trackAt(o.tracks, 'handle', f, c, 0)} light={trackAt(o.tracks, 'light', f, c, 0)} color={p.color} door={p.door} />;
+        return <Door key={key} position={at} handle={trackAt(o.tracks, 'handle', f, c, 0)} light={trackAt(o.tracks, 'light', f, c, 0)} open={trackAt(o.tracks, 'open', f, c, 0)} scale={p.scale} color={p.color} door={p.door} />;
       case 'hidden_camera': {
         const aim = p.aim ? resolveRef(p.aim, env, f) : undefined;
         return <HiddenCamera key={key} host={p.host} at={at} aim={aim} t={t} scale={p.scale} color={p.color} yaw={p.yaw} />;
@@ -265,7 +265,9 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
           </group>
         );
       case 'sky_panel':
-        return <group key={key} position={at}><SkyPanel size={p.size} hatch={p.hatch} sky={p.sky} seed={p.seed} /></group>;
+        return <group key={key} position={at} rotation={p.rot}><SkyPanel size={p.size} hatch={p.hatch} sky={p.sky} seed={p.seed} clouds={p.clouds} /></group>;
+      case 'sailboat':
+        return <group key={key} position={at}><SailBoat t={t} scale={p.scale} hull={p.hull} sail={p.sail} bob={p.bob} yaw={p.yaw} sails={p.sails} /></group>;
       case 'cracking_ground':
         return <CrackingGround key={key} frame={f} start={toFrames(p.start, c)} size={p.size} />;
       default:

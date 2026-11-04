@@ -86,11 +86,11 @@ export const StageLight: React.FC<{scale?: number; cable?: number; rot?: V3; bea
 
 /* ───────── Künstlicher Himmel ─────────
  * Flache Himmelsplatte mit aufgemalten Wolken, Stahlträgern und einer Luke (hatch ≥ 0). Unterseite zeigt nach unten (−y). */
-export const SkyPanel: React.FC<{size?: number; hatch?: number; sky?: string; seed?: string}> = ({size = 70, hatch = 5, sky = '#4f9de0', seed = 'sky'}) => {
-  const clouds = React.useMemo(() => Array.from({length: 26}, (_, i) => ({
+export const SkyPanel: React.FC<{size?: number; hatch?: number; sky?: string; seed?: string; clouds?: number}> = ({size = 70, hatch = 5, sky = '#4f9de0', seed = 'sky', clouds: nClouds = 26}) => {
+  const clouds = React.useMemo(() => Array.from({length: nClouds}, (_, i) => ({
     x: (random(seed + 'x' + i) - 0.5) * size * 0.8, z: (random(seed + 'z' + i) - 0.5) * size * 0.8,
     w: 6 + random(seed + 'w' + i) * 7, d: 3 + random(seed + 'd' + i) * 3,
-  })).filter((c) => Math.hypot(c.x, c.z) > hatch * 1.2), [seed, size, hatch]);
+  })).filter((c) => Math.hypot(c.x, c.z) > hatch * 1.2), [seed, size, hatch, nClouds]);
   const half = size / 2, strip = (size - hatch) / 2;
   const T = 0.8;
   return (
@@ -108,15 +108,35 @@ export const SkyPanel: React.FC<{size?: number; hatch?: number; sky?: string; se
         </group>
       ))}
       {/* Stahlträger und Rahmen: zeigt, dass der Himmel gebaut ist */}
-      {[-0.375, -0.125, 0.125, 0.375].map((k, i) => <Box key={'x' + i} p={[k * size, -T / 2 - 0.35, 0]} s={[0.5, 0.7, size]} c="#2c3040" cast={false} recv={false} />)}
-      {[-0.25, 0.25].map((k, i) => <Box key={'z' + i} p={[0, -T / 2 - 0.2, k * size]} s={[size, 0.4, 0.4]} c="#3a3f52" cast={false} recv={false} />)}
+      {[-0.4, -0.2, 0.2, 0.4].map((k, i) => <Box key={'x' + i} p={[k * size, -T / 2 - 0.35, 0]} s={[0.5, 0.7, size]} c="#2c3040" cast={false} recv={false} />)}
+      {[-0.4, -0.25, -0.1, 0.1, 0.25, 0.4].map((k, i) => <Box key={'z' + i} p={[0, -T / 2 - 0.2, k * size]} s={[size, 0.4, 0.4]} c="#3a3f52" cast={false} recv={false} />)}
       <Box p={[0, -T / 2 - 0.1, -half]} s={[size, 0.9, 0.5]} c="#3a3f52" cast={false} recv={false} />
       <Box p={[0, -T / 2 - 0.1, half]} s={[size, 0.9, 0.5]} c="#3a3f52" cast={false} recv={false} />
-      {/* Luke: Rahmen, dunkler Schacht, Klappen */}
-      {[[-1, 0], [1, 0], [0, -1], [0, 1]].map(([x, z], i) => (
+      {/* Luke: Rahmen, dunkler Schacht, Klappen (nur bei hatch > 0; hatch 0 = geschlossene Platte, z. B. als Wand mit rot) */}
+      {hatch > 0 && [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([x, z], i) => (
         <Box key={'h' + i} p={[x * (hatch / 2 + 0.15), -T / 2 - 0.15, z * (hatch / 2 + 0.15)]} s={x ? [0.3, 0.5, hatch + 0.6] : [hatch + 0.6, 0.5, 0.3]} c="#e0b236" cast={false} recv={false} />
       ))}
-      <Box p={[0, T / 2 + 0.6, 0]} s={[hatch, 0.2, hatch]} c="#0b0d14" cast={false} recv={false} />
+      {hatch > 0 && <Box p={[0, T / 2 + 0.6, 0]} s={[hatch, 0.2, hatch]} c="#0b0d14" cast={false} recv={false} />}
     </group>
   );
 };
+
+/* ───────── Segelboot (stilisiert, aus Blöcken) ─────────
+ * Bug zeigt in −z (yaw 0), Heck bei +z (Steuermann bei z ≈ +1,3·scale). Ursprung = Mitte des Rumpfs auf der Wasserlinie; Deck bei y ≈ 0,72·scale.
+ * bob = Stärke des Schaukelns (Sturm: 3), sails false = Segel und Mast weg (vertäutes Boot). Segel unbeleuchtet (hell, wie aufgemalt). */
+export const SailBoat: React.FC<{t: number; scale?: number; hull?: string; sail?: string; bob?: number; yaw?: number; sails?: boolean}> =
+  ({t, scale = 2.0, hull = '#d9534f', sail = '#fffaf0', bob = 1, yaw = 0, sails = true}) => (
+    <group scale={scale} rotation={[0, yaw, 0]}>
+      <group position={[0, Math.sin(t * 1.7) * 0.05 * bob, 0]} rotation={[Math.sin(t * 1.3) * 0.035 * bob, 0, Math.sin(t * 0.9) * 0.06 * bob]}>
+        <RBox p={[0, 0.3, 0]} s={[1.5, 0.7, 3.4]} c={hull} r={0.28} outline={0.03} />
+        <RBox p={[0, 0.3, -1.7]} s={[1.0, 0.65, 1.0]} c={hull} r={0.32} outline={0.03} />
+        <RBox p={[0, 0.52, 0]} s={[1.54, 0.12, 3.44]} c="#ffffff" r={0.05} outline={0.02} />
+        <RBox p={[0, 0.68, 0.1]} s={[1.2, 0.08, 3.0]} c="#d9b27a" r={0.03} outline={0.02} />
+        {sails && <RBox p={[0, 2.5, -0.7]} s={[0.12, 3.6, 0.12]} c="#7a5a3a" r={0.04} outline={0.02} />}
+        {sails && <RBox p={[0, 1.5, 0.35]} s={[0.1, 0.1, 2.1]} c="#7a5a3a" r={0.03} outline={0.015} />}
+        {sails && <Glow p={[0, 2.95, 0.3]} s={[0.05, 2.6, 2.0]} c={sail} />}
+        {sails && <Glow p={[0, 2.5, -1.15]} s={[0.05, 2.2, 0.7]} c="#ff7b6b" />}
+        {sails && <Glow p={[0, 4.55, -0.7]} s={[0.02, 0.4, 0.6]} c="#ffd23d" />}
+      </group>
+    </group>
+  );

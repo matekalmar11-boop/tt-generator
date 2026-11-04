@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=./story.schema.json
-# „Die Truman Show“ – Film-Erklärvideo (ca. 47 s, 16 Einstellungen). Ein Erzähler, Rig person2, Bausteine aus stories/vorlagen.yaml.
+# „Die Truman Show“ – Film-Erklärvideo (ca. 55 s, 19 Einstellungen). Ein Erzähler, Rig person2, Bausteine aus stories/vorlagen.yaml.
 # Eigenständige Darstellung: kein Originalmaterial, kein Originalton. Hauptfigur Truman: gelbes Oberteil, dunkle Hose (in jeder Einstellung).
 # Plan/Skript/Storyboard: docs/plans/truman-show-video.md   ·   Storyboard erzeugen: npm run story -- board stories/truman-show.yaml
 schema: 1
@@ -64,7 +64,7 @@ scenes:
         - {t: scene.end, pos: {rel: truman, off: [-1.4, 2.7, 4.4]}, look: {rel: truman, off: [0, 2.5, 0]}, fov: 32, ease: lin}
     lines:
       - {id: v01, who: erzaehler, text: "Stell dir vor, dein ganzes Leben wird live im Fernsehen gezeigt."}
-      - {id: v01b, who: erzaehler, text: "Und nur du weißt es nicht."}
+      - {id: v01b, who: erzaehler, text: "Genau das passiert Truman, und er ahnt nichts."}
     captions:
       - {type: camera_view, from: 0, to: 2.2s, live: true, viewers: [2.1, 3.4], label: "KAMERA 7"}
       - {type: lower_third, from: 2.6s, to: scene.end, title: TRUMAN, subtitle: "ahnt nichts"}
@@ -200,7 +200,7 @@ scenes:
     camera:
       shots: [{preset: orbit_in, target: {rel: truman, off: [0, 2.6, 0]}, distance: [8.5, 7.0], angle: [-0.6, 0.5], height: [3.0, 3.0], fov: [52, 46], from: 0, to: scene.end}]
     lines:
-      - {id: v05, who: erzaehler, text: "Truman wird misstrauisch: Warum beobachten ihn plötzlich alle?"}
+      - {id: v05, who: erzaehler, text: "Truman wird misstrauisch: Warum verhalten sich alle so seltsam?"}
     sfx:
       - {sound: riser, at: 0.2s, volume: 0.5}
       - {sound: heartbeat, at: 0.4s, volume: 0.35}
@@ -266,91 +266,188 @@ scenes:
       - {sound: live_sting, at: 0, volume: 0.6}
       - {sound: riser, at: 0.3s, volume: 0.4}
 
-  # ═══ 8 · FLUCHT: er rennt, die Show stellt sich in den Weg ═══
-  - id: flucht
-    timing: {pre: 0.2, post: 1.2}
-    set: {type: city_street, params: {building: "#f3b9a6", road: "#585b68", sidewalk: "#e6dfcf", accent: "#5bbfa8", windows: 0.12, lamps: false, trees: false, cars: false, seed: show}}
+  # ═══ 8 · FLUCHT MIT DEM SEGELBOOT (Truman segelt aufs Meer) ═══
+  - id: segeln
+    timing: {pre: 0.3, post: 0.9}
+    set: {type: empty_stage, params: {floor: "#22a6b8", grid: false, accent: "#bff3ff"}}
     environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
     light:
       fog: {color: "#e4f2ff", near: 45, far: 160}
       hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
       ambient: 0.5
-      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: truman}}
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: [0, 0, -4]}
+    actors:
+      - {id: truman, cast: truman, path: [{t: 0, pos: [0, 1.45, 2.6]}, {t: scene.end, pos: [0, 1.45, -11.4]}], yaw: 0, pose: idle, face: worry, params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: boot, type: sailboat, path: [{t: 0, pos: [0, 0, 0]}, {t: scene.end, pos: [0, 0, -14]}], params: {scale: 2.0, bob: 1}}
+    camera:
+      keys:
+        - {t: 0, pos: [3.5, 3.0, 9.5], look: [0, 3.2, -3.0], fov: 48}
+        - {t: scene.end, pos: [3.5, 3.0, 9.5], look: [0, 3.2, -3.0], fov: 44, ease: lin}
+    lines:
+      - {id: v08, who: erzaehler, text: "Truman will fliehen und segelt mit einem Boot aufs Meer."}
+    captions:
+      - {type: lower_third, from: 0.3s, to: scene.end, title: FLUCHT, subtitle: "aufs Meer"}
+    sfx:
+      - {sound: wind, at: 0, loop: scene, volume: 0.35}
+      - {sound: whoosh, at: 0.2s, volume: 0.5}
+
+  # ═══ 9 · STURM (der Regisseur will ihn aufhalten) ═══
+  - id: sturm
+    timing: {pre: 0.2, post: 0.7}
+    set: {type: empty_stage, params: {floor: "#4a8cbc", grid: false, accent: "#9ab8d8"}}
+    environment: {type: gradient, colors: {top: "#34415e", mid: "#5d6f8f", bottom: "#a3b0c6"}}
+    light:
+      fog: {color: "#8796b0", near: 30, far: 130}
+      hemi: {sky: "#9fb4d4", ground: "#5a6a80", intensity: 1.3}
+      ambient: 0.5
+      key: {color: "#cfd8ff", intensity: 1.8, pos: [-8, 22, 12], shadowAt: [0, 0, -3]}
+    actors:
+      - {id: truman, cast: truman, at: [2.1, 1.45, -1.47], yaw: 0.16pi, pose: idle, face: determined, params: {gaze: camera, gestures: false}}
+    objects:
+      - {id: boot, type: sailboat, at: [0, 0, -3], params: {scale: 2.0, yaw: 0.9425, bob: 3, hull: "#d9534f"}}
+      - {id: regen, type: dust, at: [0, 6, -2], params: {count: 220, spread: [20, 12, 14], color: "#ffffff", size: 0.22, speed: 0.2, seed: rain, rise: -18}}
+      - id: blitz
+        type: point_light
+        at: [0, 10, -6]
+        params: {color: "#ffffff", distance: 60}
+        tracks:
+          intensity: [{t: 0, v: 0}, {t: "v09.start+30f", v: 0}, {t: "v09.start+31f", v: 160, ease: cut}, {t: "v09.start+36f", v: 0, ease: cut}, {t: "v09.start+66f", v: 0}, {t: "v09.start+67f", v: 160, ease: cut}, {t: "v09.start+72f", v: 0, ease: cut}]
+    camera:
+      shots: [{preset: handheld, target: {rel: truman, off: [0, 1.4, 0]}, offset: [3.6, 0.3, 9.0], fov: 54, amp: 0.12, speed: 2.5, from: 0, to: scene.end}]
+    lines:
+      - {id: v09, who: erzaehler, text: "Der Regisseur schickt einen Sturm, doch Truman gibt nicht auf."}
+    captions:
+      - {type: title, from: 0.4s, to: scene.end, text: STURM, position: top, color: "#ffffff"}
+    sfx:
+      - {sound: wind, at: 0, loop: scene, volume: 0.5}
+      - {sound: riser, at: 0, volume: 0.5}
+      - {sound: boom, at: "v09.start+30f", volume: 0.9}
+      - {sound: boom, at: "v09.start+66f", volume: 0.9}
+      - {sound: rumble, at: "v09.start+30f", volume: 0.6}
+
+  # ═══ 10 · DAS BOOT STÖSST GEGEN DIE WAND DER KÜNSTLICHEN WELT (aufgemalter Himmel) ═══
+  - id: wand
+    timing: {pre: 0.2, post: 1.0}
+    set: {type: empty_stage, params: {floor: "#22a6b8", grid: false, accent: "#bff3ff"}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: [0, 0, -8]}
+    actors:
+      - {id: truman, cast: truman, path: [{t: 0, pos: [0, 1.45, 8.6]}, {t: "v10.word7", pos: [0, 1.45, -6.0], ease: out}], yaw: 0.5pi, pose: idle, face: worry, params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: wand, type: sky_panel, at: [0, 18, -13.5], params: {size: 70, hatch: 0, sky: "#58b0ff", seed: wand, clouds: 70, rot: [-1.5708, 0, 0]}}
+      - {id: boot, type: sailboat, path: [{t: 0, pos: [0, 0, 6]}, {t: "v10.word7", pos: [0, 0, -8.6], ease: out}], params: {scale: 2.0, bob: 1}}
+    camera:
+      keys: [{t: 0, pos: [11, 4.0, 0.5], look: [-1.0, 3.8, -9.0], fov: 58}]
+      shake: [{from: "v10.word7", to: "v10.word7+12f", amp: 0.5, speed: 4}]
+    lines:
+      - {id: v10, who: erzaehler, text: "Dann stößt sein Boot gegen eine Wand: Der Himmel ist nur aufgemalt."}
+    captions:
+      - {type: callout, from: "v10.word9", to: scene.end, at: [30, 30], text: AUFGEMALT, side: right, ring: 150}
+    sfx:
+      - {sound: whoosh, at: 0.2s, volume: 0.5}
+      - {sound: boom, at: "v10.word7", volume: 1.0}
+      - {sound: crack, at: "v10.word7", volume: 0.7}
+
+  # ═══ 11 · DIE TÜR IN DER WAND = DER AUSGANG ═══
+  - id: tuer
+    timing: {pre: 0.2, post: 1.4}
+    set: {type: empty_stage, params: {floor: "#22a6b8", grid: false, accent: "#bff3ff"}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: [0, 0, -9]}
+    actors:
+      - {id: truman, cast: truman, at: [-0.5, 1.45, -12.5], yaw: pi, pose: idle, face: neutral, params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: wand, type: sky_panel, at: [0, 18, -13.5], params: {size: 70, hatch: 0, sky: "#58b0ff", seed: wand, clouds: 70, rot: [-1.5708, 0, 0]}}
+      - {id: boot, type: sailboat, at: [0, 0, -8.6], params: {scale: 2.0, bob: 0.4, sails: false}}
+      - id: tuer
+        type: door_handle
+        at: [1.0, 1.45, -12.9]
+        params: {scale: 0.62}
+        tracks:
+          handle: [{t: "v11.end", v: 0}, {t: "v11.end+0.8s", v: 1, ease: io}]
+          light: [{t: "v11.start+10f", v: 0}, {t: "v11.end+1.0s", v: 1}]
+    camera:
+      keys: [{t: 0, pos: [1.8, 4.2, -4.0], look: [0.9, 3.5, -12.4], fov: 46}]
+    lines:
+      - {id: v11, who: erzaehler, text: "Dort findet er eine Tür, den Ausgang."}
+    captions:
+      - {type: callout, from: "v11.word5", to: scene.end, at: [50, 40], text: AUSGANG, side: right, ring: 150}
+    sfx:
+      - {sound: magic_hum, at: "v11.start+10f", volume: 0.4}
+      - {sound: door_latch, at: "v11.end+0.2s", volume: 0.9}
+
+  # ═══ 12 · ER VERABSCHIEDET SICH UND ÖFFNET DIE TÜR (Gegenüberstellung künstliche Welt ↔ echte Welt) ═══
+  - id: ende
+    timing: {pre: 0.2, post: 1.0}
+    set: {type: empty_stage, params: {floor: "#22a6b8", grid: false, accent: "#bff3ff"}}
+    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
+    light:
+      fog: {color: "#e4f2ff", near: 45, far: 160}
+      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
+      ambient: 0.5
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: [0, 0, -9]}
     actors:
       - id: truman
         cast: truman
-        path: [{t: 0, pos: [3.4, 0, -16]}, {t: "v08.start+95f", pos: [3.4, 0, -2.5]}, {t: scene.end, pos: [3.4, 0, -2.5]}]
-        yaw: 0
-        pose: [{t: 0, pose: run}, {t: "v08.start+95f", pose: idle}, {t: "v08.start+103f", pose: shock}]
-        face: [{t: 0, face: determined}, {t: "v08.start+100f", face: shock, ease: cut}]
-        params: {gaze: "off"}
+        at: [-0.5, 1.45, -12.5]
+        yaw: 0.08pi
+        pose: [{t: 0, pose: wave}, {t: "v12.word5", pose: idle}]
+        face: smile
+        params: {gaze: camera}
     objects:
-      - {id: k1, type: hidden_camera, at: [6.0, 0, -9.0], params: {host: hedge, scale: 1.5, aim: {rel: truman, off: [0, 2.7, 0]}}}
-      - {id: k2, type: hidden_camera, at: [-4.7, 0, -12.0], params: {host: lamp, scale: 1.5, aim: {rel: truman, off: [0, 2.7, 0]}}}
-      - id: sperre
-        type: stage_light
-        params: {scale: 1.6, cable: 4}
-        path: [{t: "v08.start+75f", pos: [1.4, 14, -0.2]}, {t: "v08.start+95f", pos: [1.4, 1.0, -0.2], ease: in}]
-        tracks: {rx: [{t: "v08.start+75f", v: 0.3}, {t: "v08.start+95f", v: -0.4}]}
-        visible: {from: "v08.start+75f"}
-    camera:
-      keys:
-        - {t: 0, pos: {rel: truman, off: [-1.0, 3.0, 10.5]}, look: {rel: truman, off: [0, 2.2, 0]}, fov: 42}
-        - {t: scene.end, pos: {rel: truman, off: [-1.0, 3.0, 10.5]}, look: {rel: truman, off: [0, 2.2, 0]}, fov: 42, ease: lin}
-    lines:
-      - {id: v08, who: erzaehler, text: "Truman will fliehen, doch die Show stellt sich ihm in den Weg."}
-    sfx:
-      - {sound: whoosh_fast, at: 0, volume: 0.5}
-      - {sound: steps, at: 0, volume: 0.45}
-      - {sound: fall_whistle, at: "v08.start+75f", volume: 0.6}
-      - {sound: light_crash, at: "v08.start+95f", volume: 1.0}
-
-  # ═══ 9 · TÜR IM HIMMEL ═══
-  - id: tuer
-    timing: {pre: 0.2, post: 2.9}
-    set: {type: empty_stage, params: {floor: "#eef2fa", accent: "#7fe8ff"}}
-    environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
-    light:
-      fog: {color: "#e4f2ff", near: 45, far: 160}
-      hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
-      ambient: 0.5
-      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: truman}}
-    actors:
-      - {id: truman, cast: truman, at: [0, 0, -1.4], yaw: pi, pose: idle, face: determined, params: {gaze: "off"}}
-    objects:
+      - {id: wand, type: sky_panel, at: [0, 18, -13.5], params: {size: 70, hatch: 0, sky: "#58b0ff", seed: wand, clouds: 70, rot: [-1.5708, 0, 0]}}
+      - {id: boot, type: sailboat, at: [0, 0, -8.6], params: {scale: 2.0, bob: 0.4, sails: false}}
       - id: tuer
         type: door_handle
-        at: [0, 0, -4]
+        at: [1.0, 1.45, -12.9]
+        params: {scale: 0.62}
         tracks:
-          handle: [{t: "v09.end+0.1s", v: 0}, {t: "v09.end+1.2s", v: 1, ease: io}]
-          light: [{t: "v09.end+0.5s", v: 0}, {t: "v09.end+2.2s", v: 1}]
+          light: [{t: 0, v: 1}]
+          handle: [{t: "v12.word5", v: 0}, {t: "v12.word5+0.3s", v: 1}]
+          open: [{t: "v12.word5+0.2s", v: 0}, {t: "v12.end", v: 1, ease: io}]
     camera:
-      keys:
-        - {t: 0, pos: [2.4, 4.6, 10.5], look: [0, 3.4, -4], fov: 44}
-        - {t: scene.end, pos: [1.2, 4.0, 7.0], look: [0, 3.4, -4], fov: 42, ease: io}
+      keys: [{t: 0, pos: [1.8, 4.2, -4.0], look: [0.9, 3.5, -12.4], fov: 46}]
     lines:
-      - {id: v09, who: erzaehler, text: "Am Ende steht er vor einer Tür im Himmel."}
+      - {id: v12, who: erzaehler, text: "Er verabschiedet sich und öffnet die Tür."}
+    captions:
+      - {type: callout, from: 0.4s, to: scene.end, at: [30, 18], text: "KÜNSTLICHE WELT", side: right, ring: 110}
+      - {type: callout, from: "v12.end", to: scene.end, at: [50, 47], text: "ECHTE WELT", side: right, ring: 150}
     sfx:
-      - {sound: magic_hum, at: "v09.end", volume: 0.4}
-      - {sound: door_latch, at: "v09.end+0.4s", volume: 0.9}
+      - {sound: door_latch, at: "v12.word5", volume: 0.9}
+      - {sound: riser, at: "v12.word5", volume: 0.4}
 
-  # ═══ 10 · AUSGANG + ENDKARTE ═══
-  - id: ende
-    timing: {pre: 0.2, post: 2.4}
-    set: {type: empty_stage, params: {floor: "#eef2fa", accent: "#7fe8ff"}}
+  # ═══ 13 · ER TRITT HINAUS IN DIE ECHTE WELT + ENDKARTE ═══
+  - id: ausgang
+    timing: {pre: 0.2, post: 2.0}
+    set: {type: empty_stage, params: {floor: "#22a6b8", grid: false, accent: "#bff3ff"}}
     environment: {type: gradient, colors: {top: "#4fa8f0", mid: "#9dd5ff", bottom: "#eaf6ff"}}
     light:
       fog: {color: "#e4f2ff", near: 45, far: 160}
       hemi: {sky: "#e0f0ff", ground: "#e2cfb0", intensity: 1.6}
       ambient: 0.5
-      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: {rel: truman}}
+      key: {color: "#fff4e0", intensity: 2.6, pos: [-8, 22, 12], shadowAt: [0, 0, -9]}
     actors:
-      - {id: truman, cast: truman, at: [0, 0, 0], yaw: 0, pose: wave, face: smile}
+      - {id: truman, cast: truman, path: [{t: 0, pos: [-0.5, 1.45, -12.5]}, {t: "v13.start+20f", pos: [-0.5, 1.45, -12.5]}, {t: "v13.end", pos: [1.0, 1.45, -14.2]}], yaw: pi, pose: [{t: 0, pose: idle}, {t: "v13.start+20f", pose: walk}], face: smile, params: {gaze: "off", gestures: false}}
+    objects:
+      - {id: wand, type: sky_panel, at: [0, 18, -13.5], params: {size: 70, hatch: 0, sky: "#58b0ff", seed: wand, clouds: 70, rot: [-1.5708, 0, 0]}}
+      - {id: boot, type: sailboat, at: [0, 0, -8.6], params: {scale: 2.0, bob: 0.4, sails: false}}
+      - {id: tuer, type: door_handle, at: [1.0, 1.45, -12.9], params: {scale: 0.62}, tracks: {light: [{t: 0, v: 1}], open: [{t: 0, v: 1}]}}
     camera:
-      shots: [{preset: push_in, target: {rel: truman, off: [0, 3.5, 0]}, offset: [0, 0.3, 7.5], push: 0.3, fov: [40, 36], from: 0, to: scene.end}]
+      keys:
+        - {t: 0, pos: [-0.6, 4.2, -6.0], look: [0.9, 3.5, -12.9], fov: 46}
+        - {t: scene.end, pos: [0.0, 3.9, -7.5], look: [0.9, 3.5, -12.9], fov: 40, ease: io}
     lines:
-      - {id: v10, who: erzaehler, text: "Er winkt und tritt hinaus in die echte Welt."}
+      - {id: v13, who: erzaehler, text: "Dann tritt er hinaus in die echte Welt."}
     captions:
-      - {type: end_card, from: "v10.end", title: "TRUMAN SHOW", subtitle: "Kennst du den Film?"}
+      - {type: end_card, from: "v13.end", title: "TRUMAN SHOW", subtitle: "Kennst du den Film?"}
     sfx:
-      - {sound: chime, at: "v10.end", volume: 0.8}
+      - {sound: chime, at: "v13.end", volume: 0.8}
