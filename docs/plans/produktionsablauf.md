@@ -113,3 +113,11 @@ Ein voller 45–60-s-Lauf wurde bisher nicht gemessen (Hochrechnung aus Abschnit
 ## 8. Praxis-Messung: vollständiges 57-s-Video („Die Truman Show“)
 
 Erster Durchlauf Skript → Storyboard → Vorschau: 13 Szenen, 849 Bilder, **212 s Vorschau-Renderzeit** (cold), Nachbesserungen einzelner Szenen 20–38 s. Storyboard mit `story board` 22 Bilder in 48 s. Details: `docs/plans/truman-show-video.md`.
+
+## 9. Lehren aus dem finalen Export (Truman Show)
+
+- **Neue/geänderte Sprachdateien nur noch mit frischem Bundle:** Der Bundle-Cache enthält eine Kopie von `public/` und wird jetzt auch bei Änderungen dort neu gebaut (Fix in `tools/preview.ts`). Vorher konnten Vorschau und Export veraltete Sprache enthalten (abgeschnittene Zeilen, alte Aussprache).
+- **Musik-Ducking:** `duck.depth` muss kleiner sein als `music.volume` (sonst stumm unter der Sprache). Faustregel: Volumen 0,28, Tiefe 0,18.
+- **Namen mit besonderer Aussprache:** `pronunciations: {Name: Schreibweise}` im YAML, Phoneme vorher mit `tts/.venv/bin/python` + `PiperVoice.phonemize` prüfen (Beispiel „Truman“ → „Truhmen“ = `trˈuːmən`). Untertitel zeigen weiter die Originalschreibweise.
+- **Tonprüfung am fertigen Video:** `silencedetect` (Lücken), `ebur128=peak=true` (Lautheit/Spitze), Kreuzkorrelation der Sprachdateien mit dem Videoton (Position und Aktualität). Der Export schließt mit einem Limiter (−0,6 dBFS).
+- **Echter 1080p-Export 57 s:** 923 s (15 min 23 s), 0,54 s je Bild, 13 Szenen.

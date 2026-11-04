@@ -1,6 +1,6 @@
 # „Die Truman Show kurz erklärt“ – Skript und Storyboard
 
-Status: **Vorschau v1 (360×640 @ 15 FPS, mit Ton) erstellt, zur Bewertung. NICHT freigegeben; kein 1080p, keine Exportfreigabe.**
+Status: **FERTIG – finales Video 1080×1920 @ 30 FPS mit Ton exportiert: `renders/truman-show-final.mp4`** (Export auf ausdrückliche Anweisung des Nutzers, Freigabe `approvals/truman-show.json`, Prüfsumme 1292997e). Abschnitt 9 beschreibt die Endfassung.
 Dateien: `stories/truman-show.yaml` (Story), Stimme `public/audio/vo_v01…v10.wav` (Piper, offline erzeugt, noch nicht abgehört), Storyboard `docs/plans/truman-show-storyboard.jpg` (erste Fassung, vor der Korrektur der Bootsfahrt), Vorschau `docs/previews/truman-show-vorschau-v1.mp4`, Kontaktbogen der Vorschau `docs/plans/truman-show-vorschau-kontaktbogen.jpg`.
 Eigenständig stilisiert: kein Originalmaterial, kein Originalton, keine nachgebauten Originalfiguren. Hauptfigur Truman: gelbes Oberteil, dunkle Hose in jeder Einstellung. Alle 3D-Bausteine existieren bereits (`stories/vorlagen.yaml`, M1); für die Korrektur der Bootsfahrt und des Ausgangs kamen drei kleine Ergänzungen dazu (siehe Abschnitt 4).
 
@@ -104,3 +104,52 @@ Davon: Browser und Komposition 1,1 s, Zusammenfügen 6,0 s. Die Stadtszenen kost
 ## 8. Nächste Schritte
 
 Du bewertest die Vorschau. Erst danach entscheiden wir über Änderungen; kein 1080p-Export ohne ausdrückliche Aufforderung und Freigabe.
+
+## 9. Endfassung (finaler Export)
+
+**Ergebnis:** `renders/truman-show-final.mp4` · 1080×1920 · 30 FPS (1698 Bilder) · H.264 CRF 20 + AAC 192 kbit/s · 56,60 s · 35,1 MB.
+
+### Aussprache „Truman“
+- Englisch /ˈtruːmən/ („Tru-men“): im YAML `pronunciations: {Truman: Truhmen, Trumans: Truhmens}`. Phonem-Prüfung (eSpeak/Piper): „Truhmen“ → `trˈuːmən`, „Truhmens“ → `trˈuːməns` (vorher „Truman“ → `truːmˈɑːn`, also deutsch „Tru-mann“).
+- Untertitel behalten „Truman“ (Anzeigetext getrennt von der Sprechschreibung).
+- Betroffene Sprechzeilen neu erzeugt: v01b, v05, v06, v08, v09 (alle übrigen Zeilen enthalten den Namen nicht). Im Endvideo bestätigt: Kreuzkorrelation der neuen Sprachdateien mit dem Ton des fertigen Videos (v01b 0,99 · v05 0,90 · v06 0,86 · v08 0,94 bei exakt erwarteter Startzeit). Hinweis: Die Aussprache selbst konnte ich nicht abhören, nur über die Phoneme und den Abgleich der Dateien belegen.
+
+### Gefundene und behobene technische Fehler
+1. **Veraltete Sprachdateien im Bundle-Cache:** Das Remotion-Bundle enthält eine Kopie von `public/`; neu erzeugte Sprachdateien (neuer Satz, neue Aussprache) wurden nicht übernommen. Folge: Zeile „Genau das passiert Truman …“ nach ca. 1,1 s abgeschnitten, Tonlücke 5,0–6,8 s, deutsche Aussprache im ersten Export. **Das steckte auch in der zuvor gezeigten Vorschau v1.** Fix: `tools/preview.ts` – der Bundle-Schlüssel enthält jetzt einen Fingerabdruck von `public/` (Pfad, Größe, Änderungszeit).
+2. **Musik während der Sprache stumm:** Ducking-Tiefe 0,35 war größer als die Musiklautstärke 0,30 (negative Lautstärke). Jetzt Lautstärke 0,28, Tiefe 0,18 (unter Sprache 0,10, in Pausen 0,28).
+3. **Pegelspitzen bei 0 dBFS:** Limiter `alimiter=limit=0.93` in `tools/assemble.ts` vor der AAC-Kodierung (Spitze jetzt −0,5 dBFS).
+4. **Marker „KÜNSTLICHE WELT“:** sitzt jetzt auf der Wand rechts neben der Tür.
+
+### Technische Prüfung des finalen Videos
+| Prüfung | Ergebnis |
+|---|---|
+| Format (ffprobe, Export-Selbstprüfung) | H.264, AAC, 1080×1920, 30/1 FPS, 1698 Bilder, Ton und Bild je 56,600 s |
+| Lautheit / Spitze | −15,3 LUFS, LRA 5,2 LU, Spitze −0,5 dBFS |
+| Tonlücken (>0,8 s unter −45 dB) | keine (vorher 1,9 s) |
+| Schwarze Bilder | keine |
+| Standbild-Phasen >2,5 s | keine |
+| Szenenübergänge | 12 Schnitte mit weißem Schnittblitz, im Kontaktbogen `truman-show-final-kontaktbogen.jpg` (26 Bilder, auch direkt vor jedem Schnitt) geprüft |
+| Untertitel | Wortlaut aller 14 Zeilen wie im Skript, in der Schreibweise „Truman“ |
+| Tests | `tsc`, `npm run test:story`, `story check` bestehen |
+
+**Nicht geprüft:** Ich habe das Video weder als Bewegtbild gesehen noch abgehört (Stimmklang, Betonung, Mischung nur gemessen).
+
+### Tatsächliche Renderzeit des finalen Exports (1080×1920 @ 30 FPS, alle 13 Szenen, 0 aus dem Cache)
+| Szene | Bilder | Zeit |
+|---|---|---|
+| hook | 216 | 141,0 s |
+| kameras | 97 | 55,2 s |
+| kulisse | 127 | 73,9 s |
+| licht | 158 | 90,2 s |
+| misstrauen | 126 | 74,8 s |
+| regie | 181 | 80,7 s |
+| millionen | 101 | 45,6 s |
+| segeln | 117 | 42,4 s |
+| sturm | 122 | 51,8 s |
+| wand | 128 | 55,0 s |
+| tuer | 110 | 57,3 s |
+| ende | 94 | 50,9 s |
+| ausgang | 121 | 68,7 s |
+| **Gesamt** | **1698** | **923 s = 15 min 23 s** (Wanduhr 924 s), Ø 0,54 s je Bild |
+
+(Der erste, verworfene Export dauerte 915 s; die Schätzung 14–17 min war zutreffend.)
