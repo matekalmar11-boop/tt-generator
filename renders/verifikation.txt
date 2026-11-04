@@ -1,0 +1,63 @@
+== ffprobe ==
+Format-Dauer: 44.12s | Größe 39.3 MB
+Video: h264 1080x1920 fps=30/1 frames=1323 pix_fmt=yuv420p dauer=44.10s
+Audio: aac 48000Hz ch=2 bitrate=229930 dauer=44.12s
+
+== Hörbarkeit ==
+mean_volume: -15.0 dB
+max_volume: -0.4 dB
+Sekunden mit Pegel < -50 dBFS (stumm): 0 von 44 []
+
+== Sprachverständlichkeit (ganze Zeilen aus dem fertigen Mix) ==
+l01 [narrator] Ähnlichkeit 0.92 | Soll: Jede Nacht verschwindet ein Stück vom Mond.
+                        | ASR:  Jede Nacht verschwindet ein Stück von uns.
+l02 [narrator] Ähnlichkeit 0.98 | Soll: Und heute Nacht sehe ich endlich, wer es stiehlt.
+                        | ASR:  Und heute Nacht sehe ich endlich, wer es steht.
+l03 [narrator] Ähnlichkeit 0.84 | Soll: Ich bin Finn, der letzte Laternenwächter von Himmelsfels.
+                        | ASR:  Ich bin Finn, der letzte Lateinunrecht der von Himmels jetzt.
+l04 [narrator] Ähnlichkeit 1.00 | Soll: Eine Spur aus Silberstaub führt mich tief in den Kristallwald.
+                        | ASR:  Eine Spur aus Silberstaub führt mich tief in den Kristallwald.
+l05 [narrator] Ähnlichkeit 0.89 | Soll: Etwas beobachtet mich.
+                        | ASR:  Rage was beobachtet mich.
+l06 [narrator] Ähnlichkeit 0.70 | Soll: Da! Ein Drache aus purem Licht!
+                        | ASR:  Da, ein Trach auf den Ruhicht.
+l07 [narrator] Ähnlichkeit 0.88 | Soll: Und in seinem Maul: ein Splitter des Mondes.
+                        | ASR:  und in seine Maule ein späteres Montes.
+l08 [narrator] Ähnlichkeit 1.00 | Soll: Ich ziehe mein Schwert.
+                        | ASR:  Ich ziehe mein Schwert.
+l09 [dragon  ] Ähnlichkeit 0.97 | Soll: Halt! Ich stehle den Mond nicht.
+                        | ASR:  Halt, ich stehle den Mund nicht.
+l10 [dragon  ] Ähnlichkeit 0.94 | Soll: Ich bringe ihn zurück. Denn du, Finn, hast ihn vor tausend Jahren zerbrochen.
+                        | ASR:  Ich bringe ihn zurück, denn du, Finn, hast ihn vor 1000 Jahren zerbrochen.
+l11 [narrator] Ähnlichkeit 1.00 | Soll: Was? Das ist unmöglich!
+                        | ASR:  Was? Das ist unmöglich.
+l12 [narrator] Ähnlichkeit 0.95 | Soll: Plötzlich leuchten meine Augen silbern. Der Mond ruft meinen Namen. Und unter mir bricht die Erde auf.
+                        | ASR:  Plötzlich leuchten meine Augen zillt man. Der Mond ruft meinen Namen und unter mir bricht die Erde auf.
+l13 [narrator] Ähnlichkeit 0.80 | Soll: Was ist Finn wirklich? Folge mir für Teil zwei.
+                        | ASR:  Jetzt sind wirklich Folge mir für teils ein.
+Mittlere Ähnlichkeit: 0.91
+
+== Untertitel-Synchronisation (47 Häppchen) ==
+Zeitfenster exakt wie Untertitel (±0.1 s): mittlere Wortähnlichkeit 0.70, 31/47 Häppchen ≥ 0.6
+Fenster um -0.60 s verschoben:                   mittlere Wortähnlichkeit 0.30
+Fenster um -0.30 s verschoben:                   mittlere Wortähnlichkeit 0.60
+Fenster um -0.15 s verschoben:                   mittlere Wortähnlichkeit 0.67
+Fenster um +0.15 s verschoben:                   mittlere Wortähnlichkeit 0.59
+Fenster um +0.30 s verschoben:                   mittlere Wortähnlichkeit 0.44
+Fenster um +0.60 s verschoben:                   mittlere Wortähnlichkeit 0.29
+  schwach:   1.87s 'ein Stück vom' (0.41)
+  schwach:   2.60s 'Mond.' (0.00)
+  schwach:   4.97s 'wer es stiehlt.' (0.43)
+  schwach:   8.13s 'Laternenwächter von' (0.57)
+  schwach:   9.23s 'Himmelsfels.' (0.34)
+  schwach:  18.13s 'purem Licht!' (0.35)
+  schwach:  19.80s 'Maul:' (0.44)
+  schwach:  22.90s 'Schwert.' (0.00)
+  schwach:  24.07s 'Ich stehle den' (0.56)
+  schwach:  27.30s 'zurück.' (0.00)
+  schwach:  28.63s 'Finn,' (0.57)
+  schwach:  29.73s 'tausend Jahren' (0.44)
+  schwach:  35.53s 'Augen silbern.' (0.19)
+  schwach:  37.00s 'meinen Namen.' (0.48)
+  schwach:  40.27s 'Was ist Finn' (0.42)
+  schwach:  42.20s 'Teil zwei.' (0.44)

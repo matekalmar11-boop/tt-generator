@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "remotion studio",
     "typecheck": "tsc --noEmit",
-    "still": "remotion still src/index.ts TikTokTest out/frame.png --frame=130 --gl=swangle",
-    "render": "remotion render src/index.ts TikTokTest out/tiktok-test.mp4 --gl=swangle --concurrency=4"
+    "still": "remotion still src/index.ts Main out/frame.png --frame=130 --gl=swangle"
+    "render": "remotion render src/index.ts Main out/tiktok-fantasy.mp4 --gl=swangle --concurrency=4 --audio-codec=aac --crf=20",
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",

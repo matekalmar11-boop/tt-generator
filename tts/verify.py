@@ -80,8 +80,8 @@ def score(shift):
 print(f"\n== Untertitel-Synchronisation ({len(CH)} Häppchen) ==")
 base = score(0.0)
 print(f"Zeitfenster exakt wie Untertitel (±0.1 s): mittlere Wortähnlichkeit {base.mean():.2f}, {int((base >= 0.6).sum())}/{len(CH)} Häppchen ≥ 0.6")
-for sft in (-0.6, 0.6):
-    s_ = score(sft); print(f"Fenster um {sft:+.1f} s verschoben:                    mittlere Wortähnlichkeit {s_.mean():.2f}")
+for sft in (-0.6, -0.3, -0.15, 0.15, 0.3, 0.6):
+    s_ = score(sft); print(f"Fenster um {sft:+.2f} s verschoben:                   mittlere Wortähnlichkeit {s_.mean():.2f}")
 for (a_, b_, ws), r in zip(CH, base):
     if r < 0.6: print(f"  schwach: {a_/FPS:6.2f}s '{' '.join(ws)}' ({r:.2f})")
 tmp.unlink()

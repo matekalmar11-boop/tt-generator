@@ -14,8 +14,8 @@ const SFX: Record<string, [string, number, number][]> = {
   hero: [['whoosh_fast', 0, 0.6], ['chime', 36, 0.4], ['wind', 0, 0.3]],
   forest: [['steps', 0, 0.55], ['whoosh_fast', 111, 0.8], ['heartbeat', 118, 0.8], ['rumble', 120, 0.3]],
   cave: [['whoosh_fast', 0, 0.5], ['magic_hum', 0, 0.35], ['roar', 36, 0.85], ['chime', 88, 0.5]],
-  duel: [['sword', 10, 0.8], ['whoosh_fast', 32, 0.8], ['boom', 46, 0.5], ['roar', 40, 0.3]],
-  twist: [['whoosh_fast', 0, 0.5], ['chime', 10, 0.5], ['riser', 60, 0.55], ['boom', 124, 0.9]],
+  duel: [['sword', 10, 0.8], ['whoosh_fast', 32, 0.8], ['boom', 44, 0.45]],
+  twist: [['whoosh_fast', 0, 0.5], ['chime', 6, 0.25], ['riser', 95, 0.25], ['boom', 148, 0.9]],
   reveal: [['stinger', 0, 0.55], ['heartbeat', 10, 0.8], ['chime', 100, 0.6], ['riser', 90, 0.6], ['rumble', 150, 0.9], ['boom', 172, 0.9]],
   end: [['whoosh', 0, 0.7], ['rumble', 0, 0.5], ['stinger', 70, 0.9]],
 };
