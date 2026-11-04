@@ -8,7 +8,8 @@ import {lerp} from '../src/lib/anim';
 import {shade} from '../src/lib/color';
 import {Face, FaceName, PoseName, faceFor, mix, poseFor} from '../src/world/Finn';
 import {PERSON_LOOK_DEFAULTS, type PersonLook} from '../src/world/Person';
-import {RBox} from './RBox';
+import {RBox, QualityCtx} from './RBox';
+import type {JointPose, Q4} from './retarget';
 
 const drawFace = (ctx: CanvasRenderingContext2D, F: Face, eyeOpen: number, mouthOpen: number, hair: string, eyeCol: string) => {
   const W = 256;
@@ -46,9 +47,9 @@ const drawFace = (ctx: CanvasRenderingContext2D, F: Face, eyeOpen: number, mouth
   }
 };
 
-type Props = {t: number; pose?: PoseName | [PoseName, PoseName, number]; face?: FaceName | [FaceName, FaceName, number]; talk?: number; position?: [number, number, number]; rotationY?: number; scale?: number; look?: PersonLook};
+type Props = {quality?: 'hi' | 'lo'; joints?: JointPose; t: number; pose?: PoseName | [PoseName, PoseName, number]; face?: FaceName | [FaceName, FaceName, number]; talk?: number; position?: [number, number, number]; rotationY?: number; scale?: number; look?: PersonLook};
 
-export const PersonV2: React.FC<Props> = ({t, pose = 'idle', face = 'neutral', talk = 0, position = [0, 0, 0], rotationY = 0, scale = 1, look}) => {
+export const PersonV2: React.FC<Props> = ({quality = 'hi', joints, t, pose = 'idle', face = 'neutral', talk = 0, position = [0, 0, 0], rotationY = 0, scale = 1, look}) => {
   const L = {...PERSON_LOOK_DEFAULTS, ...look};
   const SKIN = L.skin, HAIR = L.hair;
   const pa = Array.isArray(pose) ? pose : [pose, pose, 0] as const;
@@ -65,23 +66,26 @@ export const PersonV2: React.FC<Props> = ({t, pose = 'idle', face = 'neutral', t
   useLayoutEffect(() => { drawFace(canvas.getContext('2d')!, Fc, eyeOpen, mouthOpen, shade(HAIR, 0.8), L.eyes); tex.needsUpdate = true; });
 
   const pants = L.pants, shirt = L.shirt, shoe = L.shoes;
+  // Gelenkdrehung: aus Retargeting (Quaternion) oder aus den Pose-Winkeln (Euler) – gleiche Gruppenstruktur
+  const J = (q: Q4 | undefined, e: [number, number, number]) => (q ? {quaternion: q as any} : {rotation: e});
   return (
+    <QualityCtx.Provider value={quality}>
     <group position={position} rotation={[0, rotationY, 0]} scale={scale}>
-      <group position={[0, 1.15 + P.bob, 0]} rotation={[0, P.hipsY, 0]}>
+      <group position={[0, 1.15 + (joints ? joints.bob : P.bob), 0]} {...J(joints?.hips, [0, P.hipsY, 0])}>
         <RBox s={[0.78, 0.36, 0.46]} c={pants} r={0.14} />
         {([[-1, P.legLx, P.kneeL], [1, P.legRx, P.kneeR]] as const).map(([side, lx, kn], i) => (
-          <group key={i} position={[side * 0.21, -0.1, 0]} rotation={[lx, 0, 0]}>
+          <group key={i} position={[side * 0.21, -0.1, 0]} {...J(joints?.thigh[i], [lx, 0, 0])}>
             <RBox p={[0, -0.27, 0]} s={[0.36, 0.6, 0.38]} c={pants} r={0.13} />
-            <group position={[0, -0.55, 0]} rotation={[kn, 0, 0]}>
+            <group position={[0, -0.55, 0]} {...J(joints?.shin[i], [kn, 0, 0])}>
               <RBox p={[0, -0.27, 0]} s={[0.32, 0.58, 0.34]} c={pants} r={0.12} />
               <RBox p={[0, -0.58, 0.08]} s={[0.36, 0.22, 0.56]} c={shoe} r={0.1} />
             </group>
           </group>
         ))}
-        <group position={[0, 0.15, 0]} rotation={[P.torsoX, P.torsoY, P.torsoZ]}>
+        <group position={[0, 0.15, 0]} {...J(joints?.torso, [P.torsoX, P.torsoY, P.torsoZ])}>
           <RBox p={[0, 0.5, 0]} s={[0.92, 1.02, 0.52]} c={shirt} r={0.18} />
           <RBox p={[0, 1.04, 0]} s={[0.3, 0.16, 0.3]} c={SKIN} r={0.07} />
-          <group position={[0, 1.15, 0]} rotation={[P.headX, P.headY, P.headZ]}>
+          <group position={[0, 1.15, 0]} {...J(joints?.head, [P.headX, P.headY, P.headZ])}>
             <RBox p={[0, 0.44, 0]} s={[0.86, 0.8, 0.8]} c={SKIN} r={0.26} />
             <RBox p={[-0.45, 0.42, 0]} s={[0.1, 0.2, 0.16]} c={shade(SKIN, 0.9)} r={0.04} outline={0.02} />
             <RBox p={[0.45, 0.42, 0]} s={[0.1, 0.2, 0.16]} c={shade(SKIN, 0.9)} r={0.04} outline={0.02} />
@@ -98,9 +102,9 @@ export const PersonV2: React.FC<Props> = ({t, pose = 'idle', face = 'neutral', t
             </mesh>
           </group>
           {([[-1, P.armLx, P.armLz, P.elbL], [1, P.armRx, P.armRz, P.elbR]] as const).map(([sd, ax, az, el], i) => (
-            <group key={i} position={[sd * 0.62, 0.9, 0]} rotation={[ax, 0, az]}>
+            <group key={i} position={[sd * 0.62, 0.9, 0]} {...J(joints?.upper[i], [ax, 0, az])}>
               <RBox p={[0, -0.25, 0]} s={[0.32, 0.56, 0.32]} c={shirt} r={0.13} />
-              <group position={[0, -0.5, 0]} rotation={[el, 0, 0]}>
+              <group position={[0, -0.5, 0]} {...J(joints?.fore[i], [el, 0, 0])}>
                 <RBox p={[0, -0.23, 0]} s={[0.28, 0.5, 0.28]} c={SKIN} r={0.12} />
                 <RBox p={[0, -0.55, 0]} s={[0.3, 0.24, 0.3]} c={SKIN} r={0.12} />
               </group>
@@ -109,5 +113,6 @@ export const PersonV2: React.FC<Props> = ({t, pose = 'idle', face = 'neutral', t
         </group>
       </group>
     </group>
+    </QualityCtx.Provider>
   );
 };

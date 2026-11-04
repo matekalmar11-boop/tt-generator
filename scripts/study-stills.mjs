@@ -24,6 +24,15 @@ for (const job of jobs) {
     await still('lineup_wave', {who: WHO, shot: 'lineup', pose: 'wave', face: 'grin', t: 0.5, clip: 'Cheer'}, 'StudyWide');
   }
   if (job === 'faces') for (const w of WHO) for (const f of ['neutral', 'grin', 'shock', 'angry', 'worry']) await still(`face_${w}_${f}`, {who: [w], shot: 'face', pose: 'idle', face: f, t: 1.0, clip: 'Idle'});
+  if (job === 'hyb') {
+    for (const [name, clip, pose, layer] of [['idle', 'Idle', 'idle', false], ['walk', 'Walking_A', 'walk', false], ['wave', 'Idle', 'wave', true]]) {
+      for (const [view, yaw] of [['front', 0], ['side', 1.5708]]) {
+        await still(`hyb_${name}_${view}`, {who: ['glb', 'hybrid', 'v2lo'], shot: 'lineup', pose, face: name === 'wave' ? 'grin' : 'smile', t: name === 'walk' ? 0.3 : 1.0, clip, yaw, layerWave: layer}, 'StudyWide');
+      }
+    }
+  }
+  if (job === 'hybwalk') for (const [i, t] of [0, 0.15, 0.3, 0.45, 0.6, 0.75].entries()) for (const [w, vyaw] of [['glb', 1.5708], ['hybrid', 1.5708], ['v2lo', 1.5708]]) await still(`hw_${w}_${i}`, {who: [w], shot: 'body', pose: 'walk', face: 'smile', t, clip: 'Walking_A', yaw: vyaw});
+  if (job === 'dbgone') await still('dbg', {who: ['hybrid'], shot: 'body', pose: 'walk', face: 'smile', t: 0.3, clip: 'Walking_A'});
   if (job === 'glbfaces') for (const f of ['neutral', 'grin', 'shock', 'angry', 'worry']) await still(`face_glb_${f}`, {who: ['glb'], shot: 'face', pose: 'idle', face: f, t: 1.0, clip: 'Idle', camY: 2.22});
   if (job === 'talk') for (const w of ['base', 'v2']) for (const [i, tk] of [0, 0.35, 0.8].entries()) await still(`talk_${w}_${i}`, {who: [w], shot: 'face', pose: 'idle', face: 'smile', talk: tk, t: 1.0, clip: 'Idle'});
   if (job === 'poses') for (const w of WHO) for (const [p, c] of Object.entries(CLIP)) await still(`pose_${w}_${p}`, {who: [w], shot: 'body', pose: p, face: p === 'wave' ? 'grin' : 'smile', t: p === 'idle' ? 1.0 : 0.4, clip: c, chair: p === 'sit'});

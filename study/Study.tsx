@@ -9,12 +9,14 @@ import {Sky} from '../src/world/Nature';
 import {Person} from '../src/world/Person';
 import {PersonV2} from './PersonV2';
 import {GlbCharacter} from './GlbCharacter';
+import {useKayKitRig, type JointPose} from './retarget';
+import {poseFor} from '../src/world/Finn';
 import {RBox} from './RBox';
 import type {FaceName, PoseName} from '../src/world/Finn';
 import type {V3} from '../src/lib/anim';
 
 export type StudyProps = {
-  who: ('base' | 'v2' | 'glb')[]; xs?: number[]; shot: 'lineup' | 'face' | 'body' | 'medium'; pose: PoseName; face: FaceName; t: number; clip: string; talk?: number; chair?: boolean; yaw?: number; camY?: number;
+  who: ('base' | 'v2' | 'v2lo' | 'hybrid' | 'glb')[]; layerWave?: boolean; xs?: number[]; shot: 'lineup' | 'face' | 'body' | 'medium'; pose: PoseName; face: FaceName; t: number; clip: string; talk?: number; chair?: boolean; yaw?: number; camY?: number;
 };
 
 const SHOTS: Record<StudyProps['shot'], {pos: V3; look: V3; fov: number}> = {
@@ -23,6 +25,18 @@ const SHOTS: Record<StudyProps['shot'], {pos: V3; look: V3; fov: number}> = {
   body: {pos: [0, 1.9, 8.2], look: [0, 1.55, 0], fov: 32},
   face: {pos: [0, 2.9, 3.6], look: [0, 2.75, 0], fov: 25},
 };
+/** Hybrid: v2-Figur (niedrige Dreieckszahl) mit KayKit-Skelettanimation; optional Winken als Ebene über dem rechten Arm. */
+const Hybrid: React.FC<{clip: string; t: number; face: FaceName; talk: number; position: V3; yaw: number; layerWave?: boolean}> = ({clip, t, face, talk, position, yaw, layerWave}) => {
+  const rig = useKayKitRig('study/Rogue.glb', clip, t);
+  let joints: JointPose = rig;
+  if (layerWave) {
+    const w = poseFor('wave', t);
+    const e = (x: number, y: number, z: number) => { const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z)); return [q.x, q.y, q.z, q.w] as [number, number, number, number]; };
+    joints = {...rig, upper: [rig.upper[0], e(w.armRx, 0, w.armRz)], fore: [rig.fore[0], e(w.elbR, 0, 0)]};
+  }
+  return <PersonV2 quality="lo" joints={joints} t={t} face={face} talk={talk} position={position} rotationY={yaw} look={LOOK} />;
+};
+
 const LOOK = {skin: '#f2c29b', hair: '#4a3426', shirt: '#4aa3a0', pants: '#3a3f5c', shoes: '#2b2b2b'};
 
 const Stats: React.FC<{name: string; children: React.ReactNode}> = ({name, children}) => {
@@ -35,7 +49,7 @@ const Stats: React.FC<{name: string; children: React.ReactNode}> = ({name, child
   return <group ref={ref}>{children}</group>;
 };
 
-export const Study: React.FC<StudyProps> = ({who, xs, shot, pose, face, t, clip, talk = 0, chair, yaw = 0, camY}) => {
+export const Study: React.FC<StudyProps> = ({layerWave, who, xs, shot, pose, face, t, clip, talk = 0, chair, yaw = 0, camY}) => {
   const S0 = SHOTS[shot];
   const S = camY === undefined ? S0 : {...S0, pos: [S0.pos[0], camY, S0.pos[2]] as V3, look: [S0.look[0], camY, S0.look[2]] as V3};
   const {width, height} = useVideoConfig();
@@ -53,6 +67,8 @@ export const Study: React.FC<StudyProps> = ({who, xs, shot, pose, face, t, clip,
           const pos: V3 = [X[i], 0, 0];
           if (w === 'base') return <Stats key={w} name="Person (bisher)"><Person t={t} pose={pose} face={face} talk={talk} position={pos} rotationY={yaw} look={LOOK} /></Stats>;
           if (w === 'v2') return <Stats key={w} name="Person v2 (Studie)"><PersonV2 t={t} pose={pose} face={face} talk={talk} position={pos} rotationY={yaw} look={LOOK} /></Stats>;
+          if (w === 'v2lo') return <Stats key={w} name="v2 optimiert (Pose-Winkel)"><PersonV2 quality="lo" t={t} pose={pose} face={face} talk={talk} position={pos} rotationY={yaw} look={LOOK} /></Stats>;
+          if (w === 'hybrid') return <Stats key={w} name="Hybrid (v2 + KayKit-Animation)"><Hybrid clip={clip} t={t} face={face} talk={talk} position={pos} yaw={yaw} layerWave={layerWave} /></Stats>;
           return <Stats key={w} name="GLB KayKit Rogue"><GlbCharacter url="study/Rogue.glb" clip={clip} t={t} position={pos} rotationY={yaw} /></Stats>;
         })}
       </ThreeCanvas>
