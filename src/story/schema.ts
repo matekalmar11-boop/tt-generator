@@ -261,6 +261,14 @@ export const Caption = z.discriminatedUnion('type', [
     status: z.string().optional().describe('chat: Zeile unter der Nachricht (z. B. "Zugestellt").'),
     flash: z.boolean().optional().describe('photo: Kamerablitz (weißes Aufblitzen) zu Beginn.'),
     accent: Color.optional().describe('chat: Farbe der Nachrichtenblase (Vorgabe #2f6bff).')}),
+  z.strictObject({type: z.literal('camera_view'), from: Time, to: Time,
+    live: z.boolean().default(true).describe('LIVE-Abzeichen mit Zuschauerzähler.'),
+    viewers: z.tuple([num, num]).optional().describe('Zuschauerzahl in Millionen: Start- und Endwert (läuft hoch).'),
+    label: z.string().optional().describe('Kleiner Text unten im Sucher, z. B. "KAMERA 7".')})
+    .describe('Kamerasucher-Optik: Eckmarken, blinkender REC-Punkt, LIVE-Abzeichen, Zuschauerzähler.'),
+  z.strictObject({type: z.literal('callout'), from: Time, to: Time, at: z.tuple([num, num]).describe('Mitte des Rings in Prozent des Bildes [x, y] (0–100).'),
+    text: z.string(), color: Color.optional(), side: z.enum(['left', 'right']).default('right').describe('Auf welcher Seite des Rings das Etikett steht.'), ring: num.min(40).max(400).default(150).describe('Ringdurchmesser in Pixeln (1080-Breite).')})
+    .describe('Hinweis-Marker: pulsierender Ring mit Etikett, zeigt auf ein Bilddetail (nur für feststehende Kamera exakt).'),
   z.strictObject({type: z.literal('title'), from: Time, to: Time, text: z.string(), subtitle: z.string().optional(),
     position: z.enum(['top', 'center', 'bottom']).default('center'), color: Color.optional()}),
 ]);

@@ -97,6 +97,18 @@ export const OBJECTS: Record<string, ObjectDef> = {
     status: 'ready', doc: 'Tür mit Klinke (src/world/Door.tsx), steht mit der Vorderseite zur Kamera (+z). Verläufe: handle (0 = Ruhe, 1 = Klinke ganz gedrückt), light (Licht unter der Tür 0–1). params: color (Klinke), door (Türfarbe).',
     params: {color: 'color', door: 'color'}, tracks: ['handle', 'light'],
   },
+  hidden_camera: {
+    status: 'ready', doc: 'Versteckte Kamera (src/world/Props.tsx) mit blinkendem REC-Licht. params: host (hedge | lamp | mailbox | none), aim (Position oder {rel: Figur, off}: Linse folgt dem Ziel), scale (Vorgabe 1), color, yaw (ohne aim). Linse zeigt in +z; at = Fußpunkt.',
+    params: {host: 'string', aim: 'any', scale: 'number', color: 'color', yaw: 'number'}, tracks: [],
+  },
+  stage_light: {
+    status: 'ready', doc: 'Studio-Scheinwerfer am Kabel (src/world/Props.tsx). path = Sturzbahn. Verläufe: beam (0..1 Licht/Kegel), rx, ry, rz (Drehung in Radiant, Taumeln). params: scale, cable (Kabellänge nach oben), cone (Lichtkegel).',
+    params: {scale: 'number', cable: 'number', cone: 'boolean'}, tracks: ['beam', 'rx', 'ry', 'rz'], usesPath: true,
+  },
+  sky_panel: {
+    status: 'ready', doc: 'Künstlicher Himmel: Platte mit aufgemalten Wolken, Stahlträgern und Luke (src/world/Props.tsx). at = Mittelpunkt (z. B. y 26); Unterseite sichtbar. params: size, hatch (Lukenbreite), sky (Farbe), seed.',
+    params: {size: 'number', hatch: 'number', sky: 'color', seed: 'string'}, tracks: [],
+  },
   spotlight_text: {status: 'planned', doc: '3D-Schriftzug im Raum (für Erklärvideos).', params: {text: 'string'}, tracks: []},
 };
 

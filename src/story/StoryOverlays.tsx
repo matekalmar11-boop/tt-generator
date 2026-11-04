@@ -7,6 +7,7 @@ import {toFrames} from './resolve';
 import {sceneClock, type Timeline} from './timeline';
 
 type Props = {story: StoryData; timeline: Timeline};
+type Cap = StoryData['scenes'][number]['captions'][number];
 type MessageCap = Extract<StoryData['scenes'][number]['captions'][number], {type: 'message'}>;
 
 /**
@@ -57,6 +58,53 @@ const MessageCard: React.FC<{c: MessageCap; local: number; total: number; fps: n
   );
 };
 
+/** Kamerasucher: Eckmarken, REC-Punkt, LIVE-Abzeichen und Zuschauerzähler (Hook „wird gefilmt“). */
+const CameraView: React.FC<{c: Extract<Cap, {type: 'camera_view'}>; local: number; total: number; fps: number}> = ({c, local, total, fps}) => {
+  const font = 'Inter, "DejaVu Sans", sans-serif';
+  const k = Math.min(1, local / Math.max(1, total));
+  const blink = Math.floor(local / (fps * 0.45)) % 2 === 0;
+  const m = 56, L = 110, w = 8;
+  const corner = (x: 'left' | 'right', y: 'top' | 'bottom'): React.CSSProperties => ({
+    position: 'absolute', [x]: m, [y]: y === 'top' ? 190 : 640, width: L, height: L, border: `${w}px solid rgba(255,255,255,0.9)`,
+    borderRightWidth: x === 'left' ? 0 : w, borderLeftWidth: x === 'right' ? 0 : w, borderBottomWidth: y === 'top' ? 0 : w, borderTopWidth: y === 'bottom' ? 0 : w,
+  });
+  const v = c.viewers ? c.viewers[0] + (c.viewers[1] - c.viewers[0]) * k : undefined;
+  return (
+    <AbsoluteFill style={{pointerEvents: 'none', fontFamily: font, opacity: Math.min(1, local / 4)}}>
+      <div style={corner('left', 'top')} /><div style={corner('right', 'top')} /><div style={corner('left', 'bottom')} /><div style={corner('right', 'bottom')} />
+      <div style={{position: 'absolute', left: m + 20, top: 215, display: 'flex', alignItems: 'center', gap: 16}}>
+        <div style={{width: 34, height: 34, borderRadius: 17, background: '#ff2a2a', opacity: blink ? 1 : 0.2, boxShadow: '0 0 24px #ff2a2a'}} />
+        <div style={{color: '#fff', fontWeight: 900, fontSize: 46, letterSpacing: 5, textShadow: '0 2px 10px rgba(0,0,0,0.8)'}}>REC</div>
+      </div>
+      {c.live && (
+        <div style={{position: 'absolute', right: m + 20, top: 208, display: 'flex', alignItems: 'center', gap: 14}}>
+          {v !== undefined && <div style={{color: '#fff', fontWeight: 800, fontSize: 38, textShadow: '0 2px 10px rgba(0,0,0,0.8)'}}>{v.toFixed(1).replace('.', ',')} Mio.</div>}
+          <div style={{background: '#e61e2d', color: '#fff', fontWeight: 900, fontSize: 40, letterSpacing: 4, padding: '4px 18px', borderRadius: 10}}>LIVE</div>
+        </div>
+      )}
+      {c.label && <div style={{position: 'absolute', left: m + 20, top: 640 + L - 54, color: '#fff', fontWeight: 700, fontSize: 32, letterSpacing: 4, textShadow: '0 2px 10px rgba(0,0,0,0.8)'}}>{c.label}</div>}
+    </AbsoluteFill>
+  );
+};
+
+/** Hinweis-Marker: pulsierender Ring + Etikett (zeigt auf ein Detail im Bild). */
+const Callout: React.FC<{c: Extract<Cap, {type: 'callout'}>; local: number; total: number; fps: number}> = ({c, local, total, fps}) => {
+  const s = spring({frame: local, fps, config: {damping: 11, stiffness: 190}});
+  const out = Math.min(1, Math.max(0, (total - local) / 5));
+  const col = c.color ?? '#ff3b3b';
+  const pulse = 1 + 0.07 * Math.sin(local * 0.45);
+  const D = c.ring, x = c.at[0] / 100 * 1080, y = c.at[1] / 100 * 1920;
+  const lab: React.CSSProperties = {position: 'absolute', top: y - 36, [c.side === 'right' ? 'left' : 'right']: c.side === 'right' ? x + D / 2 + 14 : 1080 - x + D / 2 + 14,
+    background: 'rgba(15,12,30,0.88)', color: '#fff', border: `4px solid ${col}`, fontFamily: 'Inter, "DejaVu Sans", sans-serif', fontWeight: 900, fontSize: 50, letterSpacing: 3, padding: '6px 22px', borderRadius: 14,
+    transform: `scale(${s})`, transformOrigin: c.side === 'right' ? 'left center' : 'right center', whiteSpace: 'nowrap'};
+  return (
+    <AbsoluteFill style={{pointerEvents: 'none', opacity: out}}>
+      <div style={{position: 'absolute', left: x - D / 2, top: y - D / 2, width: D, height: D, borderRadius: D, border: `9px solid ${col}`, boxShadow: `0 0 30px ${col}, inset 0 0 20px ${col}66`, transform: `scale(${s * pulse})`}} />
+      <div style={lab}>{c.text}</div>
+    </AbsoluteFill>
+  );
+};
+
 export const StorySeriesTag: React.FC<Props> = ({story}) => {
   const t = story.overlays.seriesTag;
   if (!t) return null;
@@ -100,6 +148,10 @@ export const StoryCaptions: React.FC<Props> = ({story, timeline}) => {
             </div>
           </AbsoluteFill>,
         );
+      } else if (c.type === 'camera_view' || c.type === 'callout') {
+        const total = toFrames(c.to, clock) - toFrames(c.from, clock);
+        if (local > total) return;
+        out.push(c.type === 'camera_view' ? <CameraView key={key} c={c} local={local} total={total} fps={fps} /> : <Callout key={key} c={c} local={local} total={total} fps={fps} />);
       } else if (c.type === 'message') {
         const total = toFrames(c.to, clock) - toFrames(c.from, clock);
         if (local > total) return;

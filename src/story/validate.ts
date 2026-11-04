@@ -368,7 +368,7 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
         if (c.style === 'chat' && !c.text) err(`${CP}.text`, 'Chat-Nachricht braucht "text".');
         if (c.style === 'lock' && !c.time) err(`${CP}.time`, 'Sperrbildschirm braucht "time" (Uhrzeit).');
       }
-      if (c.type === 'lower_third' || c.type === 'title') { const b = toSec(c.to, `${CP}.to`); if (a !== undefined && b !== undefined && b <= a) err(CP, 'Namensschild: "to" liegt vor oder bei "from".'); }
+      if (c.type === 'lower_third' || c.type === 'title' || c.type === 'camera_view' || c.type === 'callout') { const b = toSec(c.to, `${CP}.to`); if (a !== undefined && b !== undefined && b <= a) err(CP, 'Namensschild: "to" liegt vor oder bei "from".'); }
     });
   });
 

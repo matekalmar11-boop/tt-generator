@@ -1680,6 +1680,106 @@
          "properties": {
           "type": {
            "type": "string",
+           "const": "camera_view"
+          },
+          "from": {},
+          "to": {},
+          "live": {
+           "default": true,
+           "description": "LIVE-Abzeichen mit Zuschauerzähler.",
+           "type": "boolean"
+          },
+          "viewers": {
+           "description": "Zuschauerzahl in Millionen: Start- und Endwert (läuft hoch).",
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "label": {
+           "description": "Kleiner Text unten im Sucher, z. B. \"KAMERA 7\".",
+           "type": "string"
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "to"
+         ],
+         "additionalProperties": false,
+         "description": "Kamerasucher-Optik: Eckmarken, blinkender REC-Punkt, LIVE-Abzeichen, Zuschauerzähler."
+        },
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
+           "const": "callout"
+          },
+          "from": {},
+          "to": {},
+          "at": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "items": false,
+           "minItems": 2,
+           "maxItems": 2,
+           "description": "Mitte des Rings in Prozent des Bildes [x, y] (0–100)."
+          },
+          "text": {
+           "type": "string"
+          },
+          "color": {
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "side": {
+           "default": "right",
+           "description": "Auf welcher Seite des Rings das Etikett steht.",
+           "type": "string",
+           "enum": [
+            "left",
+            "right"
+           ]
+          },
+          "ring": {
+           "default": 150,
+           "description": "Ringdurchmesser in Pixeln (1080-Breite).",
+           "type": "number",
+           "minimum": 40,
+           "maximum": 400
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "to",
+          "at",
+          "text"
+         ],
+         "additionalProperties": false,
+         "description": "Hinweis-Marker: pulsierender Ring mit Etikett, zeigt auf ein Bilddetail (nur für feststehende Kamera exakt)."
+        },
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
            "const": "title"
           },
           "from": {},

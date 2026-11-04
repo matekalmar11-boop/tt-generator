@@ -162,3 +162,9 @@ Stimmen: `leon` (pitch 1,12, lengthScale 1,02), `ben` (pitch 0,97, Tiefpass 3400
 
 ## 12 · Arbeitsregeln (aus CLAUDE.md und Nutzerwünschen)
 Keine langen Renderings/Benchmarks ohne Aufforderung (Standbilder, kurze Abschnitte); Mondsplitter und alte Rigs nie verändern; nie selbst `approve`/`render`; erst Plan vorlegen und Freigabe abwarten, dann umsetzen; keine kostenpflichtigen Dienste; keine Assets mit unklarer Lizenz; Ergebnisse immer als Dateien (MP4/PNG) bereitstellen und offen Grenzen benennen (nicht Gehörtes/Gesehenes nicht als geprüft ausgeben); Commit-Anhang: `Co-Authored-By` und `Claude-Session`-Zeilen; Push nur auf `claude/tiktok-generic-scene-system-ic6ci0`.
+
+---
+
+## Nachtrag: Richtungswechsel – Film-Erklärtest „Die Truman Show“
+
+Die kreative Richtung wechselt von Mystery-Stories zu eigenständig kommentierten Film-Zusammenfassungen. Gesamtplan, Shotliste (17), Lehren und Messwerte: `docs/plans/truman-show.md`. Meilenstein M1 liegt vor (`stories/truman-show-m1.yaml`, Vorschau `docs/previews/truman-show-m1-vorschau-v1.mp4`, nicht freigegeben); M2/M3 sind nicht freigegeben. Neue Bausteine: Objekte `hidden_camera`, `stage_light`, `sky_panel` (`src/world/Props.tsx`), Einblendungen `camera_view` und `callout`.
