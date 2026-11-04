@@ -109,6 +109,14 @@ export const OBJECTS: Record<string, ObjectDef> = {
     status: 'ready', doc: 'Künstlicher Himmel: Platte mit aufgemalten Wolken, Stahlträgern und Luke (src/world/Props.tsx). at = Mittelpunkt (z. B. y 26); Unterseite sichtbar. params: size, hatch (Lukenbreite, 0 = geschlossene Platte), sky (Farbe), seed, clouds (Anzahl Wolken, Vorgabe 26), rot ([rx,ry,rz]; [-1.5708,0,0] = senkrechte Wand, Bemalung zur Kamera bei +z).',
     params: {size: 'number', hatch: 'number', sky: 'color', seed: 'string', rot: 'vec3', clouds: 'number'}, tracks: [],
   },
+  car: {
+    status: 'ready', doc: 'Verlassenes Auto, abgerundet (src/world/Props.tsx). Front bei +z lokal (yaw dreht). params: color, yaw (Radiant), lights (Scheinwerfer an), scale (1,25), open (Fahrertür 0..1, auch als Verlauf "open"). Auf der Straße y = −0,02.',
+    params: {color: 'color', yaw: 'number', lights: 'boolean', scale: 'number', open: 'number'}, tracks: ['open'],
+  },
+  phone_booth: {
+    status: 'ready', doc: 'Telefonzelle mit Telefon (src/world/Props.tsx), offene Seite bei +z. Verlauf ring 0..1 = Klingeln (rüttelndes Telefon, pulsierendes Lämpchen, oranges Licht). params: color, yaw, scale, handset (false = Hörer abgenommen).',
+    params: {color: 'color', yaw: 'number', scale: 'number', handset: 'boolean'}, tracks: ['ring'],
+  },
   sailboat: {
     status: 'ready', doc: 'Stilisiertes Segelboot aus Blöcken (src/world/Props.tsx), Bug zeigt in −z (yaw 0), Heck/Steuermann bei +z (≈ 1,3·scale hinter der Mitte). path = Fahrt. params: scale (2), hull (Rumpffarbe), sail (Segelfarbe), bob (Schaukeln, Sturm 3), sails (false = Segel eingeholt), yaw (Radiant, pi = Bug zur Kamera). Deck liegt bei y ≈ 0,72·scale – Figur dort mit y ≈ 1,45 (scale 2) platzieren.',
     params: {scale: 'number', hull: 'color', sail: 'color', bob: 'number', yaw: 'number', sails: 'boolean'}, tracks: [], usesPath: true,

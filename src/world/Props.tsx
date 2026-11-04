@@ -140,3 +140,45 @@ export const SailBoat: React.FC<{t: number; scale?: number; hull?: string; sail?
       </group>
     </group>
   );
+
+/* ───────── Verlassenes Auto (stilisiert, abgerundet) ─────────
+ * Fahrtrichtung = +z lokal (Front bei +z); yaw dreht das Auto. open = Fahrertür offen (0..1), lights = Scheinwerfer an. */
+export const Car: React.FC<{color?: string; open?: number; lights?: boolean; scale?: number}> = ({color = '#d9534f', open = 0, lights = false, scale = 1.25}) => (
+  <group scale={scale}>
+    <RBox p={[0, 0.62, 0]} s={[1.9, 0.75, 4.2]} c={color} r={0.3} outline={0.03} />
+    <RBox p={[0, 1.2, -0.25]} s={[1.65, 0.62, 2.2]} c={shade(color, 0.85)} r={0.26} outline={0.03} />
+    <Glow p={[0, 1.22, 0.86]} s={[1.4, 0.4, 0.03]} c="#9fc8ff" />
+    <Glow p={[0.84, 1.22, -0.25]} s={[0.03, 0.38, 1.7]} c="#9fc8ff" />
+    <Glow p={[-0.84, 1.22, -0.25]} s={[0.03, 0.38, 1.7]} c="#9fc8ff" />
+    {[[-0.95, -1.3], [0.95, -1.3], [-0.95, 1.3], [0.95, 1.3]].map(([x, z], k) => <RBox key={k} p={[x, 0.3, z]} s={[0.28, 0.6, 0.6]} c="#16161c" r={0.1} outline={0.015} />)}
+    <Glow p={[-0.6, 0.7, 2.11]} s={[0.4, 0.22, 0.04]} c={lights ? '#fff6d0' : '#cfd6e6'} />
+    <Glow p={[0.6, 0.7, 2.11]} s={[0.4, 0.22, 0.04]} c={lights ? '#fff6d0' : '#cfd6e6'} />
+    <Glow p={[-0.6, 0.7, -2.11]} s={[0.35, 0.18, 0.04]} c="#ff4d4d" />
+    <Glow p={[0.6, 0.7, -2.11]} s={[0.35, 0.18, 0.04]} c="#ff4d4d" />
+    {open > 0.01 && <RBox p={[1.0 + open * 0.5, 0.95, 0.3]} s={[0.12, 0.7, 1.3]} c={shade(color, 0.9)} r={0.05} outline={0.02} rot={[0, open * 0.9, 0]} />}
+    {lights && <pointLight position={[0, 0.8, 3.4]} color="#fff0c8" intensity={9} distance={9} decay={1.6} />}
+  </group>
+);
+
+/* ───────── Telefonzelle mit klingelndem Telefon ─────────
+ * ring 0..1 = Klingeln (Telefon rüttelt, Lämpchen pulsiert, orangefarbenes Licht). Offene Seite zeigt nach +z. */
+export const PhoneBooth: React.FC<{t: number; ring?: number; color?: string; scale?: number; handset?: boolean}> = ({t, ring = 0, color = '#d93a3a', scale = 1, handset = true}) => {
+  const shake = ring > 0 ? Math.sin(t * 55) * 0.04 * ring : 0;
+  const pulse = ring > 0 ? (Math.floor(t * 6) % 2 === 0 ? 1 : 0.2) : 0;
+  return (
+    <group scale={scale}>
+      <RBox p={[0, 0.15, 0]} s={[2.4, 0.3, 2.4]} c="#6d7285" r={0.08} outline={0.03} />
+      {[[-1.1, -1.1], [1.1, -1.1], [-1.1, 1.1], [1.1, 1.1]].map(([x, z], i) => <RBox key={i} p={[x, 2.8, z]} s={[0.22, 5.0, 0.22]} c={color} r={0.07} outline={0.03} />)}
+      <RBox p={[0, 5.45, 0]} s={[2.6, 0.5, 2.6]} c={color} r={0.12} outline={0.03} />
+      <RBox p={[0, 5.9, 0]} s={[1.8, 0.35, 1.8]} c={shade(color, 0.85)} r={0.1} outline={0.03} />
+      <Glow p={[0, 5.46, 1.32]} s={[1.6, 0.3, 0.04]} c="#fff6d6" />
+      {[[0, -1.1, 2.4, 0.04], [-1.1, 0, 0.04, 2.4], [1.1, 0, 0.04, 2.4]].map(([x, z, w, d], i) => <Glow key={i} p={[x, 2.8, z]} s={[w, 4.6, d]} c="#a8d4ff" opacity={0.12} />)}
+      <RBox p={[0, 3.3, -0.85 + shake]} s={[1.0, 1.3, 0.4]} c="#b8902a" r={0.1} outline={0.03} rot={[0, 0, shake * 3]} />
+      <RBox p={[0, 3.55 + shake, -0.62]} s={[0.78, 0.5, 0.06]} c="#1f2130" r={0.05} outline={0.02} />
+      {[0, 1, 2].flatMap((cx) => [0, 1, 2].map((cy) => <RBox key={`k${cx}${cy}`} p={[(cx - 1) * 0.22, 3.05 - cy * 0.2 + shake, -0.64]} s={[0.15, 0.12, 0.05]} c="#e8e8f0" r={0.04} outline={0.01} />))}
+      {handset && <RBox p={[-0.68 + shake, 3.35, -0.7]} s={[0.22, 1.1, 0.3]} c="#15161e" r={0.1} outline={0.03} rot={[0, 0, 0.1 + shake * 4]} />}
+      <Glow p={[0, 3.9, -0.62]} s={[0.35, 0.16, 0.04]} c="#ff9f1a" opacity={0.3 + 0.7 * pulse} />
+      {ring > 0 && <pointLight position={[0, 3.6, 0.6]} color="#ffa63a" intensity={ring * pulse * 26} distance={9} decay={1.6} />}
+    </group>
+  );
+};

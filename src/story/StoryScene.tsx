@@ -19,7 +19,7 @@ import type {Mouth} from './visemes';
 import {EmptyStage, RoomSet} from '../world/Interiors';
 import {CityStreet} from '../world/City';
 import {Door} from '../world/Door';
-import {HiddenCamera, SailBoat, SkyPanel, StageLight} from '../world/Props';
+import {Car, HiddenCamera, PhoneBooth, SailBoat, SkyPanel, StageLight} from '../world/Props';
 import {Dust, Moon, Sky, Stars} from '../world/Nature';
 import {OBJECTS, RIGS, SETS} from './registry';
 import type {SceneData, StoryData} from './schema';
@@ -266,6 +266,10 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
         );
       case 'sky_panel':
         return <group key={key} position={at} rotation={p.rot}><SkyPanel size={p.size} hatch={p.hatch} sky={p.sky} seed={p.seed} clouds={p.clouds} /></group>;
+      case 'car':
+        return <group key={key} position={at} rotation={[0, p.yaw ?? 0, 0]}><Car color={p.color} open={trackAt(o.tracks, 'open', f, c, p.open ?? 0)} lights={p.lights} scale={p.scale} /></group>;
+      case 'phone_booth':
+        return <group key={key} position={at} rotation={[0, p.yaw ?? 0, 0]}><PhoneBooth t={t} ring={trackAt(o.tracks, 'ring', f, c, 0)} color={p.color} scale={p.scale} handset={p.handset} /></group>;
       case 'sailboat':
         return <group key={key} position={at}><SailBoat t={t} scale={p.scale} hull={p.hull} sail={p.sail} bob={p.bob} yaw={p.yaw} sails={p.sails} /></group>;
       case 'cracking_ground':

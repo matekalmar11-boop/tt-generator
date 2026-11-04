@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "story": "der-letzte-mensch",
+  "file": "stories/der-letzte-mensch.yaml",
+  "contentHash": "7a1a0f08edf92f889a04e951d85b6e907d4442f491cefae0b2a8747c19be706b",
+  "parts": {
+    "code": "380b9c1c81ee877b",
+    "story": "f071f41235b479bcd7a76714c35b7717b7361cf4d285d0fd91153ab71cb1ab68",
+    "timeline": "716b98208d6fe0af5e202a08ab38fbdba5590e9d1acd967ca5b0f394d66c476b",
+    "audio": "4d99676342787d05d46c5c0e8b568c77a0e3b8c214f13c6c16eaf50c00cc3e6b"
+  },
+  "approvedAt": "2026-11-04T19:13:51.042Z",
+  "approvedBy": "Nutzer (ausdrückliche Anweisung im Chat: Produktion und finaler Export „Der letzte Mensch“)",
+  "note": "Freigabe nur für dieses Video",
+  "summary": {
+    "scenes": 13,
+    "frames": 1502,
+    "seconds": 50.1,
+    "lines": 13
+  },
+  "codeHash": "380b9c1c81ee877b"
+}
