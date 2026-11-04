@@ -159,6 +159,7 @@ try {
   const short = ex0.contentHash(contentParts(pre0.story!, pre0.timeline!, tmp)).slice(0, 8);
   assert.equal(runApprove(sf, {confirm: short, by: 'test'}, tmp), 0);
   assert.equal(approvalStatus(pre0.story!, pre0.timeline!, tmp, readApproval('stadtgeschichte', tmp)!.codeHash).state, 'gültig');
+  const stCode = approvalStatus(pre0.story!, pre0.timeline!, tmp, 'anderer-code'); assert.equal(stCode.state, 'ungültig'); assert.ok(stCode.reasons.some((r) => r.includes('Renderer-Code')), 'Codeänderung macht Freigabe ungültig');
   // Inhalt ändern → ungültig
   const changed = JSON.parse(JSON.stringify(pre0.story)); changed.scenes[0].camera.shots[0].fov = 41;
   const stc = approvalStatus(changed, pre0.timeline!, tmp, 'c'); assert.equal(stc.state, 'ungültig'); assert.ok(stc.reasons[0].includes('Geschichte'));
@@ -177,6 +178,6 @@ try {
   assert.ok(preflight('stories/gibtsnicht.yaml', process.cwd()).problems[0].includes('nicht gefunden'));
   assert.ok(!preflight('stories/_demo-fehler-struktur.yaml', process.cwd()).ok);
 } finally { console.log = log; fs.rmSync(tmp, {recursive: true, force: true}); }
-console.log('✔ Schritt 5: Freigabe an Inhalt gebunden (YAML, Timings, Audio), falsche/fehlende Bestätigung schreibt nichts, Export ohne gültige Freigabe verweigert, Preflight-Fehler');
+console.log('✔ Schritt 5: Freigabe an Inhalt gebunden (YAML, Timings, Audio, Renderer-Code), falsche/fehlende Bestätigung schreibt nichts, Export ohne gültige Freigabe verweigert, Preflight-Fehler');
 console.log('✔ Etappe 3: Zeitleiste = alte TTS-Timeline, Untertitel identisch, fehlende Audiodateien gemeldet, Manifest aktuell');
 console.log('✔ alle Funktionstests bestanden');

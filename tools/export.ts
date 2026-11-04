@@ -7,7 +7,7 @@
  *
  * Regeln:
  *  - `render` läuft NUR mit gültiger Freigabe (approvals/<story-id>.json). Die Freigabe enthält eine Prüfsumme über den Inhalt der Geschichte
- *    (YAML-Daten mit Standardwerten, Zeitleiste inkl. Wort-Timings, alle benutzten Audiodateien). Jede Änderung macht sie ungültig.
+ *    (YAML-Daten mit Standardwerten, Zeitleiste inkl. Wort-Timings, alle benutzten Audiodateien, Renderer-Code). Jede Änderung macht sie ungültig.
  *  - Szenen werden einzeln in finaler Qualität gerendert und nur wiederverwendet, wenn Schlüssel (Inhalt+Code+Einstellungen) identisch ist.
  *  - Der Ton wird aus den Szenenstücken sample-genau zusammengesetzt (jedes Stück auf exakt Bilder/30 s gekürzt bzw. aufgefüllt, einmal AAC-kodiert),
  *    das Video unverändert übernommen. Danach wird die Ausgabe geprüft (Bildzahl, Auflösung, Codecs, Ton-/Bildlänge).
@@ -31,7 +31,7 @@ export const FINAL = {width: 1080, height: 1920, fps: 30, crf: 20, jpegQuality: 
 export const canonical = (v: unknown): string =>
   JSON.stringify(v, (_k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => a.localeCompare(b))) : x));
 
-export type Parts = {story: string; timeline: string; audio: string};
+export type Parts = {story: string; timeline: string; audio: string; code: string};
 export type Approval = {
   version: 1; story: string; file: string; contentHash: string; parts: Parts; approvedAt: string; approvedBy: string; note?: string;
   summary: {scenes: number; frames: number; seconds: number; lines: number}; codeHash: string;
@@ -50,12 +50,13 @@ export const audioFiles = (story: StoryData, tl: Timeline): {file: string; what:
   return out;
 };
 
-export const contentParts = (story: StoryData, tl: Timeline, root: string): Parts => ({
+export const contentParts = (story: StoryData, tl: Timeline, root: string, code: string = codeHash()): Parts => ({
+  code,
   story: sha(canonical(story)),
   timeline: sha(canonical(tl)),
   audio: sha(canonical(Object.fromEntries([...new Set(audioFiles(story, tl).map((a) => a.file))].sort().map((f) => [f, fileSha(root, f)])))),
 });
-export const contentHash = (p: Parts) => sha(`${p.story}|${p.timeline}|${p.audio}`);
+export const contentHash = (p: Parts) => sha(`${p.story}|${p.timeline}|${p.audio}|${p.code}`);
 
 /* ───────────── Prüfung vor Freigabe/Export ───────────── */
 
@@ -94,13 +95,14 @@ export type ApprovalStatus = {state: 'fehlt' | 'gültig' | 'ungültig'; reasons:
 export const approvalStatus = (story: StoryData, tl: Timeline, root: string, code: string): ApprovalStatus => {
   const a = readApproval(story.meta.id, root);
   if (!a) return {state: 'fehlt', reasons: ['Für diese Geschichte gibt es keine Freigabe.'], codeChanged: false};
-  const cur = contentParts(story, tl, root), reasons: string[] = [];
+  const cur = contentParts(story, tl, root, code), reasons: string[] = [];
   if (a.version !== 1) reasons.push('Freigabe-Format unbekannt.');
   if (a.parts.story !== cur.story) reasons.push('Die Geschichte (YAML-Inhalt) wurde geändert.');
   if (a.parts.timeline !== cur.timeline) reasons.push('Zeitleiste/Wort-Timings wurden geändert (z. B. Sprache neu erzeugt).');
   if (a.parts.audio !== cur.audio) reasons.push('Audiodateien (Sprache/Effekte/Musik) wurden geändert oder ersetzt.');
+  if (a.parts.code !== cur.code) reasons.push('Der Renderer-Code (src/, Konfiguration, Abhängigkeiten) wurde geändert – das Video würde anders aussehen können als freigegeben.');
   if (a.contentHash !== contentHash(cur) && !reasons.length) reasons.push('Prüfsumme stimmt nicht (Freigabedatei verändert?).');
-  return {state: reasons.length ? 'ungültig' : 'gültig', reasons, approval: a, codeChanged: a.codeHash !== code};
+  return {state: reasons.length ? 'ungültig' : 'gültig', reasons, approval: a, codeChanged: false};
 };
 
 const out = (...l: string[]) => console.log(l.join('\n'));
@@ -133,7 +135,6 @@ export const runApprovalStatus = (file: string, root = process.cwd()): number =>
   const st = approvalStatus(pf.story, pf.timeline, root, codeHash());
   if (st.state === 'gültig') {
     out(`✔ Freigabe gültig – von ${st.approval!.approvedBy} am ${st.approval!.approvedAt}, Prüfsumme ${st.approval!.contentHash.slice(0, 8)}${st.approval!.note ? `, Notiz: ${st.approval!.note}` : ''}`);
-    if (st.codeChanged) out('  ⚠ Der Renderer-Code hat sich seit der Freigabe geändert (die Geschichte nicht). Der Export nutzt den aktuellen Code.');
     if (!pf.ok) refuse('Aber der Export ist derzeit blockiert:', pf.problems);
     return pf.ok ? 0 : 1;
   }
@@ -182,7 +183,6 @@ export const runExport = async (file: string, f: RenderFlags, root = process.cwd
     out('', `  Ablauf: Vorschau ansehen → npm run story -- approve ${file}  (zeigt die Prüfsumme) → mit --confirm bestätigen → render.`);
     return 4;
   }
-  if (st.codeChanged) out('⚠ Der Renderer-Code hat sich seit der Freigabe geändert (die Geschichte nicht).');
   const test = f.testScale !== undefined;
   const scale = f.testScale ?? 1;
   if (test && (!Number.isInteger(FINAL.width * scale) || !Number.isInteger(FINAL.height * scale))) { out(`✖ --test-scale ${scale} ergibt keine ganzzahlige Auflösung.`); return 1; }
