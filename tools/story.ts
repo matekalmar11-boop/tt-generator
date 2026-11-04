@@ -1,6 +1,7 @@
 /**
  * Story-CLI.   npm run story -- <befehl> [datei]
  *   check <datei>            Schema + Querprüfungen, ohne Rendering (Schritt 1, fertig)
+ *   manifest                 schreibt src/story/audioManifest.json (vorhandene Audiodateien)
  *   schema                   schreibt stories/story.schema.json (Autovervollständigung im Editor)
  *   compare-legacy <datei>   vergleicht die YAML mit story/script.json + timeline.json (Migrationsnachweis)
  *   voice | preview | render geplant (Schritt 3–5); render wird nie ohne Freigabe laufen
@@ -20,6 +21,15 @@ const PLANNED: Record<string, string> = {
   voice: 'Schritt 3 (Stimmenprofile + TTS-Cache)',
   preview: 'Schritt 4 (schnelle Vorschau 270×480 / 15 FPS)',
   render: 'Schritt 5 (Freigabe-Schranke + Teil-Rendering)',
+};
+
+/** schreibt src/story/audioManifest.json (Liste der Dateien in public/audio; der Renderer spielt nur diese ab) */
+const manifest = () => {
+  const dir = path.join(root, 'public/audio');
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.wav')).sort().map((f) => `audio/${f}`);
+  fs.writeFileSync(path.join(root, 'src/story/audioManifest.json'), JSON.stringify(files, null, 2) + '\n');
+  console.log(`Audio-Manifest geschrieben: ${files.length} Dateien (src/story/audioManifest.json)`);
+  return 0;
 };
 
 const printIssues = (issues: Issue[]) => {
@@ -116,6 +126,7 @@ let code = 0;
 if (cmd === 'check' && arg) code = check(arg);
 else if (cmd === 'compare-legacy' && arg) code = compareLegacy(arg);
 else if (cmd === 'schema') code = writeSchema();
+else if (cmd === 'manifest') code = manifest();
 else if (cmd && PLANNED[cmd]) { console.log(`„${cmd}“ ist noch nicht umgesetzt – geplant für ${PLANNED[cmd]}. Es wurde nichts ausgeführt.`); code = 2; }
 else code = usage();
 process.exit(code);

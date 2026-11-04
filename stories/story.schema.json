@@ -431,13 +431,22 @@
        "type": "string"
       },
       "accent": {
+       "description": "Zusatztext in Akzentfarbe, z. B. \"· TEIL 1\".",
        "type": "string"
+      },
+      "accentColor": {
+       "type": "string",
+       "pattern": "^#[0-9a-fA-F]{6}$"
       }
      },
      "required": [
       "text"
      ],
      "additionalProperties": false
+    },
+    "vignette": {
+     "description": "Dunkle Ränder (Vorgabe: an).",
+     "type": "boolean"
     }
    },
    "additionalProperties": false
@@ -1562,6 +1571,16 @@
           },
           "subtitle": {
            "type": "string"
+          },
+          "color": {
+           "description": "Hintergrund des Titels (Vorgabe #ffd23d).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "bg": {
+           "description": "Hintergrund der Unterzeile (Vorgabe #1a0f3a).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
           }
          },
          "required": [
@@ -1585,12 +1604,59 @@
           },
           "subtitle": {
            "type": "string"
+          },
+          "glow": {
+           "description": "Leuchtfarbe des Titels (Vorgabe #ff7ad9).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "accent": {
+           "description": "Farbe der Unterzeile (Vorgabe #ffd23d).",
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
           }
          },
          "required": [
           "type",
           "from",
           "title"
+         ],
+         "additionalProperties": false
+        },
+        {
+         "type": "object",
+         "properties": {
+          "type": {
+           "type": "string",
+           "const": "title"
+          },
+          "from": {},
+          "to": {},
+          "text": {
+           "type": "string"
+          },
+          "subtitle": {
+           "type": "string"
+          },
+          "position": {
+           "default": "center",
+           "type": "string",
+           "enum": [
+            "top",
+            "center",
+            "bottom"
+           ]
+          },
+          "color": {
+           "type": "string",
+           "pattern": "^#[0-9a-fA-F]{6}$"
+          }
+         },
+         "required": [
+          "type",
+          "from",
+          "to",
+          "text"
          ],
          "additionalProperties": false
         }

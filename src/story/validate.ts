@@ -175,6 +175,7 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
 
   const audioFiles = opts.audioDir && fs.existsSync(opts.audioDir)
     ? fs.readdirSync(opts.audioDir).filter((f) => f.endsWith('.wav') && !f.startsWith('vo_')).map((f) => f.replace(/\.wav$/, '')) : undefined;
+  const voFiles = opts.audioDir && fs.existsSync(opts.audioDir) ? new Set(fs.readdirSync(opts.audioDir).filter((f) => f.startsWith('vo_'))) : undefined;
   const castIds = Object.keys(story.cast), voiceIds = Object.keys(story.voices);
 
   /* Besetzung */
@@ -212,6 +213,7 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
     sc.lines.forEach((l, li) => {
       if (seenLine.has(l.id)) err(`${P}.lines[${li}].id`, `Zeilen-ID "${l.id}" kommt doppelt vor (bereits in Szene "${seenLine.get(l.id)}").`, 'Zeilen-IDs müssen in der ganzen Geschichte eindeutig sein (sie benennen die Audiodateien).');
       seenLine.set(l.id, sc.id);
+      if (voFiles && !voFiles.has(`vo_${l.id}.wav`)) warn(`${P}.lines[${li}]`, `Sprechdatei public/audio/vo_${l.id}.wav fehlt – die Zeile wird stumm gerendert (Untertitel mit geschätzter Zeit).`, 'Die TTS-Erzeugung aus der YAML folgt in Schritt 3; bis dahin Datei von Hand ablegen.');
       const c = story.cast[l.who];
       if (!c) err(`${P}.lines[${li}].who`, `Sprecher "${l.who}" steht nicht in "cast".`, didYouMean(l.who, castIds));
       else if (!c.voice) err(`${P}.lines[${li}].who`, `Figur "${l.who}" hat keine Stimme (cast.${l.who}.voice fehlt).`);
@@ -357,7 +359,7 @@ export const validateSemantics = (story: StoryData, opts: Options = {}): {issues
     sc.captions.forEach((c, i) => {
       const CP = `${P}.captions[${i}]`;
       const a = toSec(c.from, `${CP}.from`);
-      if (c.type === 'lower_third') { const b = toSec(c.to, `${CP}.to`); if (a !== undefined && b !== undefined && b <= a) err(CP, 'Namensschild: "to" liegt vor oder bei "from".'); }
+      if (c.type === 'lower_third' || c.type === 'title') { const b = toSec(c.to, `${CP}.to`); if (a !== undefined && b !== undefined && b <= a) err(CP, 'Namensschild: "to" liegt vor oder bei "from".'); }
     });
   });
 

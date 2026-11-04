@@ -249,8 +249,12 @@ export const Sfx = z.strictObject({
 });
 
 export const Caption = z.discriminatedUnion('type', [
-  z.strictObject({type: z.literal('lower_third'), from: Time, to: Time, title: z.string(), subtitle: z.string().optional()}),
-  z.strictObject({type: z.literal('end_card'), from: Time, title: z.string(), subtitle: z.string().optional()}),
+  z.strictObject({type: z.literal('lower_third'), from: Time, to: Time, title: z.string(), subtitle: z.string().optional(),
+    color: Color.optional().describe('Hintergrund des Titels (Vorgabe #ffd23d).'), bg: Color.optional().describe('Hintergrund der Unterzeile (Vorgabe #1a0f3a).')}),
+  z.strictObject({type: z.literal('end_card'), from: Time, title: z.string(), subtitle: z.string().optional(),
+    glow: Color.optional().describe('Leuchtfarbe des Titels (Vorgabe #ff7ad9).'), accent: Color.optional().describe('Farbe der Unterzeile (Vorgabe #ffd23d).')}),
+  z.strictObject({type: z.literal('title'), from: Time, to: Time, text: z.string(), subtitle: z.string().optional(),
+    position: z.enum(['top', 'center', 'bottom']).default('center'), color: Color.optional()}),
 ]);
 
 /* ───────────── Szene ───────────── */
@@ -318,7 +322,8 @@ export const Story = z.strictObject({
     cutFlash: z.strictObject({color: Color.default('#e9efff'), peak: num.default(0.9), lead: Time.default('3f'), tail: Time.default('9f')}).optional(),
   }).default({}),
   overlays: z.strictObject({
-    seriesTag: z.strictObject({text: z.string(), accent: z.string().optional()}).optional().describe('Kleiner Titel oben links.'),
+    seriesTag: z.strictObject({text: z.string(), accent: z.string().optional().describe('Zusatztext in Akzentfarbe, z. B. "· TEIL 1".'), accentColor: Color.optional()}).optional().describe('Kleiner Titel oben links.'),
+    vignette: z.boolean().optional().describe('Dunkle Ränder (Vorgabe: an).'),
   }).default({}),
   scenes: z.array(Scene).min(1, 'Mindestens eine Szene nötig.'),
 });

@@ -1,0 +1,107 @@
+# yaml-language-server: $schema=./story.schema.json
+# KURZTEST Schritt 2, Etappe 3: eine neue, kurze Geschichte mit person + room + city_street, Untertiteln, Titel, Namensschild,
+# Serien-Tag, Cut-Flash, Endkarte, Musik und Soundeffekten. Sprechdateien (vo_s01…s05.wav) gibt es noch nicht (TTS folgt in Schritt 3):
+# gerendert wird stumm mit geschätzten Zeiten; `story check` meldet die fehlenden Dateien.
+schema: 1
+meta: {id: stadtgeschichte, title: Der verlorene Schlüssel, genre: alltag, targetDuration: {min: 10, max: 40}}
+format: {fps: 30, width: 1080, height: 1920}
+voices:
+  erzaehler: {subtitle: {accent: "#ffd23d"}}
+  opa:
+    lengthScale: 1.1
+    effect: {pitch: 0.92}
+    subtitle: {accent: "#7ff3ff", label: "OPA HEINZ"}
+cast:
+  mira:
+    rig: person
+    name: Mira
+    voice: erzaehler
+    look: {skin: "#e8b894", hair: "#2b1b14", hairStyle: long, shirt: "#3fb6a8", pants: "#34405f", shoes: "#d9534f", coat: "#e8c547"}
+  opa:
+    rig: person
+    name: Opa Heinz
+    voice: opa
+    look: {skin: "#d9a07a", hair: "#c9c9c9", shirt: "#8a6a52", pants: "#4a4a55", glasses: true, hat: "#6b4226"}
+audio:
+  music: {file: music, volume: 0.35, duck: {depth: 0.25, attack: 6f, release: 12f}, fadeOut: 30f}
+subtitles: {maxWords: 3, maxChars: 24, font: Inter, maxFontSize: 104, bottomPadding: 560}
+transitions:
+  cutFlash: {color: "#fff4d6", peak: 0.8, lead: 3f, tail: 8f}
+overlays:
+  seriesTag: {text: MIRA UND DIE STADT, accent: "· FOLGE 1", accentColor: "#3fb6a8"}
+scenes:
+  - id: strasse
+    title: Abendstraße
+    timing: {pre: 0.5, post: 0.6}
+    set: {type: city_street, params: {accent: "#ff9f43"}}
+    environment: {type: gradient, colors: {top: "#1b1442", mid: "#6a3d6e", bottom: "#2a1f4a"}}
+    light:
+      fog: {color: "#4a2f5e", near: 25, far: 110}
+      hemi: {sky: "#c9a6ff", ground: "#3a2a4a", intensity: 0.9}
+      key: {color: "#ffd2a0", intensity: 1.6, pos: [-6, 14, 10], shadowAt: {rel: mira}}
+    actors:
+      - id: mira
+        cast: mira
+        path: [{t: 0, pos: [-5.5, 0, 14]}, {t: scene.end, pos: [-5.5, 0, -8], ease: lin}]
+        yaw: pi
+        pose: walk
+        face: worry
+    camera:
+      shots:
+        - {preset: track_behind, subject: mira, offset: [-0.9, 2.3, -6.5], fov: 52, from: 0, to: "s01.end"}
+        - {preset: orbit_in, target: {rel: mira, off: [0, 1.6, 0]}, distance: [6, 5], angle: [2.4, 3.6], height: [0.8, 0.6], from: "s01.end", to: scene.end}
+    lines:
+      - {id: s01, who: mira, text: "Mira hat ihren Schlüssel verloren."}
+      - {id: s02, who: mira, text: "Und die Stadt wird dunkel."}
+    sfx:
+      - {sound: whoosh_fast, at: 0, volume: 0.5}
+      - {sound: steps, at: 0, volume: 0.35}
+      - {sound: wind, at: 0, volume: 0.25, loop: scene}
+    captions:
+      - {type: title, from: 0, to: 2s, text: DER VERLORENE SCHLÜSSEL, position: top}
+      - {type: lower_third, from: 2.2s, to: "scene.end-2f", title: MIRA, subtitle: SUCHT IHREN SCHLÜSSEL, color: "#3fb6a8"}
+  - id: kueche
+    title: Bei Opa in der Küche
+    timing: {pre: 0.4, post: 0.5}
+    set: {type: room, params: {accent: "#3f6fb5"}}
+    light: {fog: {color: "#3a2f2a", near: 25, far: 90}, hemi: {intensity: 1.1}, key: {intensity: 1.6, pos: [-4, 14, 10], shadowAt: [0, 1, 2]}}
+    actors:
+      - {id: mira, cast: mira, at: [-1.6, 0, 2], yaw: 0.5pi, pose: idle, face: worry}
+      - id: opa
+        cast: opa
+        at: [1.6, 0, 2]
+        yaw: -0.5pi
+        pose: [{t: 0, pose: idle}, {t: "s04.start", pose: shock, ease: lin}]
+        face: smile
+        prop: cup
+    camera:
+      shots:
+        - {preset: over_shoulder, subject: mira, target: {rel: opa}, offset: [-1.0, 2.2, -3.8], fov: 46, from: 0, to: "s03.end+6f"}
+        - {preset: over_shoulder, subject: opa, target: {rel: mira}, offset: [1.0, 2.2, -3.8], fov: 46, from: "s03.end+6f", to: scene.end}
+    lines:
+      - {id: s03, who: opa, text: "Hast du schon in deinem Mantel nachgesehen?"}
+      - {id: s04, who: mira, text: "Natürlich nicht!"}
+    sfx:
+      - {sound: chime, at: "s04.start", volume: 0.4}
+    captions:
+      - {type: lower_third, from: 0.2s, to: "s03.end", title: OPA HEINZ, subtitle: KENNT JEDEN WINKEL, color: "#7ff3ff"}
+  - id: ende
+    title: Auflösung
+    timing: {pre: 0.4, post: 1.6}
+    set: {type: city_street, params: {accent: "#e8c547", seed: ende}}
+    environment: {type: gradient, colors: {top: "#1b1442", mid: "#6a3d6e", bottom: "#2a1f4a"}}
+    light:
+      fog: {color: "#4a2f5e", near: 25, far: 110}
+      hemi: {sky: "#c9a6ff", ground: "#3a2a4a", intensity: 0.9}
+      key: {color: "#ffd2a0", intensity: 1.6, pos: [-6, 14, 10], shadowAt: {rel: mira}}
+    actors:
+      - {id: mira, cast: mira, at: [-5.5, 0, 2], yaw: 0.1pi, pose: point, face: grin, prop: phone}
+    camera:
+      shots:
+        - {preset: push_in, target: {rel: mira, off: [0, 1.8, 0]}, offset: [3.5, 0.4, 6.5], push: 0.5, from: 0, to: scene.end}
+    lines:
+      - {id: s05, who: mira, text: "Der Schlüssel war die ganze Zeit in ihrer Tasche."}
+    sfx:
+      - {sound: stinger, at: "s05.end", volume: 0.6}
+    captions:
+      - {type: end_card, from: "s05.end", title: FOLGE 2, subtitle: BALD, glow: "#3fb6a8"}

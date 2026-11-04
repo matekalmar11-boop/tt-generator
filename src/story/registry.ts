@@ -54,7 +54,10 @@ export const SETS: Record<string, SetDef> = {
     status: 'ready', doc: 'Innenraum (Küche/Wohnraum) aus Blöcken (src/world/Interiors.tsx): Rückwand + Seitenwände, Vorderseite offen. Boden x ±7, z −4…16. Tisch bei (0,0,−1.8), Stühle bei (±1,0,−0.4): sitzende Person at [±1, 0, −0.45], yaw pi, pose sit.',
     params: {wall: 'color', floor: 'color', trim: 'color', accent: 'color', window: 'boolean', furniture: 'boolean'}, tracks: [],
   },
-  city_street: {status: 'planned', doc: 'Straße mit Häusern, Laternen, Autos.', params: {}, tracks: []},
+  city_street: {
+    status: 'ready', doc: 'Straße entlang z (src/world/City.tsx): Fahrbahn x ±4, Gehwege |x| 4…7 (Figuren dort mit y = 0), Häuser ab |x| = 7 mit Fenstern/Schaufenstern/Markisen, Laternen, Bäume, Autos, Zebrastreifen bei z = 6, Skyline bei z ≈ −100. Länge z +30…−90. Tiefenwirkung über light.fog (z. B. near 20, far 90).',
+    params: {building: 'color', road: 'color', sidewalk: 'color', accent: 'color', lamps: 'boolean', cars: 'boolean', trees: 'boolean', windows: 'number', seed: 'string'}, tracks: [],
+  },
   empty_stage: {
     status: 'ready', doc: 'Neutrale Bühne (src/world/Interiors.tsx): Bodenplatte 30×30 mit Raster und leuchtendem Rand. Hintergrund über environment {type: starry_sky|none, colors}.',
     params: {floor: 'color', grid: 'boolean', accent: 'color'}, tracks: [],

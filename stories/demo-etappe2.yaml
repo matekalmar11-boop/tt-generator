@@ -112,3 +112,19 @@ scenes:
           look: [{rel: f, off: [0, 1.6, 0]}, {rel: f, off: [0, 2.6, 0]}]
           fov: [58, 44]
           steps: 8
+  # Straßenschlucht (city_street): Tiefenwirkung über Gebäudestaffelung, Nebel, Laternen und Fenster
+  - id: stadt_weit
+    timing: {pre: 2.0, post: 1.0}
+    set: {type: city_street}
+    environment: {type: gradient, colors: {top: "#1b1442", mid: "#6a3d6e", bottom: "#2a1f4a"}}
+    light:
+      fog: {color: "#4a2f5e", near: 25, far: 120}
+      hemi: {sky: "#c9a6ff", ground: "#3a2a4a", intensity: 0.9}
+      key: {color: "#ffd2a0", intensity: 1.6, pos: [-6, 14, 10], shadowAt: [0, 0, 0]}
+    actors:
+      - {id: p, cast: anna, at: [-5.4, 0, 6], yaw: 0.9pi, pose: idle, face: smile}
+      - {id: q, cast: kurz, at: [5.4, 0, -4], yaw: pi, pose: walk, face: neutral}
+    camera:
+      keys:
+        - {t: 0, pos: [-1.5, 3.2, 27], look: [0, 4.5, -40], fov: 56}
+        - {t: scene.end, pos: [-1.0, 3.0, 22], look: [0, 4.5, -40], fov: 56, ease: io}

@@ -14,6 +14,7 @@ import {Finn} from '../world/Finn';
 import {Dragon, dragonHead} from '../world/Dragon';
 import {Person} from '../world/Person';
 import {EmptyStage, RoomSet} from '../world/Interiors';
+import {CityStreet} from '../world/City';
 import {Dust, Moon, Sky, Stars} from '../world/Nature';
 import {OBJECTS, RIGS, SETS} from './registry';
 import type {SceneData, StoryData} from './schema';
@@ -105,6 +106,7 @@ export const StoryScene: React.FC<StorySceneProps> = ({story, sceneId, clock: c,
       break;
     case 'abyss': setNode = <AbyssSet frame={f} />; break;
     case 'room': setNode = <RoomSet wall={sp.wall} floor={sp.floor} trim={sp.trim} accent={sp.accent} window={sp.window} furniture={sp.furniture} />; break;
+    case 'city_street': setNode = <CityStreet building={sp.building} road={sp.road} sidewalk={sp.sidewalk} accent={sp.accent} lamps={sp.lamps} cars={sp.cars} trees={sp.trees} windows={sp.windows} seed={sp.seed} />; break;
     case 'empty_stage': setNode = <EmptyStage floor={sp.floor} grid={sp.grid} accent={sp.accent} />; break;
     default: throw new StoryError(`Kulisse "${scene.set.type}" ist in der Registry als "ready" markiert, hat aber noch keine Anbindung in StoryScene`);
   }

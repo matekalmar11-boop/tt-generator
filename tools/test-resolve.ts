@@ -75,4 +75,23 @@ assert.ok(bad(base.replace('preset: whip_to', 'preset: whip')).length > 0, 'unbe
 assert.ok(bad(base.replace(', look_from: {rel: a, off: [0, 1.9, 0]}', '')).some((m) => m.includes('look_from')), 'Pflichtfeld fehlt');
 assert.ok(bad(base.replace('subject: a, target: {rel: k}', 'subject: zz, target: {rel: k}')).some((m) => m.includes('subject')), 'unbekannte Figur');
 console.log('✔ Etappe 2: Presets, Kreisfahrt mit Verweisen, lokale Achsen, Dolly-Zoom, Prüfer-Fehlerfälle');
+
+// ── Etappe 3: Zeitleiste, Untertitel-Häppchen, Audio-Manifest ──
+import {buildTimeline} from '../src/story/timeline';
+import {buildChunksFrom, CHUNKS} from '../src/Subtitles';
+import {missingAudio} from '../src/story/StoryVideo';
+const mond = buildTimeline(story, tl);
+assert.equal(mond.totalFrames, tl.totalFrames, 'Mondsplitter-Länge aus YAML = alte Timeline');
+assert.ok(mond.scenes.every((sc, i) => sc.startFrame === tl.scenes[i].startFrame && sc.durationFrames === tl.scenes[i].durationFrames && sc.lines.every((l) => l.real)));
+const yamlChunks = buildChunksFrom(mond.scenes.flatMap((sc) => sc.lines).map((l) => ({voice: l.voice ?? '', words: l.words})), story.subtitles.maxWords, story.subtitles.maxChars);
+assert.deepEqual(yamlChunks.map((c) => [c.start, c.end, c.words.map((w) => w.w).join(' ')]), CHUNKS.map((c) => [c.start, c.end, c.words.map((w) => w.w).join(' ')]), 'Untertitel aus YAML = bisherige Untertitel');
+assert.deepEqual(missingAudio(story, mond), [], 'Mondsplitter: keine fehlenden Audiodateien');
+const city = Story.parse(parse(fs.readFileSync('stories/demo-stadtgeschichte.yaml', 'utf8')));
+const ctl = buildTimeline(city);
+assert.ok(ctl.scenes.every((sc) => sc.lines.every((l) => !l.real && l.words.length > 0 && l.startFrame >= sc.startFrame && l.startFrame + l.durationFrames <= sc.startFrame + sc.durationFrames)), 'geschätzte Zeiten liegen in der Szene');
+const miss = missingAudio(city, ctl).map((m) => m.file);
+assert.deepEqual(miss, ['audio/vo_s01.wav', 'audio/vo_s02.wav', 'audio/vo_s03.wav', 'audio/vo_s04.wav', 'audio/vo_s05.wav'], 'fehlende Sprechdateien werden gemeldet (Effekte/Musik vorhanden)');
+const manifestNow = fs.readdirSync('public/audio').filter((f) => f.endsWith('.wav')).sort().map((f) => `audio/${f}`);
+assert.deepEqual(JSON.parse(fs.readFileSync('src/story/audioManifest.json', 'utf8')), manifestNow, 'audioManifest.json veraltet – "npm run story -- manifest" ausführen');
+console.log('✔ Etappe 3: Zeitleiste = alte TTS-Timeline, Untertitel identisch, fehlende Audiodateien gemeldet, Manifest aktuell');
 console.log('✔ alle Funktionstests bestanden');

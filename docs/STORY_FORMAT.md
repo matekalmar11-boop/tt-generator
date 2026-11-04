@@ -62,7 +62,18 @@ der Zielpose (z. B. `mix: 0.45` = nur halb in die Schockpose). Kamera-`cut: true
 - Test: `npm run test:story` (Auflösung, ohne Rendering) · Vergleich: `npm run story:compare -- <ausgabeordner> <frame> …` rendert dieselben Frames aus Composition `RefBild` (handgeschrieben, nur 3D-Bild) und `StoryTest` (aus der YAML) als Standbilder.
 - Ergebnis Mondsplitter (21 Standbilder, alle 8 Szenen): mittlere Abweichung 0,00/255; einzige Ausnahme Wendung-Frame 815 (0,04/255, 0,02 % der Pixel) – erwartete Folge von Vereinfachung 1 (ein Pfad für den Splitter statt zwei überlagerter Bewegungen). Beispiele: `docs/step2/`.
 - Konventionen: Standard-Easing bei `pose`/`face`/`path`/Verläufen = `lin`, bei Kamera `io`. `mix` am Zielkey = Stärke der Zielpose (Start aus einer bereits gemischten Pose wird nicht berücksichtigt). Noch nicht angebunden bleibt eine Registry-Komponente mit Status `planned`: `<StoryScene>` bricht dann mit klarer Fehlermeldung ab, statt etwas Ähnliches zu zeigen.
-- Noch offen in Schritt 2: Kulisse `city_street`, `look` für den Drachen, Overlays/Untertitel/Cut-Flash/Ton aus der Config.
+- Noch offen in Schritt 2: `look` für den Drachen, Optik-Feinheiten der Einblendungen (Schriftgrößen/Konturen), Rig `person` mit weiteren Posen.
+
+### Etappe 3: vollständige Videos aus der YAML (Untertitel, Einblendungen, Audio, `city_street`)
+`<StoryVideo story timeline>` (`src/story/StoryVideo.tsx`) setzt eine ganze Geschichte zusammen: 3D-Szenen + Vignette + Serien-Tag + Namensschilder/Titel/Endkarte + Untertitel + Cut-Flash + Stimmen, Soundeffekte, Musik.
+Compositions: `MondsplitterYaml` (echte TTS-Timeline; Vergleich mit `Main`), `StadtDemo` (neue Kurzgeschichte), `Etappe2Test`.
+- **Zeitleiste** (`src/story/timeline.ts`): echte Wort-Timings aus `src/story/timeline.json`, sonst Schätzung aus dem Text (≈18 Zeichen/s, Wörter proportional, Mundbewegung nur als Näherung; `real: false`).
+- **Untertitel**: `subtitles` (maxWords, maxChars, font, maxFontSize, bottomPadding) und je Stimme `voices.<id>.subtitle {accent, label}` – dieselbe Darstellung wie im Mondsplitter-Film (`SubtitleView` in `src/Subtitles.tsx`).
+- **Einblendungen**: `overlays.seriesTag {text, accent, accentColor}`, `overlays.vignette`, `transitions.cutFlash {color, peak, lead, tail}`, `scenes[].captions`: `lower_third {from,to,title,subtitle,color,bg}`, `end_card {from,title,subtitle,glow,accent}`, neu `title {from,to,text,subtitle,position: top|center|bottom,color}`. Zeiten dürfen Anker sein (`"s05.end"`).
+- **Audio**: Stimmen `public/audio/vo_<zeilen-id>.wav`, Effekte `scenes[].sfx` (`loop: scene`), Musik `audio.music` mit Ducking unter der Sprache und Ausblenden (Formeln wie im Mondsplitter-Film). Der Renderer spielt nur Dateien ab, die in `src/story/audioManifest.json` stehen (`npm run story -- manifest` aktualisiert es; `test:story` prüft, dass es aktuell ist). **Fehlende Dateien** meldet `story check` (Sprechdateien als Hinweis, Effekte/Musik als Fehler) und `console.warn` beim Laden – das Video wird dann an dieser Stelle stumm.
+- **Kulisse `city_street`** (`src/world/City.tsx`): Straße entlang z, Fahrbahn x ±4, Gehwege |x| 4…7 (Figuren dort y = 0), Häuser mit Fenstern (ein InstancedMesh), Schaufenstern, Markisen, Laternen (vier mit echtem Licht), Bäume, Autos, Zebrastreifen bei z = 6, Skyline; Tiefe über `light.fog`. Parameter: `building, road, sidewalk, accent, lamps, cars, trees, windows (0–1), seed`.
+- Nachweis: `MondsplitterYaml` und `Main` stimmen in 11 Standbildern (u. a. Untertitel, Namensschild, Endkarte, Cut-Flash-Frames) auf ≤ 0,09/255 überein; `Main` selbst ist vor/nach dem Umbau der Untertitel identisch. Beispiele: `docs/step2/etappe3_*.png`.
+- Test-Geschichte: `stories/demo-stadtgeschichte.yaml` (person + room + city_street, 5 Zeilen, ≈ 14 s). **Es gibt noch keine Sprechdateien** (`vo_s01…s05.wav`): sie wird stumm mit geschätzten Zeiten gerendert; die Erzeugung folgt in Schritt 3.
 
 ### Etappe 2: Kamera-Presets, Rig `person`, Kulissen, Aussehen
 **Kamera-Presets** (`camera.shots[]`, dürfen mit `keys`/`orbits` gemischt werden; Details und Vorgaben je Preset: `CAMERA_PRESETS` in `src/story/registry.ts`, Umsetzung `src/story/presets.ts`):
@@ -83,7 +94,7 @@ Test: `stories/demo-etappe2.yaml` (stumm, Composition `Etappe2Test`), Standbilde
 ## Noch NICHT umgesetzt
 | Schritt | Inhalt |
 |---|---|
-| **2** (Etappe 1+2 ✅, Rest offen) | `<StoryScene>`: YAML → 3D-Szene (Aktoren, Objekte, Kamera aus keys/orbits/shake, Anker auflösen, Verläufe/Posen-Keyframes, `rel`-Verweise), Kamera-Presets (`camera.preset`), `look` (Aussehen), Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, Overlays/Captions/Subtitles/Cut-Flash aus der Config |
+| **2** (Etappe 1–3 ✅, Rest offen) | `<StoryScene>`: YAML → 3D-Szene (Aktoren, Objekte, Kamera aus keys/orbits/shake, Anker auflösen, Verläufe/Posen-Keyframes, `rel`-Verweise), Kamera-Presets (`camera.preset`), `look` (Aussehen), Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, Overlays/Captions/Subtitles/Cut-Flash aus der Config |
 | **3** | Stimmenprofile → TTS (ersetzt `synth.py`/`redo_dragon.py`), TTS-Cache pro Zeile, `pronunciations`, Befehl `voice` |
 | **4** | Schnelle Vorschau (270×480, 15 FPS), Szenen-Vorschau, Kontaktbogen, Befehl `preview` |
 | **5** | Freigabe-Schranke (`approved.json` mit Hash der Story-Datei), Teil-Rendering/Zusammenfügen, Befehl `render` |
