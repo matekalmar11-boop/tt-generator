@@ -56,10 +56,18 @@ der Zielpose (z. B. `mix: 0.45` = nur halb in die Schockpose). Kamera-`cut: true
 - ✅ Mondsplitter vollständig als YAML (8 Szenen, 13 Zeilen), `compare-legacy` bestätigt Texte/IDs/Stimmen/Timing
 - ✅ Beispiel in einem anderen Genre (Krimi) validiert (mit Hinweisen für noch nicht gebaute Bausteine)
 
+## Schritt 2, Etappe 1: generische `<StoryScene>` (Stand)
+`src/story/StoryScene.tsx` baut eine Szene aus der YAML (Figuren, Kulisse, Himmel, Licht, Objekte, Kamera) mit den bestehenden Bausteinen;
+`src/story/resolve.ts` löst Zeiten/Anker, Keyframes und `rel`/`obj`-Verweise auf (ohne React, testbar).
+- Test: `npm run test:story` (Auflösung, ohne Rendering) · Vergleich: `npm run story:compare -- <ausgabeordner> <frame> …` rendert dieselben Frames aus Composition `RefBild` (handgeschrieben, nur 3D-Bild) und `StoryTest` (aus der YAML) als Standbilder.
+- Ergebnis Mondsplitter (21 Standbilder, alle 8 Szenen): mittlere Abweichung 0,00/255; einzige Ausnahme Wendung-Frame 815 (0,04/255, 0,02 % der Pixel) – erwartete Folge von Vereinfachung 1 (ein Pfad für den Splitter statt zwei überlagerter Bewegungen). Beispiele: `docs/step2/`.
+- Konventionen: Standard-Easing bei `pose`/`face`/`path`/Verläufen = `lin`, bei Kamera `io`. `mix` am Zielkey = Stärke der Zielpose (Start aus einer bereits gemischten Pose wird nicht berücksichtigt). Noch nicht angebunden bleibt eine Registry-Komponente mit Status `planned`: `<StoryScene>` bricht dann mit klarer Fehlermeldung ab, statt etwas Ähnliches zu zeigen.
+- Noch offen in Schritt 2: Kamera-Presets, Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, `look`, Overlays/Untertitel/Cut-Flash/Ton aus der Config, `orbits.look` mit Verweisen.
+
 ## Noch NICHT umgesetzt
 | Schritt | Inhalt |
 |---|---|
-| **2** | `<StoryScene>`: YAML → 3D-Szene (Aktoren, Objekte, Kamera aus keys/orbits/shake, Anker auflösen, Verläufe/Posen-Keyframes, `rel`-Verweise), Kamera-Presets (`camera.preset`), `look` (Aussehen), Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, Overlays/Captions/Subtitles/Cut-Flash aus der Config |
+| **2** (Etappe 1 ✅, Rest offen) | `<StoryScene>`: YAML → 3D-Szene (Aktoren, Objekte, Kamera aus keys/orbits/shake, Anker auflösen, Verläufe/Posen-Keyframes, `rel`-Verweise), Kamera-Presets (`camera.preset`), `look` (Aussehen), Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, Overlays/Captions/Subtitles/Cut-Flash aus der Config |
 | **3** | Stimmenprofile → TTS (ersetzt `synth.py`/`redo_dragon.py`), TTS-Cache pro Zeile, `pronunciations`, Befehl `voice` |
 | **4** | Schnelle Vorschau (270×480, 15 FPS), Szenen-Vorschau, Kontaktbogen, Befehl `preview` |
 | **5** | Freigabe-Schranke (`approved.json` mit Hash der Story-Datei), Teil-Rendering/Zusammenfügen, Befehl `render` |

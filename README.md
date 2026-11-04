@@ -7,6 +7,8 @@ Fertiges Video: `renders/tiktok-fantasy.mp4` · Prüfbericht: `renders/verifikat
 Geschichten als YAML (`stories/*.yaml`), Prüfung ohne Rendering: `npm run story -- check stories/mondsplitter.yaml`.
 Details, Status und Migrationsnotizen: [docs/STORY_FORMAT.md](docs/STORY_FORMAT.md). Der bisherige Referenzcode bleibt unverändert und rendert weiterhin.
 
+Schritt 2 (Etappe 1): `<StoryScene>` rendert Szenen aus der YAML – Composition `StoryTest` im Studio, Test `npm run test:story`, Standbild-Vergleich `npm run story:compare`.
+
 ## Pipeline
 1. `story/script.json` – Geschichte (Szenen, Sprechzeilen, Sprecher).
 2. `tts/synth.py` – deutsche TTS (Piper-Stimme *Thorsten*, CC0) → `public/audio/vo_*.wav`, Wort-Timing, Lippensync-Hüllkurve → `src/story/timeline.json`.

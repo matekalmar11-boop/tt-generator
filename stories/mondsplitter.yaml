@@ -380,7 +380,7 @@ scenes:
           - {t: 8f, pos: [0, 1.6, -2.8]}
           - {t: 36f, pos: [0, 4.0, -2], ease: out}
           - {t: 118f, pos: [0, 34, -2], ease: in}
-        params: {size: [0.35, 0.8, 0.28], halo: [0.6, 1.3, 0.5], light: {color: "#cfe0ff", intensity: 40, distance: 14}, spin: {x: 2, y: 1.4}}
+        params: {size: [0.35, 0.8, 0.28], halo: [0.6, 1.3, 0.5], haloColor: "#bcd0ff", light: {color: "#cfe0ff", intensity: 40, distance: 14}, spin: {x: 2, y: 1.4}}
       - id: ghost_light
         type: point_light
         at: [0, 53.8, -38.2]

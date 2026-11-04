@@ -10,3 +10,9 @@ import {existsSync} from 'node:fs';
 if (existsSync('/opt/pw-browsers/chromium')) {
   Config.setBrowserExecutable('/opt/pw-browsers/chromium');
 }
+
+// YAML-Dateien (stories/*.yaml) als Text einbinden – die Story-Datei bleibt die einzige Quelle.
+Config.overrideWebpackConfig((config) => ({
+  ...config,
+  module: {...config.module, rules: [...(config.module?.rules ?? []), {test: /\.ya?ml$/, type: 'asset/source'}]},
+}));

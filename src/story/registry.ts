@@ -58,7 +58,7 @@ export const ENVIRONMENTS: Record<string, {status: Status; doc: string}> = {
 export const OBJECTS: Record<string, ObjectDef> = {
   glow_shard: {
     status: 'ready', doc: 'Leuchtender Splitter (Octaeder) mit Halo, optional Punktlicht; bewegt sich über "path".',
-    params: {size: 'vec3', halo: 'vec3', light: 'any', spin: 'any'}, tracks: [], usesPath: true,
+    params: {size: 'vec3', halo: 'vec3', haloColor: 'color', light: 'any', spin: 'any'}, tracks: [], usesPath: true,
   },
   floating_shards: {status: 'ready', doc: 'Schwebende Bruchstücke an festen Positionen.', params: {positions: 'any', color: 'color'}, tracks: []},
   eyes_in_dark: {status: 'ready', doc: 'Leuchtende Augen vor dunkler Silhouette (mit Blinzeln und Licht).', params: {color: 'color', blinkEvery: 'number'}, tracks: []},

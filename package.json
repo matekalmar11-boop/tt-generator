@@ -9,7 +9,9 @@
     "still": "remotion still src/index.ts Main out/frame.png --frame=130 --gl=swangle",
     "render": "remotion render src/index.ts Main out/tiktok-fantasy.mp4 --gl=swangle --concurrency=4 --audio-codec=aac --crf=20",
     "story": "tsx tools/story.ts",
-    "story:check": "tsx tools/story.ts check"
+    "story:check": "tsx tools/story.ts check",
+    "test:story": "tsx tools/test-resolve.ts",
+    "story:compare": "node scripts/compare-stills.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",

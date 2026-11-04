@@ -25,14 +25,14 @@ export const Cam: React.FC<{shot: (f: number) => CamState}> = ({shot}) => {
 
 /* ---------- Licht + Nebel ---------- */
 export const Lights: React.FC<{
-  sky?: string; ground?: string; hemi?: number; key?: string; keyI?: number; keyPos?: V3; fog?: string; near?: number; far?: number; shadowAt?: V3; ambient?: number;
-}> = ({sky = '#8aa0ff', ground = '#2a1f4a', hemi = 0.8, key = '#cdd8ff', keyI = 2.4, keyPos = [-8, 22, 12], fog = '#2a2250', near = 30, far = 140, shadowAt = [0, 0, 0], ambient = 0.15}) => (
+  sky?: string; ground?: string; hemi?: number; key?: string; keyColor?: string; keyI?: number; keyPos?: V3; fog?: string; near?: number; far?: number; shadowAt?: V3; ambient?: number;
+}> = ({sky = '#8aa0ff', ground = '#2a1f4a', hemi = 0.8, key = '#cdd8ff', keyColor, keyI = 2.4, keyPos = [-8, 22, 12], fog = '#2a2250', near = 30, far = 140, shadowAt = [0, 0, 0], ambient = 0.15}) => (
   <>
     <color attach="background" args={[fog]} />
     <fog attach="fog" args={[fog, near, far]} />
     <hemisphereLight args={[sky, ground, hemi]} />
     <ambientLight intensity={ambient} />
-    <directionalLight position={[shadowAt[0] + keyPos[0], shadowAt[1] + keyPos[1], shadowAt[2] + keyPos[2]]} intensity={keyI} color={key} castShadow
+    <directionalLight position={[shadowAt[0] + keyPos[0], shadowAt[1] + keyPos[1], shadowAt[2] + keyPos[2]]} intensity={keyI} color={keyColor ?? key} castShadow
       shadow-mapSize={[1024, 1024]} shadow-camera-left={-9} shadow-camera-right={9} shadow-camera-top={9} shadow-camera-bottom={-9}
       shadow-camera-near={1} shadow-camera-far={70} shadow-bias={-0.0006} shadow-normalBias={0.04}>
       <object3D attach="target" position={shadowAt} />
