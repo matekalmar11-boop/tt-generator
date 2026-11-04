@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=./story.schema.json
+# TECHNIK-TEST für Schritt 5 (Freigabe, Teilrendering, Zusammenfügen) – 2 winzige Szenen, keine echte Geschichte.
+# Die Zeile s04 ist absichtlich identisch zu stories/demo-stadtgeschichte.yaml (gleiche Sprachdatei, gleiches Stimmenprofil).
+schema: 1
+meta: {id: export-test, title: Export-Test, genre: test}
+voices: {erzaehler: {subtitle: {accent: "#ffd23d"}}}
+cast:
+  x: {rig: person, name: X, voice: erzaehler, look: {shirt: "#3fb6a8"}}
+audio:
+  music: {file: music, volume: 0.35, fadeOut: 15f}
+overlays: {seriesTag: {text: EXPORT-TEST, accent: "· SCHRITT 5"}}
+transitions: {cutFlash: {color: "#ffffff", peak: 0.8, lead: 3f, tail: 8f}}
+scenes:
+  - id: a
+    timing: {pre: 0.3, post: 0.3}
+    set: {type: empty_stage}
+    environment: {type: gradient}
+    light: {fog: {color: "#1d2240", near: 30, far: 110}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: [0, 0, 0]}}
+    actors: [{id: x, cast: x, at: [0, 0, 0], yaw: 0, pose: idle, face: smile}]
+    camera: {shots: [{preset: push_in, target: {rel: x, off: [0, 1.7, 0]}, offset: [0.8, 0.2, 6], from: 0, to: scene.end}]}
+    lines: [{id: s04, who: x, text: "Natürlich nicht!"}]
+    sfx: [{sound: whoosh_fast, at: 0, volume: 0.5}]
+  - id: b
+    timing: {pre: 0.4, post: 0.4}
+    set: {type: empty_stage}
+    environment: {type: gradient}
+    light: {fog: {color: "#1d2240", near: 30, far: 110}, hemi: {intensity: 1.0}, key: {intensity: 2.0, pos: [-5, 14, 10], shadowAt: [0, 0, 0]}}
+    actors: [{id: x, cast: x, at: [0, 0, 0], yaw: 0.2pi, pose: wave, face: grin}]
+    camera: {keys: [{t: 0, pos: [1.5, 2, 7], look: [0, 1.6, 0], fov: 44}]}
+    sfx: [{sound: chime, at: 0.2s, volume: 0.5}]
+    captions: [{type: end_card, from: 0.2s, title: ENDE, subtitle: TEST}]

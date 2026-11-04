@@ -38,6 +38,17 @@ export const loadStoryProps = (file: string) => {
   return {story, timeline, warnings: issues.filter((i) => i.level === 'warn').length};
 };
 
+/** Webpack-Bundle je Code-Stand unter out/bundle-cache/<code>/ (wird nur neu gebaut, wenn sich der Code geändert hat). */
+export const ensureBundle = async (code: string): Promise<string> => {
+  const bdir = path.join(root, 'out/bundle-cache', code);
+  if (!fs.existsSync(path.join(bdir, 'index.html'))) {
+    fs.rmSync(path.join(root, 'out/bundle-cache'), {recursive: true, force: true});
+    await bundle({entryPoint: path.join(root, 'src/index.ts'), outDir: bdir, webpackOverride: (c) => ({...c, module: {...c.module, rules: [...(c.module?.rules ?? []), {test: /\.ya?ml$/, type: 'asset/source'}]}})});
+  }
+  return bdir;
+};
+export const BROWSER_EXE = BROWSER;
+
 /** Prüfsumme des Codes, der die Bildausgabe bestimmt (src/, Konfiguration, Abhängigkeiten); Sprach-JSONs kommen über die Props. */
 export const codeHash = (): string => {
   const h = crypto.createHash('sha256');
@@ -114,11 +125,7 @@ export const runPreview = async (file: string, f: PreviewFlags): Promise<number>
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'preview-'));
   if (fresh.length) {
     let t = Date.now();
-    const bdir = path.join(root, 'out/bundle-cache', code);   // Bundle nur neu bauen, wenn sich der Code geändert hat
-    if (!fs.existsSync(path.join(bdir, 'index.html'))) {
-      fs.rmSync(path.join(root, 'out/bundle-cache'), {recursive: true, force: true});
-      await bundle({entryPoint: path.join(root, 'src/index.ts'), outDir: bdir, webpackOverride: (c) => ({...c, module: {...c.module, rules: [...(c.module?.rules ?? []), {test: /\.ya?ml$/, type: 'asset/source'}]}})});
-    }
+    const bdir = await ensureBundle(code);
     tBundle = Date.now() - t; t = Date.now();
     const browser = await openBrowser('chrome', {browserExecutable: BROWSER, chromiumOptions: {gl: 'swangle'}});
     const opts = {serveUrl: bdir, puppeteerInstance: browser, inputProps: props};

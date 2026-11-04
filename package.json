@@ -14,7 +14,9 @@
     "story:compare": "node scripts/compare-stills.mjs",
     "tts:setup": "bash tts/setup.sh",
     "voice": "tsx tools/story.ts voice",
-    "preview": "tsx tools/story.ts preview"
+    "preview": "tsx tools/story.ts preview",
+    "approve": "tsx tools/story.ts approve",
+    "export": "tsx tools/story.ts render"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",

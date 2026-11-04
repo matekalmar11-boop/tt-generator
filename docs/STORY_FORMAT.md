@@ -114,9 +114,8 @@ npm run story -- preview stories/demo-stadtgeschichte.yaml --scene kueche       
 npm run story -- preview stories/demo-stadtgeschichte.yaml --scene strasse --from 0.5s --to 3s   # Abschnitt (mit --scene relativ zur Szene, sonst zum Film; "90f" = Frames)
 npm run story -- preview <datei> --size 270 --fps 15 --out out/x.mp4 --no-cache --concurrency 1 --crf 28 --jpeg-quality 70
 
-# finales Rendering (Freigabe-Schranke und Teilrendering folgen in Schritt 5; bis dahin von Hand, bewusst nur auf Anforderung):
-npm run story -- preview <datei> --props out/props.json        # schreibt die Props in finaler Qualität (30 FPS), rendert nichts
-npx remotion render src/index.ts StoryAny out/final.mp4 --props=out/props.json --gl=swangle --concurrency=1 --crf=20 --audio-codec=aac
+# finales Rendering: siehe „Schritt 5“ (Freigabe → Export); `--props` schreibt nur die Props, rendert nichts
+npm run story -- preview <datei> --props out/props.json
 ```
 **Was die Vorschau vom finalen Video unterscheidet:** nur Auflösung (360×640 statt 1080×1920), Bildrate (15 statt 30 FPS), H.264-CRF 28 statt 20 und JPEG-Zwischenbilder 70 statt 80. Szenen, Kamera, Licht, Schatten, Kantenglättung, Untertitel, Einblendungen und Audio sind dieselben; der Zeitmaßstab (`src/story/timescale.tsx`) sorgt dafür, dass bei 15 FPS alle Animationen, Wort-Timings und Federn exakt zur selben Zeit passieren (geprüft: `node scripts/check-timescale.mjs`, Bild 15 FPS ↔ 30 FPS: Abweichung 0,000/255). Für das finale Video gilt Maßstab 1 – Ausgabe unverändert (Vollauflösungs-Standbilder `Main` ↔ YAML-Video identisch).
 
@@ -140,13 +139,37 @@ Ganze Stadtgeschichte (3 Szenen, 12,5 s Film, 187 Bilder): kalt 51,2 s · nichts
 3. **Szenenkomplexität (Zeichenaufrufe, Lichter):** Bühne + 2 Personen ≈ 0,32 s/Bild, Küche ≈ 0,58 s, Straße ≈ 1,07 s (vor dem Fix gemessen, je 30 Bilder inkl. Anlauf). Die Straße hat ~500 einzelne Blöcke und 4 Punktlichter; das Zusammenfassen statischer Blöcke wäre der nächste Hebel (nicht umgesetzt, Bildinhalt müsste identisch bleiben).
 4. Nicht ursächlich: Kodieren (0,2 s je 30 Bilder), Bundle (2–6 s mit Webpack-Cache), Schatten und Kantenglättung (Test „ohne beides“: nur −7 % → nicht eingebaut), andere GL-Backends (`swiftshader`, `angle`) liefern in dieser Umgebung keinen WebGL-Kontext.
 
+## Schritt 5: finaler Export mit Freigabe
+**Ablauf in vier Befehlen**
+```bash
+npm run story -- check stories/x.yaml                  # 1. Konfiguration prüfen (Fehler/Hinweise)
+npm run story -- voice stories/x.yaml                  #    Sprache erzeugen (falls Zeilen neu/geändert)
+npm run story -- preview stories/x.yaml                # 2. Vorschau ansehen (out/preview/x.mp4)
+npm run story -- approve stories/x.yaml                # 3. zeigt Zusammenfassung + Inhalts-Prüfsumme, schreibt noch nichts
+npm run story -- approve stories/x.yaml --confirm 1a2b3c4d [--by Name] [--note Text]   #    ausdrücklich freigeben
+npm run story -- render stories/x.yaml                 # 4. finaler Export → out/final/x.mp4 (1080×1920, 30 FPS, H.264 CRF 20 + AAC 192 kb/s)
+npm run story -- approval stories/x.yaml               #    Status: gültig / ungültig (+ Grund) / fehlt
+npm run story -- revoke stories/x.yaml                 #    Freigabe zurückziehen
+npm run story -- render stories/x.yaml --only kueche,ende   # Teilrendering: nur diese Szenen in den Cache (kein Gesamtvideo)
+npm run story -- render stories/x.yaml --force         # Gesamtvideo neu zusammenfügen / Szenen neu rendern
+```
+**Freigabe-Schranke:** `render` startet ohne gültige Freigabe nichts (Exit-Code 4, kein Browser, kein Bundle). Die Freigabe `approvals/<story-id>.json` enthält eine Prüfsumme über (a) die geparste YAML mit allen Standardwerten, (b) die Zeitleiste inkl. Wort-Timings, (c) die SHA-256 aller benutzten Audiodateien (Sprache, Effekte, Musik). Jede Änderung daran – auch eine neu erzeugte oder ausgetauschte Sprachdatei – macht sie ungültig; der Befehl nennt den Grund. Kommentare/Leerzeichen in der YAML ändern nichts. Eine Änderung des Renderer-Codes (nicht der Geschichte) lässt die Freigabe gültig und erzeugt nur einen Hinweis. Grenzen: Die Schranke ist eine Verfahrensschranke im Werkzeug – wer direkt `remotion render` aufruft oder `approvals/` von Hand fälscht, umgeht sie; deshalb die Regel in `CLAUDE.md`, dass Agenten nie selbst freigeben oder final rendern.
+
+**Prüfungen vor Freigabe und Export (`preflight`):** Datei vorhanden und lesbar · Schema/Querprüfungen ohne Fehler · Format 1080×1920 @ 30 FPS · jede Sprech-, Effekt- und Musikdatei vorhanden (mit Hinweis, wie sie entsteht) · Sprache passt zu Text/Stimmenprofil · echte Wort-Timings (keine geschätzten) · ffmpeg/ffprobe vorhanden. Jede Meldung nennt Datei/Zeile und den Befehl zur Behebung.
+
+**Teilrendering und Wiederverwendung:** Jede Szene wird einzeln in finaler Qualität gerendert (`out/final-cache/<Schlüssel>.mp4`, nicht im Repo). Schlüssel = Szeneninhalt, Zeitleiste, globale Einstellungen, Audiodateien, Code, Einstellungen – wie bei der Vorschau (`sceneKey`). Unveränderte Szenen werden wiederverwendet, ein unterbrochener Export setzt bei der nächsten Szene fort (Stücke werden atomar geschrieben und auf Bildzahl geprüft). Ändert sich der Text einer Zeile, verschieben sich nachfolgende Szenen (Musikposition) und werden neu gerendert – das ist so gewollt, weil sonst der Ton nicht stimmte.
+
+**Zusammenfügen (Bild und Ton synchron):** Das Video der Stücke wird unverändert (ohne Neu-Kodierung) aneinandergehängt – vorher wird bei jedem Stück der Ton entfernt, sonst addiert ffmpeg die längere Containerdauer inkl. Ton und erzeugt Lücken (so im Technik-Test aufgefallen). Der Ton jedes Stücks wird auf exakt Bilder/30 s gekürzt bzw. aufgefüllt (verhindert Drift durch AAC-Blockgrenzen), zu einer Spur verbunden und einmal AAC-kodiert. Sprache, Musik (mit Absenkung), Effekte und Untertitel/Einblendungen stammen aus derselben Composition wie die Vorschau. Danach prüft der Export die Datei (H.264/AAC, Auflösung, Bildzahl, 30 FPS, Ton- vs. Bildlänge ≤ 0,05 s) und veröffentlicht sie nur, wenn alles stimmt; daneben liegt `x.json` mit Freigabe-Prüfsumme und Szenenschlüsseln (ist alles unverändert, meldet `render` „bereits aktuell“).
+
+**Technik-Test ohne finales Video:** `--test-scale 0.25` rendert dieselbe Kette verkleinert (270×480) nach `out/final/<id>-TEST.mp4` mit eigenem Cache; die Freigabe wird trotzdem verlangt. Beispiel-Fixture: `stories/_test-export.yaml`.
+
 ## Noch NICHT umgesetzt
 | Schritt | Inhalt |
 |---|---|
 | **2** (Etappe 1–3 ✅, Rest offen) | `<StoryScene>`: YAML → 3D-Szene (Aktoren, Objekte, Kamera aus keys/orbits/shake, Anker auflösen, Verläufe/Posen-Keyframes, `rel`-Verweise), Kamera-Presets (`camera.preset`), `look` (Aussehen), Rig `person`, Kulissen `room`/`city_street`/`empty_stage`, Overlays/Captions/Subtitles/Cut-Flash aus der Config |
 | **3** ✅ | Stimmenprofile → TTS, Cache, `pronunciations`, Befehl `voice` (siehe oben). Offen: Mondsplitter bewusst nicht migriert (`synth.py`/`redo_dragon.py` bleiben), Whisper-Gegenprobe (`tts/verify.py`) nicht an die YAML angebunden |
 | **4** ✅ | Schnelle Vorschau, Szenen-/Abschnitts-Vorschau, Cache, Messwerte (siehe oben). Offen: Kontaktbogen, Hebel „statische Blöcke zusammenfassen“ |
-| **5** | Freigabe-Schranke (`approved.json` mit Hash der Story-Datei), Teil-Rendering/Zusammenfügen, Befehl `render` |
+| **5** ✅ | Freigabe-Schranke, Inhaltsbindung, Teilrendering/Zusammenfügen, Befehl `render` (siehe oben). Nicht in voller Größe 1080×1920 getestet (nur `--test-scale`) |
 
 Bis Schritt 2 wird die YAML **nicht** zum Rendern benutzt; gerendert wird weiter mit dem Referenzcode (`src/scenes/Scenes.tsx`), der unverändert bleibt.
 

@@ -139,5 +139,44 @@ assert.deepEqual(k1.map((k: string, i: number) => k === k0[i]), [true, true, fal
 assert.notEqual(sceneKey(lp.story, lp.timeline, 0, {...cfgA, width: 270}, 'code1'), k0[0], 'andere Auflösung → anderer Schlüssel');
 assert.notEqual(sceneKey(lp.story, lp.timeline, 0, cfgA, 'code2'), k0[0], 'anderer Code → anderer Schlüssel');
 console.log('✔ Schritt 4: Zeitmaßstab (Versatz ≥ 0), Szenen-Cache-Schlüssel (stabil, nur betroffene Szene ändert sich)');
+
+// ── Schritt 5: Freigabe-Schranke, Inhaltsbindung, Preflight ──
+import os from 'node:os';
+import {approvalStatus, audioFiles, contentParts, preflight, readApproval, runApprove, runExport} from './export';
+const tmp = fs.mkdtempSync(`${os.tmpdir()}/appr-`);
+for (const d of ['src', 'stories', 'tts']) fs.symlinkSync(`${process.cwd()}/${d}`, `${tmp}/${d}`);
+fs.mkdirSync(`${tmp}/public/audio`, {recursive: true});
+const sf = 'stories/demo-stadtgeschichte.yaml';
+const ex0 = (await import('./export'));
+const pre0 = preflight(sf, process.cwd());
+assert.ok(pre0.ok, `Stadtgeschichte exportierbar: ${pre0.problems.join(' | ')}`);
+for (const a of audioFiles(pre0.story!, pre0.timeline!)) fs.copyFileSync(`public/${a.file}`, `${tmp}/public/${a.file}`);
+const log = console.log; console.log = () => {};   // Ausgaben der Befehle unterdrücken
+try {
+  assert.equal(approvalStatus(pre0.story!, pre0.timeline!, tmp, 'c').state, 'fehlt');
+  assert.equal(runApprove(sf, {}, tmp), 0); assert.equal(readApproval('stadtgeschichte', tmp), undefined, 'ohne --confirm wird nichts geschrieben');
+  assert.equal(runApprove(sf, {confirm: 'deadbeef'}, tmp), 1); assert.equal(readApproval('stadtgeschichte', tmp), undefined, 'falsche Bestätigung schreibt nichts');
+  const short = ex0.contentHash(contentParts(pre0.story!, pre0.timeline!, tmp)).slice(0, 8);
+  assert.equal(runApprove(sf, {confirm: short, by: 'test'}, tmp), 0);
+  assert.equal(approvalStatus(pre0.story!, pre0.timeline!, tmp, readApproval('stadtgeschichte', tmp)!.codeHash).state, 'gültig');
+  // Inhalt ändern → ungültig
+  const changed = JSON.parse(JSON.stringify(pre0.story)); changed.scenes[0].camera.shots[0].fov = 41;
+  const stc = approvalStatus(changed, pre0.timeline!, tmp, 'c'); assert.equal(stc.state, 'ungültig'); assert.ok(stc.reasons[0].includes('Geschichte'));
+  const tlChanged = JSON.parse(JSON.stringify(pre0.timeline)); tlChanged.scenes[0].lines[0].words[0].end += 1;
+  assert.ok(approvalStatus(pre0.story!, tlChanged, tmp, 'c').reasons.some((r) => r.includes('Zeitleiste')), 'geänderte Wort-Timings');
+  fs.appendFileSync(`${tmp}/public/audio/vo_s01.wav`, Buffer.from([0]));
+  assert.ok(approvalStatus(pre0.story!, pre0.timeline!, tmp, 'c').reasons.some((r) => r.includes('Audiodateien')), 'ersetzte Sprachdatei macht Freigabe ungültig');
+  assert.notEqual(await runExport(sf, {}, tmp), 0, 'veraltete/ersetzte Sprache blockiert den Export (Preflight)');
+  fs.copyFileSync('public/audio/vo_s01.wav', `${tmp}/public/audio/vo_s01.wav`);
+  // Schranke: ohne gültige Freigabe kein Export (kehrt zurück, bevor Bundle/Browser gestartet werden)
+  const ap = readApproval('stadtgeschichte', tmp)!; ap.parts.story = 'x'.repeat(64); fs.writeFileSync(`${tmp}/approvals/stadtgeschichte.json`, JSON.stringify(ap));
+  assert.equal(await runExport(sf, {}, tmp), 4, 'Export mit ungültiger Freigabe wird verweigert');
+  fs.rmSync(`${tmp}/approvals`, {recursive: true}); assert.equal(await runExport(sf, {}, tmp), 4, 'Export ohne Freigabe wird verweigert');
+  // Preflight-Fehler
+  assert.ok(!preflight('stories/beispiel-kuchenkrimi.yaml', process.cwd()).ok, 'fehlende Sprechdateien blockieren');
+  assert.ok(preflight('stories/gibtsnicht.yaml', process.cwd()).problems[0].includes('nicht gefunden'));
+  assert.ok(!preflight('stories/_demo-fehler-struktur.yaml', process.cwd()).ok);
+} finally { console.log = log; fs.rmSync(tmp, {recursive: true, force: true}); }
+console.log('✔ Schritt 5: Freigabe an Inhalt gebunden (YAML, Timings, Audio), falsche/fehlende Bestätigung schreibt nichts, Export ohne gültige Freigabe verweigert, Preflight-Fehler');
 console.log('✔ Etappe 3: Zeitleiste = alte TTS-Timeline, Untertitel identisch, fehlende Audiodateien gemeldet, Manifest aktuell');
 console.log('✔ alle Funktionstests bestanden');

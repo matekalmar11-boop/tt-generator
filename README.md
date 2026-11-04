@@ -15,6 +15,8 @@ Schritt 3: `npm run story -- voice stories/<datei>.yaml` erzeugt die Sprache aus
 
 Schritt 4: `npm run story -- preview stories/<datei>.yaml [--scene id] [--from 3s --to 8s]` rendert eine schnelle Vorschau (360×640 @ 15 FPS, mit Ton); Messwerte und Befehle fürs finale Rendering in [docs/STORY_FORMAT.md](docs/STORY_FORMAT.md).
 
+Schritt 5: Finaler Export nur mit Freigabe – `npm run story -- approve <datei>` → `--confirm <hash>` → `npm run story -- render <datei>` (1080×1920 @ 30 FPS, Szenen-Cache, Ton/Bild synchron). Ablauf in [docs/STORY_FORMAT.md](docs/STORY_FORMAT.md).
+
 ## Pipeline
 1. `story/script.json` – Geschichte (Szenen, Sprechzeilen, Sprecher).
 2. `tts/synth.py` – deutsche TTS (Piper-Stimme *Thorsten*, CC0) → `public/audio/vo_*.wav`, Wort-Timing, Lippensync-Hüllkurve → `src/story/timeline.json`.
