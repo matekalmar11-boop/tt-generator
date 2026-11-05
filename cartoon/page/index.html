@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+ html,body{margin:0;background:#000;overflow:hidden}
+ #stage{position:relative;width:1080px;height:1920px;overflow:hidden}
+ canvas{position:absolute;left:0;top:0;width:1080px;height:1920px}
+ .blur{position:absolute;left:0;width:100%;pointer-events:none}
+ #bt{top:0;height:520px;backdrop-filter:blur(7px);-webkit-mask-image:linear-gradient(#000 0%,transparent 100%);mask-image:linear-gradient(#000 0%,transparent 100%)}
+ #bb{bottom:0;height:560px;backdrop-filter:blur(8px);-webkit-mask-image:linear-gradient(transparent 0%,#000 100%);mask-image:linear-gradient(transparent 0%,#000 100%)}
+ #vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 48%,rgba(0,0,0,0) 55%,rgba(30,12,0,.38) 100%);pointer-events:none}
+ #cap{position:absolute;left:50%;top:1400px;font:900 150px 'Inter Display','Inter',Arial Black,sans-serif;color:#fff;letter-spacing:2px;white-space:nowrap;
+   -webkit-text-stroke:16px #111;paint-order:stroke fill;text-shadow:0 8px 0 rgba(0,0,0,.45);transform:translate(-50%,-50%);opacity:0}
+ #fade{position:absolute;inset:0;background:#000;opacity:1;pointer-events:none}
+</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js"}}</script></head>
+<body><div id="stage"><canvas id="c"></canvas><div id="bt" class="blur"></div><div id="bb" class="blur"></div><div id="vig"></div><div id="cap"></div><div id="fade"></div></div>
+<script type="module" src="/main.js"></script></body></html>
