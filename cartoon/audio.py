@@ -165,18 +165,20 @@ def music():
 
 def vo():
     w = wave.open("vo.wav"); a = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768; sr = w.getframerate()
-    a = signal.resample_poly(a, SR, sr); a = filt(a, "highpass", 75, 2)
-    a = a + 0.22 * filt(a, "highpass", 3200, 2)                 # Präsenz
-    a = np.tanh(a * 1.5) / 1.5                                  # leichte Kompression
+    a = signal.resample_poly(a, SR, sr); a = filt(a, "highpass", 80, 2)
+    a = a + 0.30 * bp(a, 2200, 5500) - 0.12 * bp(a, 180, 420)    # Präsenz/Klarheit, Dröhnen raus
+    env = filt(np.abs(a), "lowpass", 12, 1) + 1e-4              # Kompressor: Lautstärke der Sätze angleichen
+    g = np.clip((0.10 / env) ** 0.65, 0.6, 3.5); g = filt(g, "lowpass", 20, 1)
+    a = a * g; a = np.tanh(a * 1.4) / 1.4
     v = np.zeros((2, N)); v[0, :min(N, len(a))] = a[:N]; v[1] = v[0]; return v
 
 def mix(path):
     v = vo(); m = music(); s = sfx_track()
     env = filt(np.abs(v[0]), "lowpass", 8, 1); env = np.clip(env / 0.12, 0, 1); env = filt(env, "lowpass", 5, 1)
     k = np.clip(env * 1.6, 0, 1)
-    m = (m - 0.5 * np.stack([bp(m[0], 900, 4200), bp(m[1], 900, 4200)])) * (1 - 0.7 * k)
+    m = (m - 0.6 * np.stack([bp(m[0], 900, 4200), bp(m[1], 900, 4200)])) * (1 - 0.8 * k)
     s = s * (1 - 0.55 * k)
-    out = v * 1.0 / (np.abs(v).max() + 1e-6) * 0.9 + m * 0.30 + s * 0.55
+    out = v * 1.0 / (np.abs(v).max() + 1e-6) * 0.95 + m * 0.17 + s * 0.40
     out = out[:, :int(TOTAL * SR)]
     out = np.tanh(out * 0.95) / np.tanh(0.95)
     out = out / np.abs(out).max() * 0.85
@@ -186,7 +188,7 @@ def mix(path):
     worst = []
     for sg in TL["segs"]:
         a, b = sg["start"], sg["end"]
-        o = np.sqrt(band(m[0] * 0.30, a, b) ** 2 + band(s[0] * 0.55, a, b) ** 2)
+        o = np.sqrt(band(m[0] * 0.17, a, b) ** 2 + band(s[0] * 0.40, a, b) ** 2)
         worst.append((round(float(20 * np.log10(band(vv, a, b) / o)), 1), sg["id"]))
     print("min Sprach-SNR dB:", sorted(worst)[:4])
     w = wave.open(path, "wb"); w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
