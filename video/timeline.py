@@ -5,34 +5,34 @@ import numpy as np
 
 SCR = "/tmp/claude-0/-home-user-tt-generator/03fcd1a6-0fb0-57ba-bc08-d1175731e387/scratchpad"
 WORK = SCR + "/work"
-VOICE = SCR + "/voice/v.onnx"
+VOICE = SCR + "/voice/de_DE-pavoque-low.onnx"
 
 # id, deutscher Text, englischer Untertitel (*..* = rot hervorgehoben), length_scale, Pause davor (s)
 SEGS = [
  ("A1", "Um dreiundzwanzig Uhr siebenundvierzig bekam ich eine Nachricht von meiner eigenen Nummer.",
-        "At *11:47 PM* I got a text|from my *own number*.", 0.97, 0.7),
- ("A2a","Darin stand:", "It said:", 1.0, 0.35),
- ("A2b","Öffne morgen auf keinen Fall die Haustür.", "*Do NOT* open the|front door tomorrow.", 0.98, 0.15),
- ("B1", "Ich dachte, jemand wollte mich verarschen.", "I figured someone|was messing with me.", 0.98, 1.45),
- ("B2", "Doch dann kam ein Foto.", "Then a *photo* came in.", 1.0, 0.25),
- ("B3", "Es zeigte mich, wie ich gerade auf meinem Bett saß.", "It showed me, sitting|on my bed. *Right now.*", 1.0, 0.85),
- ("B4", "Aufgenommen von hinter mir.", "Taken from *behind me.*", 1.05, 0.30),
- ("C1", "Ich drehte mich sofort um.", "I spun around.", 0.95, 1.1),
- ("C2", "Niemand war da.", "*Nobody* was there.", 1.12, 0.35),
- ("D1", "Dann vibrierte mein Handy erneut:", "Then my phone buzzed again:", 1.0, 1.5),
- ("D2", "Du hast noch dreißig Sekunden. Versteck dich.", "You have *30 seconds.*|*Hide.*", 1.0, 0.25),
- ("E1", "Plötzlich klingelte es an der Haustür.", "Suddenly, the *doorbell* rang.", 0.95, 6.2),
- ("E2", "Dreiundzwanzig Uhr achtundvierzig.", "*11:48 PM.*", 1.0, 0.25),
- ("F1", "Durch den Türspion sah ich jemanden,", "Through the peephole|I saw someone", 1.0, 1.2),
- ("F2", "der genauso aussah wie ich.", "who looked *exactly like me.*", 1.05, 0.12),
- ("G1", "Mein Handy vibrierte ein letztes Mal:", "My phone buzzed|one last time:", 1.0, 1.2),
- ("G2", "Mach nicht denselben Fehler wie ich.", "Don't make the *same mistake*|I did.", 1.02, 0.15),
- ("H1", "Dann hörte ich meine eigene Stimme hinter der Tür:", "Then I heard my own voice|behind the door:", 1.0, 1.1),
- ("H2", "Ich weiß, dass du da bist.", "I *know* you're in there.", 1.05, 0.45),
- ("H3", "Ich habe die Nachricht damals auch bekommen.", "I got the message|back then, too.", 1.02, 0.25),
- ("I1", "Wer hat die erste Nachricht geschickt?", "*Who* sent the *first* message?", 1.1, 1.9),
+        "At *11:47 PM* I got a text|from my *own number*.", 0.921, 0.6),
+ ("A2a","Darin stand:", "It said:", 0.950, 0.3),
+ ("A2b","Öffne morgen auf keinen Fall die Haustür.", "*Do NOT* open the|front door tomorrow.", 0.931, 0.12),
+ ("B1", "Ich dachte, jemand wollte mich verarschen.", "I figured someone|was messing with me.", 0.931, 0.8),
+ ("B2", "Doch dann kam ein Foto.", "Then a *photo* came in.", 0.950, 0.2),
+ ("B3", "Es zeigte mich, wie ich gerade auf meinem Bett saß.", "It showed me, sitting|on my bed. *Right now.*", 0.950, 0.45),
+ ("B4", "Aufgenommen von hinter mir.", "Taken from *behind me.*", 0.997, 0.2),
+ ("C1", "Ich drehte mich sofort um.", "I spun around.", 0.902, 0.55),
+ ("C2", "Niemand war da.", "*Nobody* was there.", 1.064, 0.25),
+ ("D1", "Dann vibrierte mein Handy erneut:", "Then my phone buzzed again:", 0.950, 0.7),
+ ("D2", "Du hast noch dreißig Sekunden. Versteck dich.", "You have *30 seconds.*|*Hide.*", 0.950, 0.15),
+ ("E1", "Plötzlich klingelte es an der Haustür.", "Suddenly, the *doorbell* rang.", 0.902, 4.4),
+ ("E2", "Dreiundzwanzig Uhr achtundvierzig.", "*11:48 PM.*", 0.950, 0.2),
+ ("F1", "Durch den Türspion sah ich jemanden,", "Through the peephole|I saw someone", 0.950, 0.6),
+ ("F2", "der genauso aussah wie ich.", "who looked *exactly like me.*", 0.997, 0.1),
+ ("G1", "Mein Handy vibrierte ein letztes Mal:", "My phone buzzed|one last time:", 0.950, 0.65),
+ ("G2", "Mach nicht denselben Fehler wie ich.", "Don't make the *same mistake*|I did.", 0.969, 0.1),
+ ("H1", "Dann hörte ich meine eigene Stimme hinter der Tür:", "Then I heard my own voice|behind the door:", 0.950, 0.65),
+ ("H2", "Ich weiß, dass du da bist.", "I *know* you're in there.", 0.997, 0.35),
+ ("H3", "Ich habe die Nachricht damals auch bekommen.", "I got the message|back then, too.", 0.969, 0.15),
+ ("I1", "Wer hat die erste Nachricht geschickt?", "*Who* sent the *first* message?", 1.045, 1.0),
 ]
-END_HOLD = 1.4   # Stille/Standbild nach dem letzten Satz bis zum harten Schnitt
+END_HOLD = 1.2   # Stille/Standbild nach dem letzten Satz bis zum harten Schnitt
 
 def vo_path(i): return f"{WORK}/vo/{i}.wav"
 

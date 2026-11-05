@@ -193,7 +193,7 @@ def load_vo():
         a = signal.resample_poly(a, SR, sr)
         a = filt(a, "highpass", 85, 2)
         rms = np.sqrt((a ** 2).mean())
-        a = a / rms * 0.115
+        a = a / rms * 0.125
         a = np.tanh(a * 1.6) / 1.6 * 1.3          # sanfte Kompression
         a = a + 0.25 * filt(a, "highpass", 3500, 2)   # Präsenz
         if k in ("H2", "H3"):                   # Stimme hinter der Tür: dumpf, doppelt, leicht tiefer, Hall
@@ -355,7 +355,7 @@ def sfx_track():
     words = ["Mach", "nicht", "denselben", "Fehler", "wie", "ich."]
     tot = sum(len(w) + 1 for w in words); acc = 0.0
     for w in words:
-        P(sfx_slap(1.0 + 0.1 * (acc % 3)), G2.start + G2.dur * (acc / tot) * 0.92, 0.8); acc += len(w) + 1
+        P(sfx_slap(1.0 + 0.1 * (acc % 3)), G2.start + G2.dur * (acc / tot) * 0.92, 0.45); acc += len(w) + 1
     # --- S9
     P(sfx_creak(1.2), H1.start + 0.4, 0.5)
     P(sfx_thump(55, 0.5), H2.start - 0.03, 1.0)
@@ -382,9 +382,13 @@ def mix():
     # Ducking der Musik unter der Sprache
     env = filt(np.abs(vo[0]) + np.abs(vo[1]), "lowpass", 7, 1)
     env = np.clip(env / 0.09, 0, 1)
-    duck = 1 - 0.38 * env
+    env = filt(env, "lowpass", 4, 1)
+    duck = 1 - 0.62 * np.clip(env * 1.4, 0, 1)
+    # Sprachband der Musik zusätzlich ausdünnen (1-4 kHz), damit die Stimme immer vorne steht
+    mus = mus - 0.55 * np.stack([bp(mus[0], 900, 4200), bp(mus[1], 900, 4200)])
     mus = mus * duck
-    out = vo * 1.25 + mus * 0.52 + sfx * 0.8
+    sfx = sfx * (1 - 0.72 * np.clip(env * 1.4, 0, 1))
+    out = vo * 1.3 + mus * 0.42 + sfx * 0.78
     out = out[:, :int(TOTAL * SR)]
     out = np.tanh(out * 0.9) / np.tanh(0.9) * 0.9
     pk = np.abs(out).max()
