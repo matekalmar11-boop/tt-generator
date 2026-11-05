@@ -26,8 +26,8 @@ if __name__ == "__main__":
     print("warm", round(time.time() - t0, 1), flush=True)
     cmd = ["ffmpeg", "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", "24", "-i", "-",
            "-i", AUDIO, "-map", "0:v", "-map", "1:a",
-           "-c:v", "libx264", "-preset", "medium", "-crf", "22", "-maxrate", "9M", "-bufsize", "18M", "-pix_fmt", "yuv420p", "-profile:v", "high", "-r", "24",
-           "-c:a", "aac", "-b:a", "192k", "-af", "loudnorm=I=-15:TP=-1.5:LRA=9,apad", "-t", f"{TOTAL:.3f}",
+           "-c:v", "libx264", "-preset", "medium", "-crf", "22", "-maxrate", "7M", "-bufsize", "14M", "-pix_fmt", "yuv420p", "-profile:v", "high", "-r", "24",
+           "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-af", "loudnorm=I=-15:TP=-1.5:LRA=9,apad", "-t", f"{TOTAL:.3f}",
            "-movflags", "+faststart", OUT]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     with mp.get_context("fork").Pool(4) as pool:

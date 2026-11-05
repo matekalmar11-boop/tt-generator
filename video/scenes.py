@@ -576,13 +576,13 @@ def s8(c, t, f):
     acc = 0.0
     msgb = bounce(t, G1.end + 0.1, 0.35)
     if msgb > 0:
-        items += [(RR(450, 400, 40, RED, 12, seed=17), 0, 60, 0, msgb)]
+        items += [(RR(460, 400, 40, RED, 12, seed=17), 0, 60, 0, msgb)]
         pos = []
         for w in words:
             pos.append(G2.start + G2.dur * (acc / tot) * 0.92)
             acc += len(w) + 1
         lines = [[0, 1], [2], [3, 4, 5]]
-        sizes = {0: 74, 1: 74, 2: 70, 3: 74, 4: 74, 5: 74}
+        sizes = {0: 64, 1: 64, 2: 60, 3: 64, 4: 64, 5: 64}
         for li, idxs in enumerate(lines):
             wid = [TXT(words[i], sizes[i], CREAM if i not in (3,) else INK, 1, seed=i + 8, rough=0.4) for i in idxs]
             tw = sum(w_.w - 2 * w_.pad for w_ in wid) + 20 * (len(idxs) - 1)
