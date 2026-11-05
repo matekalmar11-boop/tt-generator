@@ -95,7 +95,9 @@ def sfx_track():
     # s08 Laib rollt zur Bank
     P(rumble(S("s09") - S("s08")), S("s08"), 0.6); P(thud(65), S("s09") - 0.1, 0.9)
     # s09 Banker klopft, Bargeld
-    for k in range(4): P(tok(700), S("s09") + 0.1 + k * 0.7 * (S("s09", .55) - S("s09")) / 4 * 1.0, 0.6)
+    for k in range(6):
+        t = S("s09") + (np.pi / 2 + k * np.pi) / 9.0
+        if t < S("s09", .55): P(tok(700), t, 0.6)
     P(cash(), S("s09", .55) + 0.05, 0.9); P(pop(300), S("s09", .55) + 0.0, 0.7)
     # s10 Tresortür
     P(creak(1.2), S("s10") + 0.1, 0.8); P(clunk(), S("s10") + 1.0 * (S("s11") - S("s10")) * 0.2 + 0.05, 0.8); P(creak(0.9), S("s10") + 0.45 * (S("s11") - S("s10")), 0.6)
@@ -106,8 +108,8 @@ def sfx_track():
     # s14 Brandzeichen
     P(thud(80), S("s14") + 0.25, 0.9); P(sizzle(0.9), S("s14") + 0.3, 0.9); P(ding(), S("s14", .5) + 0.2, 0.6)
     # s15 Klopfen: Hammer trifft bei lt = (pi/2 + k pi)/7
-    for k in range(8):
-        t = S("s15") + (np.pi / 2 + k * np.pi) / 7.0
+    for k in range(1, 9):
+        t = S("s15") + (k * np.pi) / 7.0     # Arm ist bei sin=0 voll nach vorn gestreckt: Hammer trifft den Laib
         if t < S("s15", .55): P(tok(620), t, 0.9)
     P(clink(1700), S("s15", .55) + 0.4, 0.8); P(pop(700), S("s15", .55) + 0.1, 0.6)
     # s16 Wert steigt

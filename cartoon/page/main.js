@@ -33,12 +33,13 @@ const coins = []; for (let i = 0; i < 28; i++) { const c = W.coin(); scene.add(c
 const sold = W.soldSign(); scene.add(sold);
 const hammer = W.hammer(); scene.add(hammer);
 const scaleP = W.scale(); scene.add(scaleP);
+const crate = new THREE.Group(); { const cb = mesh(new THREE.BoxGeometry(2.1, 0.7, 2.1), toon(0x9a6a3c), { outline: 0.03 }); cb.position.y = 0.35; crate.add(cb); for (const s of [-1, 1]) { const sl = mesh(new THREE.BoxGeometry(2.14, 0.08, 0.2), toon(0x6b4426), { outline: 0.012 }); sl.position.set(0, 0.35, s * 0.55); crate.add(sl); } } scene.add(crate);
 const pedestal = new THREE.Group(); { const p1 = mesh(new THREE.CylinderGeometry(1.9, 2.1, 0.9, 32), toon(0xD8D2C2)); p1.position.y = 0.45; pedestal.add(p1); const p2 = mesh(new THREE.CylinderGeometry(1.6, 1.8, 0.2, 32), toon(0xC9962A)); p2.position.y = 0.95; pedestal.add(p2); } scene.add(pedestal);
 const sparks = []; for (let i = 0; i < 24; i++) { const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.12), new THREE.MeshBasicMaterial({ color: i % 2 ? 0xffe27a : 0xfff4c2 })); scene.add(m); sparks.push(m); }
 const drops = []; for (let i = 0; i < 3; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({ color: 0x8fd0ff })); m.scale.y = 1.4; scene.add(m); drops.push(m); }
 const glowSprite = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ map: (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(255,226,120,0.95)'); gr.addColorStop(0.45, 'rgba(255,200,80,0.35)'); gr.addColorStop(1, 'rgba(255,200,80,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })(), transparent: true, depthWrite: false })); scene.add(glowSprite);
 
-const ALL = [banker, maker, ...insp, ...robots, wheelA, wheelB, bag, bag2, ...coins, sold, hammer, scaleP, pedestal, ...sparks, ...drops, glowSprite];
+const ALL = [crate, banker, maker, ...insp, ...robots, wheelA, wheelB, bag, bag2, ...coins, sold, hammer, scaleP, pedestal, ...sparks, ...drops, glowSprite];
 const hide = () => ALL.forEach(o => { o.position.set(0, -300, 0); o.rotation.set(0, 0, 0); o.scale.setScalar(1); o.visible = true; });
 
 // ---- Helpers
@@ -62,7 +63,7 @@ function camKeys(o, a, b, u, e = true) {
 
 // ---- Szenen-Hilfen
 function talkBanker(t, extra = {}) { pose(banker, { talk: t, bob: Math.sin(t * 3) * 0.02, look: Math.sin(t * 1.3) * 0.15, ...extra }); }
-function placeBanker(x = 3, z = -5.8, ry = 0) { banker.position.set(x, 0, z); banker.rotation.y = ry; }
+function placeBanker(x = 3, z = -7.0, ry = 0) { banker.position.set(x, 0, z); banker.rotation.y = ry; }
 
 // Shots: { t0, t1, set, a(cam start), b(cam end), run(u, lt, t) }
 const shots = [];
@@ -74,18 +75,18 @@ add(S('s01', 0.62), S('s02', 0), 'bank', { p: [6.8, 2.7, -0.6], l: [3.2, 2.5, -5
 // === s02  Laib rollt herein
 add(S('s02', 0), S('s03', 0), 'bank', { p: [0.5, 2.0, 9], l: [0.5, 1.4, -5], f: 56 }, { p: [0.5, 1.8, 6.5], l: [0.5, 1.4, -5], f: 54 }, (u, lt) => {
   const d = lerp(5, -3.6, ease(u)); wheelA.position.set(-3.2, 1.5, d); upright(wheelA); wheelA.rotation.x = (d - 5) / 1.5; wheelA.rotation.z = Math.PI / 2; wheelA.rotation.order = 'XYZ';
-  placeBanker(3, -5.8); pose(banker, { face: u > 0.35 ? 'shock' : 'smile', nod: -0.1, out: 0.4 * clamp(u * 3), arms: [-0.6 * clamp(u * 3), -0.6 * clamp(u * 3)] }); });
+  placeBanker(3, -7.0); pose(banker, { face: u > 0.35 ? 'shock' : 'smile', nod: -0.1, out: 0.4 * clamp(u * 3), arms: [-0.6 * clamp(u * 3), -0.6 * clamp(u * 3)] }); });
 // === s03  Held-Shot
 add(S('s03', 0), S('s04', 0), 'bank', { p: [9, 4.2, 7], l: [-3, 1.0, -1], f: 48 }, { p: [-3, 3.6, 11.5], l: [-3, 1.0, -1], f: 48 }, (u, lt, t) => {
-  pedestal.position.set(-3, 0, -1); wheelA.position.set(-3, 1.55, -1); wheelA.rotation.set(0, lt * 1.4, 0);
+  pedestal.position.set(-3, 0, -1); wheelA.position.set(-3, 1.57, -1); wheelA.rotation.set(0, lt * 1.4, 0);
   sparks.forEach((s, i) => { const a = lt * 1.5 + i * 0.52, r = 2.4 + (i % 3) * 0.5; s.position.set(-3 + Math.cos(a) * r, 1.4 + (i % 5) * 0.55 + Math.sin(lt * 3 + i) * 0.2, -1 + Math.sin(a) * r); s.rotation.y = lt * 3; s.scale.setScalar(0.7 + 0.5 * Math.sin(lt * 5 + i)); });
 });
 // === s04  Waage + Geld
 add(S('s04', 0), S('s04', 0.5), 'bank', { p: [-6.5, 3.6, 10], l: [-4, 1.0, 0.5], f: 42 }, { p: [-4.5, 3.0, 9], l: [-4, 1.0, 0.5], f: 40 }, (u, lt) => {
-  scaleP.position.set(-4, 0, 0.5); scaleP.rotation.y = 0.2; wheelA.position.set(-4, 1.85 - 0.06 * Math.sin(lt * 18) * (1 - ease(u * 2)), 0.5); wheelA.rotation.set(0, 0.3, 0);
+  scaleP.position.set(-4, 0, 0.5); scaleP.rotation.y = 0.2; wheelA.position.set(-4, 1.13 + 0.03 * Math.abs(Math.sin(lt * 18)) * (1 - ease(u * 2)), 0.5); wheelA.rotation.set(0, 0.3, 0);
   scaleP.userData.needle.rotation.z = lerp(0.9, -0.55, ease(u * 1.6)) + Math.sin(lt * 20) * 0.05 * (1 - ease(u * 2)); });
 add(S('s04', 0.5), S('s05', 0), 'bank', { p: [-0.5, 4.0, 11], l: [-3.5, 0.8, 0.5], f: 50 }, { p: [-1.5, 3.4, 10], l: [-3.5, 0.8, 0.5], f: 46 }, (u, lt) => {
-  wheelA.position.set(-5.2, 0.8, 0.5); wheelA.scale.setScalar(0.9);
+  wheelA.position.set(-5.4, 0.45, 0.5); wheelA.scale.setScalar(0.9);
   coins.forEach((c, i) => { const t0 = i * 0.05; const k = clamp((u * 1.3 - t0) / 0.35); const y = lerp(6, 0.2 + Math.floor(i / 7) * 0.09, ease(k)); c.position.set(-2.2 + (i % 7) * 0.12 - 0.4, y, 0.8 + ((i * 3) % 5) * 0.1 - 0.2); c.rotation.set(k < 1 ? lt * 8 : 0, k < 1 ? lt * 5 : 0, 0); c.scale.setScalar(k > 0 ? 1.25 : 0.001); });
   bag.position.set(-1.6, 0, 1.2); bag.scale.setScalar(bounce(u, 0.4) * 1.1); });
 // === s05  Käserei: Käser rührt
@@ -111,17 +112,17 @@ add(S('s07', 0), S('s08', 0), 'dairy', { p: [8.5, 4.6, 7], l: [5, 1.5, -1.0], f:
 add(S('s08', 0), S('s09', 0), 'bank', { p: [-7, 2.4, 11], l: [0, 1.2, 0], f: 58 }, { p: [4.5, 2.6, 6], l: [3, 1.2, -3.5], f: 54 }, (u, lt) => {
   const z = lerp(8, -2.6, ease(u)), x = lerp(-3, 3, ease(u));
   wheelA.position.set(x, 1.5, z); upright(wheelA); wheelA.rotation.x = (z - 8) / 1.5;
-  maker.position.set(x - 0.4, 0, z + 1.9); maker.rotation.y = 0.15; pose(maker, { walk: lt * 9, arms: [-1.4, -1.4], lean: 0.2, face: 'smile' });
-  placeBanker(3, -5.8); pose(banker, { face: 'shock' }); });
+  maker.position.set(x - 0.0, 0, z + 2.6); maker.rotation.y = 0.15; pose(maker, { walk: lt * 9, arms: [-1.4, -1.4], lean: 0.2, face: 'smile' });
+  placeBanker(3, -7.0); pose(banker, { face: 'shock' }); });
 // === s09  Banker prüft + Bargeld
 add(S('s09', 0), S('s09', 0.55), 'bank', { p: [7.5, 3.4, 1.5], l: [2.6, 1.3, -5], f: 42 }, { p: [6.0, 3.1, 0.5], l: [2.6, 1.3, -5], f: 38 }, (u, lt) => {
-  wheelA.position.set(1.4, 2.1, -4.7); wheelA.scale.setScalar(0.8); upright(wheelA); wheelA.rotation.x = 0;
-  placeBanker(3.6, -5.8); pose(banker, { arms: [-0.3 - 0.8 * Math.abs(Math.sin(lt * 9)), 0.1], face: 'smile', look: -0.4, talk: null });
-  hammer.position.set(2.5, 2.2, -4.2); });
+  wheelA.position.set(1.9, 1.14 + 1.2, -5.2); wheelA.scale.setScalar(0.8); upright(wheelA); wheelA.rotation.x = 0;
+  placeBanker(3.2, -7.0); pose(banker, { arms: [-1.0 - 0.5 * Math.abs(Math.sin(lt * 9)), 0.1], face: 'smile', look: -0.3, talk: null });
+  const hh = wp(banker.userData.arms[0].userData.hand); hammer.position.set(hh.x + 0.02, hh.y + 0.1, hh.z); hammer.rotation.z = 1.2; });
 add(S('s09', 0.55), S('s10', 0), 'bank', { p: [0.5, 3.2, 3.2], l: [2.4, 1.4, -4.5], f: 44 }, { p: [1.8, 3.0, 2.2], l: [2.6, 1.4, -4.5], f: 40 }, (u, lt) => {
-  placeBanker(4.2, -5.8); pose(banker, { arms: [-1.3, -0.1], face: 'happy' });
+  placeBanker(4.2, -7.0); pose(banker, { arms: [-1.3, -0.1], face: 'happy' });
   maker.position.set(0.8, 0, -3.2); maker.rotation.y = 0.5; pose(maker, { arms: [-1.3, -1.3 + 0.3 * Math.sin(lt * 6)], face: 'happy', bob: Math.abs(Math.sin(lt * 7)) * 0.1 });
-  bag.position.set(1.9, 1.15, -3.9); bag.scale.setScalar(bounce(u, 0.3) * 0.9);
+  bag.position.set(1.9, 1.14, -4.75); bag.scale.setScalar(bounce(u, 0.3) * 0.9);
   sparks.forEach((s, i) => { const a = i / sparks.length * 6.28 + lt * 2; const r = 0.9 + 0.5 * Math.sin(lt * 4 + i); s.position.set(1.9 + Math.cos(a) * r, 1.8 + Math.sin(a) * r * 0.7, -3.9); s.scale.setScalar(0.8); }); });
 // === s10  Tresortür öffnet
 add(S('s10', 0), S('s11', 0), 'bank', { p: [-2, 2.6, 6], l: [-3, 2.4, -7], f: 52 }, { p: [-3.2, 2.7, -2.5], l: [-3.2, 2.6, -12], f: 62 }, (u, lt) => {
@@ -135,36 +136,36 @@ add(S('s12', 0), S('s13', 0), 'vault', { p: [0.2, 1.4, -18], l: [0, 4.6, -34], f
   insp[0].position.set(O.vault.x + 0.2, 0, O.vault.z - 24.5); insp[0].rotation.y = Math.PI; pose(insp[0], { arms: [-0.4, -0.4], face: 'shock', look: -0.2, nod: -0.5 }); });
 // === s13  Roboter
 add(S('s13', 0), S('s14', 0), 'vault', { p: [-1.2, 3.2, -4], l: [0.3, 1.0, -14], f: 50 }, { p: [-1.2, 3.0, -11], l: [0.3, 1.0, -21], f: 48 }, (u, lt) => { warm.position.set(O.vault.x, 6, O.vault.z - 14); warm.intensity = 40;
-  robots.forEach((r, i) => { const z = O.vault.z - 12 - i * 7 - u * 6; r.position.set(O.vault.x - 1.6 + (i % 2) * 0.3, 0, z); r.rotation.y = -1.57 + 3.14 * 0; r.userData.brush.rotation.x = -lt * 14; r.userData.wheels.forEach(w => w.rotation.x = lt * 8); r.userData.eyes.forEach((e, j) => e.visible = (Math.floor(lt * 4 + i) % 3) !== j + 3); r.rotation.y = Math.PI; }); });
+  robots.forEach((r, i) => { const z = O.vault.z - 12 - i * 7 - u * 6; r.scale.setScalar(0.75); r.position.set(O.vault.x - 0.9 + i * 2.1, 0, z + i * 1.2); r.rotation.y = -1.57 + 3.14 * 0; r.userData.brush.rotation.x = -lt * 14; r.userData.wheels.forEach(w => w.rotation.x = lt * 8); r.userData.eyes.forEach((e, j) => e.visible = (Math.floor(lt * 4 + i) % 3) !== j + 3); r.rotation.y = Math.PI; }); });
 // === s14  Brandzeichen
-add(S('s14', 0), S('s14', 0.5), 'vault', { p: [0.6, 2.6, -2.5], l: [0.2, 1.2, -9.6], f: 46 }, { p: [0.5, 2.4, -3.6], l: [0.2, 1.2, -9.6], f: 42 }, (u, lt) => { warm.position.set(O.vault.x - 1, 6, O.vault.z - 8); warm.intensity = 40;
-  wheelA.position.set(O.vault.x - 0.5, 1.0, O.vault.z - 9.6); wheelA.scale.setScalar(0.68); wheelA.rotation.set(0, 0, 0);
-  insp[0].position.set(O.vault.x + 0.9, 0, O.vault.z - 9.6); insp[0].rotation.y = -1.57; pose(insp[0], { arms: [-1.2 + 0.7 * Math.abs(Math.sin(lt * 5)), 0], face: 'happy' });
+add(S('s14', 0), S('s14', 0.5), 'vault', { p: [1.0, 2.6, -2.6], l: [0.5, 1.2, -9.6], f: 46 }, { p: [0.9, 2.4, -3.6], l: [0.5, 1.2, -9.6], f: 42 }, (u, lt) => { warm.position.set(O.vault.x - 1, 6, O.vault.z - 8); warm.intensity = 40;
+  crate.position.set(O.vault.x - 0.5, 0, O.vault.z - 9.6); wheelA.position.set(O.vault.x - 0.5, 1.04, O.vault.z - 9.6); wheelA.scale.setScalar(0.68); wheelA.rotation.set(0, 0, 0);
+  insp[0].position.set(O.vault.x + 1.55, 0, O.vault.z - 9.6); insp[0].rotation.y = -1.57; pose(insp[0], { arms: [-1.2 + 0.7 * Math.abs(Math.sin(lt * 5)), 0], face: 'happy' });
   sparks.forEach((s, i) => { const k = (lt * 2 + i * 0.1) % 1; s.position.set(O.vault.x + 0.7 + k * 0.6 * Math.cos(i), 1.8 + k * 1.3 * Math.sin(i * 1.7 + 1), O.vault.z - 9.6 + Math.cos(i * 2.3) * 0.7); s.scale.setScalar(Math.sin(k * Math.PI) * 0.9); }); });
-add(S('s14', 0.5), S('s15', 0), 'vault', { p: [0.6, 2.4, -3.4], l: [0.2, 1.3, -9.6], f: 40 }, { p: [0.4, 2.0, -4.6], l: [0.2, 1.3, -9.6], f: 34 }, (u, lt) => { warm.position.set(O.vault.x - 1, 6, O.vault.z - 8); warm.intensity = 40;
-  wheelA.position.set(O.vault.x - 0.5, 1.0, O.vault.z - 9.6); wheelA.scale.setScalar(0.68); wheelA.rotation.set(0, 0.5 + 0.2 * Math.sin(lt), 0);
-  insp[0].position.set(O.vault.x + 0.9, 0, O.vault.z - 9.6); insp[0].rotation.y = -0.9; pose(insp[0], { arms: [-1.3, 0], face: 'smile' }); });
+add(S('s14', 0.5), S('s15', 0), 'vault', { p: [1.0, 2.4, -3.4], l: [0.5, 1.3, -9.6], f: 40 }, { p: [0.8, 2.0, -4.6], l: [0.5, 1.3, -9.6], f: 34 }, (u, lt) => { warm.position.set(O.vault.x - 1, 6, O.vault.z - 8); warm.intensity = 40;
+  crate.position.set(O.vault.x - 0.5, 0, O.vault.z - 9.6); wheelA.position.set(O.vault.x - 0.5, 1.04, O.vault.z - 9.6); wheelA.scale.setScalar(0.68); wheelA.rotation.set(0, 0.5 + 0.2 * Math.sin(lt), 0);
+  insp[0].position.set(O.vault.x + 1.55, 0, O.vault.z - 9.6); insp[0].rotation.y = -0.9; pose(insp[0], { arms: [-1.3, 0], face: 'smile' }); });
 // === s15  Prüfer klopfen
-add(S('s15', 0), S('s15', 0.55), 'vault', { p: [0.6, 2.5, -2.8], l: [0.2, 1.2, -9.6], f: 46 }, { p: [0.5, 2.3, -3.8], l: [0.2, 1.2, -9.6], f: 42 }, (u, lt) => { warm.position.set(O.vault.x - 1, 6, O.vault.z - 8); warm.intensity = 40;
-  wheelA.position.set(O.vault.x - 0.5, 1.0, O.vault.z - 9.6); wheelA.scale.setScalar(0.68);
+add(S('s15', 0), S('s15', 0.55), 'vault', { p: [1.0, 2.5, -2.8], l: [0.5, 1.2, -9.6], f: 46 }, { p: [0.9, 2.3, -3.8], l: [0.5, 1.2, -9.6], f: 42 }, (u, lt) => { warm.position.set(O.vault.x - 1, 6, O.vault.z - 8); warm.intensity = 40;
+  crate.position.set(O.vault.x - 0.5, 0, O.vault.z - 9.6); wheelA.position.set(O.vault.x - 0.5, 1.04, O.vault.z - 9.6); wheelA.scale.setScalar(0.68);
   const hit = Math.abs(Math.sin(lt * 7));
-  insp[0].position.set(O.vault.x + 0.9, 0, O.vault.z - 9.6); insp[0].rotation.y = -1.5; pose(insp[0], { arms: [-0.2, -1.5 + hit * 0.9], face: 'smile', look: 0.4 });
-  hammer.position.set(O.vault.x + 0.2, 2.2 - hit * 0.3, O.vault.z - 9.6); hammer.rotation.z = 0.9; });
-add(S('s15', 0.55), S('s16', 0), 'vault', { p: [0.8, 2.4, -3.8], l: [0.2, 1.4, -9.6], f: 40 }, { p: [0.6, 2.2, -4.8], l: [0.2, 1.4, -9.6], f: 34 }, (u, lt) => { warm.position.set(O.vault.x - 1, 6, O.vault.z - 8); warm.intensity = 40;
-  wheelA.position.set(O.vault.x - 0.5, 1.0, O.vault.z - 9.6); wheelA.scale.setScalar(0.68);
-  insp[0].position.set(O.vault.x + 0.9, 0, O.vault.z - 9.6); insp[0].rotation.y = -1.57; pose(insp[0], { arms: [-1.5, 0], face: 'shock', nod: 0.3, look: 0.5, tilt: 0.25 }); });
+  insp[0].position.set(O.vault.x + 1.55, 0, O.vault.z - 9.6); insp[0].rotation.y = -1.5; pose(insp[0], { arms: [-0.2, -1.5 + hit * 0.9], face: 'smile', look: 0.4 });
+  const hh = wp(insp[0].userData.arms[1].userData.hand); hammer.position.set(hh.x - 0.05, hh.y + 0.12, hh.z); hammer.rotation.z = 1.15; });
+add(S('s15', 0.55), S('s16', 0), 'vault', { p: [1.1, 2.4, -3.8], l: [0.5, 1.4, -9.6], f: 40 }, { p: [1.0, 2.2, -4.8], l: [0.5, 1.4, -9.6], f: 34 }, (u, lt) => { warm.position.set(O.vault.x - 1, 6, O.vault.z - 8); warm.intensity = 40;
+  crate.position.set(O.vault.x - 0.5, 0, O.vault.z - 9.6); wheelA.position.set(O.vault.x - 0.5, 1.04, O.vault.z - 9.6); wheelA.scale.setScalar(0.68);
+  insp[0].position.set(O.vault.x + 1.55, 0, O.vault.z - 9.6); insp[0].rotation.y = -1.57; pose(insp[0], { arms: [-1.5, 0], face: 'shock', nod: 0.3, look: 0.5, tilt: 0.25 }); });
 // === s16  Wert steigt mit der Zeit
 add(S('s16', 0), S('s17', 0), 'bank', { p: [-6, 3.0, 6.5], l: [-3, 1.8, 0], f: 48 }, { p: [-1.5, 3.2, 6], l: [-3, 2.0, 0], f: 44 }, (u, lt) => {
-  pedestal.position.set(-3, 0, 0); wheelA.position.set(-3, 1.55, 0); wheelA.rotation.set(0, lt * 1.0, 0); wheelA.scale.setScalar(1 + 0.18 * u);
+  pedestal.position.set(-3, 0, 0); wheelA.scale.setScalar(1 + 0.18 * u); wheelA.position.set(-3, 1.07 + 0.5 * wheelA.scale.x, 0); wheelA.rotation.set(0, lt * 1.0, 0);
   coins.forEach((c, i) => { const k = clamp((u * 1.4 - i * 0.03) / 0.4); c.position.set(-3 + (i % 4 - 1.5) * 0.55, 3.2 + Math.floor(i / 4) * 0.35 * k, 0.5); c.scale.setScalar(k > 0 ? 0.9 : 0.001); c.rotation.set(0, lt * 3 + i, 0); });
   glowSprite.position.set(-3, 2.0, -1.2); glowSprite.scale.setScalar(0.6 + 0.6 * u); });
 // === s17  Verkauf, Rückzahlung, Gewinn
 add(S('s17', 0), S('s17', 0.36), 'bank', { p: [-2, 2.6, 2.5], l: [-3, 1.8, -3.5], f: 42 }, { p: [-1.2, 2.5, 1.5], l: [-3, 1.8, -3.5], f: 38 }, (u, lt) => {
   maker.position.set(-2.4, 0, -3); maker.rotation.y = 0.35; pose(maker, { arms: [-1.0, -1.0], face: 'happy', bob: Math.abs(Math.sin(lt * 6)) * 0.08 });
   sold.position.set(-1.8, 3.7, -3.6); sold.scale.setScalar(bounce(u, 0.3) * 1.1); sold.rotation.z = -0.15;
-  wheelA.position.set(-4.3, 1.1, -3.2); wheelA.scale.setScalar(0.7); });
+  wheelA.position.set(-4.5, 0.35, -3.3); wheelA.scale.setScalar(0.7); });
 add(S('s17', 0.36), S('s17', 0.7), 'bank', { p: [1.8, 2.7, 0.5], l: [3, 2.0, -5], f: 42 }, { p: [2.4, 2.7, -0.6], l: [3, 2.0, -5], f: 36 }, (u, lt) => {
-  placeBanker(4.2, -5.8); pose(banker, { arms: [-1.3, -1.3], face: 'happy' }); maker.position.set(1.4, 0, -3.3); maker.rotation.y = 0.6; pose(maker, { arms: [-1.3, -1.3], face: 'smile' });
+  placeBanker(4.2, -7.0); pose(banker, { arms: [-1.3, -1.3], face: 'happy' }); maker.position.set(1.4, 0, -3.3); maker.rotation.y = 0.6; pose(maker, { arms: [-1.3, -1.3], face: 'smile' });
   const bx = lerp(1.4, 3.0, ease(u)); bag.position.set(bx, 1.3, lerp(-3.4, -4.1, ease(u))); bag.scale.setScalar(1.0); });
 add(S('s17', 0.7), S('s18', 0), 'bank', { p: [-3, 3.0, 4.5], l: [-3, 2.0, -1], f: 46 }, { p: [-3, 2.8, 3.2], l: [-3, 2.2, -1], f: 42 }, (u, lt) => {
   maker.position.set(-3, 0, -1); maker.rotation.y = 0.0; pose(maker, { arms: [-2.6 + Math.abs(Math.sin(lt * 7)) * 0.5, -2.6 + Math.abs(Math.cos(lt * 7)) * 0.5], face: 'happy', bob: Math.abs(Math.sin(lt * 7)) * 0.35 });
@@ -174,15 +175,15 @@ add(S('s18', 0), S('s18', 0.5), 'bank', { p: [-1.5, 2.6, 3.5], l: [-2, 2, -3.5],
   maker.position.set(-2, 0, -3.5); maker.rotation.y = 0.2; pose(maker, { arms: [0.2, 0.2], out: 0.55, face: 'sad', nod: 0.2 });
   drops.forEach((d, i) => { const k = (lt * 1.5 + i * 0.33) % 1; d.position.set(-2.6 + i * 0.4, 4.0 - k * 1.5, -2.6); }); });
 add(S('s18', 0.5), S('s19', 0), 'bank', { p: [5.8, 2.9, -0.8], l: [3.5, 2.0, -5], f: 40 }, { p: [4.8, 2.8, -1.8], l: [3.5, 2.0, -5], f: 34 }, (u, lt) => {
-  placeBanker(4.0, -5.8); const hit = clamp((u - 0.35) / 0.15); pose(banker, { arms: [-1.0 - 0.6 * (1 - hit) , 0], face: u > 0.5 ? 'happy' : 'smile' });
-  wheelA.position.set(1.8, 2.0, -4.6); wheelA.scale.setScalar(0.8);
-  sold.position.set(1.8, 2.0 + 0.0 + (1 - hit) * 1.3, -3.7); sold.scale.setScalar(u > 0.35 ? 1.2 : 0.001); });
+  placeBanker(4.0, -7.0); const hit = clamp((u - 0.35) / 0.15); pose(banker, { arms: [-1.0 - 0.6 * (1 - hit) , 0], face: u > 0.5 ? 'happy' : 'smile' });
+  wheelA.position.set(1.8, 1.14 + 0.4, -5.2); wheelA.scale.setScalar(0.8);
+  sold.position.set(1.8, 2.45 + (1 - hit) * 1.3, -4.5); sold.scale.setScalar(u > 0.35 ? 1.2 : 0.001); });
 // === s19  Finale
-add(S('s19', 0), TOTAL, 'bank', { p: [-6, 3.0, 7], l: [-3, 2.2, 0], f: 46 }, { p: [-3, 3.6, 12], l: [-3, 2.4, 0], f: 52 }, (u, lt) => {
-  pedestal.position.set(-3, 0, 0); wheelA.position.set(-3, 1.6, 0); wheelA.rotation.set(0, lt * 0.9, 0); wheelA.scale.setScalar(1.25);
+add(S('s19', 0), TOTAL, 'bank', { p: [-6.5, 3.0, 10.5], l: [-3, 1.5, 1.2], f: 52 }, { p: [-3, 3.3, 14.5], l: [-3, 1.7, 1.2], f: 55 }, (u, lt) => {
+  pedestal.position.set(-3, 0, 0); wheelA.scale.setScalar(1.25); wheelA.position.set(-3, 1.07 + 0.5 * 1.25, 0); wheelA.rotation.set(0, lt * 0.9, 0);
   glowSprite.position.set(-3, 2.2, -1.2); glowSprite.scale.setScalar(1.3 + 0.2 * Math.sin(lt * 3));
-  placeBanker(-1.0, 0.2, -0.5); pose(banker, { arms: [-1.4, -1.4], face: 'happy', bob: Math.sin(lt * 3) * 0.04 });
-  maker.position.set(-5.3, 0, 0.2); maker.rotation.y = 0.55; pose(maker, { arms: [-1.4, -1.4], face: 'happy', bob: Math.sin(lt * 3 + 1) * 0.04 });
+  placeBanker(-0.3, 2.3, -0.55); pose(banker, { arms: [-1.4, -1.4], face: 'happy', bob: Math.sin(lt * 3) * 0.04 });
+  maker.position.set(-5.7, 0, 2.3); maker.rotation.y = 0.55; pose(maker, { arms: [-1.4, -1.4], face: 'happy', bob: Math.sin(lt * 3 + 1) * 0.04 });
   sparks.forEach((s, i) => { const a = lt * 1.2 + i * 0.52, r = 3 + (i % 3) * 0.5; s.position.set(-3 + Math.cos(a) * r, 1.0 + (i % 6) * 0.7 + Math.sin(lt * 3 + i) * 0.2, Math.sin(a) * r); s.scale.setScalar(0.8 + 0.5 * Math.sin(lt * 5 + i)); }); });
 
 // ---- Untertitel (ein Wort pro Bild)
@@ -215,9 +216,81 @@ window.renderAt = (t) => {
   const look = camKeys(O[sh.set], sh.a, sh.b, u, sh.set === 'vault' && sh.t1 - sh.t0 > 1 ? false : true);
   sunFollow(new THREE.Vector3(look[0], look[1], look[2]));
   glowSprite.quaternion.copy(camera.quaternion);
-  renderer.render(scene, camera);
+  if (!window.NORENDER) renderer.render(scene, camera);
   setCaption(t);
   document.getElementById('fade').style.opacity = t > TOTAL - 0.6 ? clamp((t - (TOTAL - 0.6)) / 0.5) : (t < 0.15 ? 1 - t / 0.15 : 0);
   return true;
 };
 window.TOTAL = TOTAL; window.READY = true;
+
+// ================= Kollisionsprüfung (nur für Tests): Figuren-Kugeln gegen Laibe, Regale, Möbel =================
+const _v = new THREE.Vector3();
+function wp(o) { o.updateWorldMatrix(true, false); return o.getWorldPosition(new THREE.Vector3()); }
+function charSpheres(ch) {
+  const u = ch.userData, out = [];
+  out.push([wp(u.head), 0.52, 'head']);
+  const t = wp(u.body.children[0]);                 // Torso
+  for (const dy of [-0.3, 0, 0.3]) out.push([t.clone().add(new THREE.Vector3(0, dy, 0)), 0.34, 'torso']);
+  u.arms.forEach((a, i) => { out.push([wp(a.userData.hand), 0.13, 'hand']); });
+  u.legs.forEach((l, i) => { out.push([wp(l.children[1]), 0.15, 'foot']); });
+  return out;
+}
+function cylOf(w) {   // Laib: Mittelpunkt, Achse, Radius, Halbhöhe
+  const b = w.userData.body, c = wp(b), q = new THREE.Quaternion(); b.getWorldQuaternion(q);
+  const ax = new THREE.Vector3(0, 1, 0).applyQuaternion(q).normalize(); const sc = w.scale.x;
+  return { c, ax, R: 1.5 * sc, H: 0.5 * sc * 1.0, name: 'wheel' };
+}
+function sphereCyl(p, r, cy) {
+  const d = p.clone().sub(cy.c), h = d.dot(cy.ax), rad = Math.sqrt(Math.max(0, d.lengthSq() - h * h));
+  const dh = Math.max(0, Math.abs(h) - cy.H), dr = Math.max(0, rad - cy.R);
+  const dist = Math.sqrt(dh * dh + dr * dr);
+  if (Math.abs(h) <= cy.H && rad <= cy.R) return r + Math.min(cy.H - Math.abs(h), cy.R - rad);
+  return r - dist;
+}
+function sphereBox(p, r, b) {
+  const q = new THREE.Vector3(clamp(p.x, b.min.x, b.max.x), clamp(p.y, b.min.y, b.max.y), clamp(p.z, b.min.z, b.max.z));
+  const inside = b.containsPoint(p); const d = q.distanceTo(p);
+  if (inside) { const m = Math.min(p.x - b.min.x, b.max.x - p.x, p.y - b.min.y, b.max.y - p.y, p.z - b.min.z, b.max.z - p.z); return r + m; }
+  return r - d;
+}
+const B3 = (x0, y0, z0, x1, y1, z1) => new THREE.Box3(new THREE.Vector3(x0, y0, z0), new THREE.Vector3(x1, y1, z1));
+const staticBoxes = () => {
+  const V = W.VAULT, D = W.DAIRY;
+  return [
+    ['vaultShelfL', B3(V.x - 7.65, 0, V.z - 58.95, V.x - 1.85, 8, V.z + 1.45)], ['vaultShelfR', B3(V.x + 2.05, 0, V.z - 58.95, V.x + 7.85, 8, V.z + 1.45)],
+    ['bankDesk', B3(0.4, 0, -6.05, 5.6, 1.14, -4.35)], ['dairyTable', B3(D.x + 2.6, 0, -1.2, D.x + 7.4, 1.14, 1.2)],
+    ['dairyShelf', B3(D.x + 2.55, 0, -8.2, D.x + 10.4, 7, -6.2)],
+    ['bankBackWall', B3(-13, 0, -9, 13, 8, -7.6)], ['dairyBackWall', B3(D.x - 13, 0, -9, D.x + 13, 8, -7.9)],
+    ['bankWallL', B3(-14, 0, -20, -12.7, 8, 8)], ['bankWallR', B3(12.7, 0, -20, 14, 8, 8)],
+    ['bankColL', B3(-9.3, 0, -7.3, -7.9, 8, -5.9)], ['bankColR', B3(7.9, 0, -7.3, 9.3, 8, -5.9)],
+  ];
+};
+window.audit = (t) => {
+  window.renderAt(t);
+  const issues = []; const boxes = staticBoxes();
+  const chars = [['banker', banker], ['maker', maker], ['insp0', insp[0]], ['insp1', insp[1]]].filter(([n, c]) => c.position.y > -50);
+  const cyls = [['wheelA', wheelA]].filter(([n, w]) => w.position.y > -50).map(([n, w]) => [n, cylOf(w)]);
+  const cylsStatic = [];
+  if (pedestal.position.y > -50) { const p = pedestal.position; cylsStatic.push(['pedestal', { c: new THREE.Vector3(p.x, 0.5, p.z), ax: new THREE.Vector3(0, 1, 0), R: 2.0, H: 0.55 }]); }
+  { const D = W.DAIRY; cylsStatic.push(['vat', { c: new THREE.Vector3(D.x - 3, 1.0, -4.5), ax: new THREE.Vector3(0, 1, 0), R: 1.75, H: 1.0 }]); }
+  if (scaleP.position.y > -50) { const p = scaleP.position; cylsStatic.push(['scale', { c: new THREE.Vector3(p.x, 0.3, p.z), ax: new THREE.Vector3(0, 1, 0), R: 1.8, H: 0.35 }]); }
+  const crateB = crate.position.y > -50 ? [['crate', new THREE.Box3().setFromObject(crate)]] : [];
+  const robBoxes = robots.filter(r => r.position.y > -50).map((r, i) => ['robot' + i, new THREE.Box3().setFromObject(r.children[0])]);
+  for (const [cn, ch] of chars) for (const [p, r, part] of charSpheres(ch)) {
+    for (const [n, cy] of [...cyls, ...cylsStatic]) { const pen = sphereCyl(p, r, cy); if (pen > 0.06) issues.push(`${cn}.${part} in ${n} ${pen.toFixed(2)}`); }
+    for (const [n, b] of [...boxes, ...crateB, ...robBoxes]) { const pen = sphereBox(p, r, b); if (pen > 0.06) issues.push(`${cn}.${part} in ${n} ${pen.toFixed(2)}`); }
+    if (p.y - r < -0.12 && part !== 'foot') issues.push(`${cn}.${part} below floor`);
+  }
+  for (const [rn, rb] of robBoxes) for (const [bn, b] of boxes) { if (rb.clone().expandByScalar(-0.05).intersectsBox(b)) issues.push(`${rn} in ${bn}`); }
+  if (hammer.position.y > -50) { const hb = new THREE.Box3().setFromObject(hammer).expandByScalar(-0.03); for (const [bn, b] of [...boxes, ...crateB]) if (hb.intersectsBox(b)) issues.push(`hammer in ${bn}`); for (const [n, cy] of cyls) { const ph = wp(hammer); if (sphereCyl(ph.clone().add(new THREE.Vector3(-0.25, 0.3, 0)), 0.1, cy) > 0.12) issues.push('hammer deep in wheel'); } }
+  // Laib gegen Boden/Möbel
+  for (const [n, cy] of cyls) {
+    const low = cy.c.y - (cy.H * Math.abs(cy.ax.y) + cy.R * Math.sqrt(Math.max(0, 1 - cy.ax.y * cy.ax.y)));
+    if (low < -0.06) issues.push(`wheel below floor ${low.toFixed(2)}`);
+    const pts = []; for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2; const u1 = new THREE.Vector3(1, 0, 0), ax = cy.ax; const e1 = Math.abs(ax.x) < 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0); const t1 = e1.clone().sub(ax.clone().multiplyScalar(e1.dot(ax))).normalize(), t2 = ax.clone().cross(t1);
+      for (const s of [-1, 0, 1]) pts.push(cy.c.clone().add(t1.clone().multiplyScalar(Math.cos(a) * cy.R * 0.98)).add(t2.clone().multiplyScalar(Math.sin(a) * cy.R * 0.98)).add(ax.clone().multiplyScalar(s * cy.H * 0.98))); }
+    for (const [bn, b] of [...boxes, ...crateB, ...robBoxes]) { const bb = b.clone().expandByScalar(-0.04); if (pts.some(p => bb.containsPoint(p))) issues.push(`wheel in ${bn}`); }
+    for (const [pn, pc] of cylsStatic) { if (pn === 'vat') continue; if (pts.some(p => { const d = p.clone().sub(pc.c); const h = d.dot(pc.ax), rad = Math.sqrt(Math.max(0, d.lengthSq() - h * h)); return Math.abs(h) < pc.H - 0.05 && rad < pc.R - 0.05; })) issues.push(`wheel in ${pn}`); }
+  }
+  return issues;
+};
