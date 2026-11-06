@@ -1,0 +1,6 @@
+out/*/stills/
+out/*/render.log
+out/*/*.mp4
+out/*/mix.wav
+output/*.mp4.tmp
+__pycache__/

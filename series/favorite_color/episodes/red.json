@@ -1,0 +1,157 @@
+{
+  "id": "ep01_red",
+  "episode": 1,
+  "color_name": "RED",
+  "voice": "af_heart",
+  "speed": 0.9,
+  "palette": {
+    "main": [
+      206,
+      28,
+      40
+    ],
+    "deep": [
+      104,
+      10,
+      20
+    ],
+    "bright": [
+      255,
+      72,
+      72
+    ],
+    "warm_bg": [
+      150,
+      18,
+      28
+    ],
+    "dark_bg": [
+      12,
+      12,
+      22
+    ],
+    "paper": [
+      238,
+      229,
+      210
+    ],
+    "ink": [
+      16,
+      10,
+      12
+    ],
+    "accent": [
+      245,
+      192,
+      70
+    ],
+    "sub_highlight": [
+      255,
+      84,
+      84
+    ]
+  },
+  "sections": [
+    {
+      "id": "hook",
+      "text": "If RED is your favorite color, here's what psychology says about it."
+    },
+    {
+      "id": "traits",
+      "text": "Red is often associated with confidence, passion, energy, and excitement. People who love red may be especially drawn to these qualities."
+    },
+    {
+      "id": "shadow",
+      "text": "But red has another side. It can also signal danger, urgency, and aggression. The same color can make us feel excited or alert."
+    },
+    {
+      "id": "fact",
+      "text": "Studies suggest that red can influence attention and emotional responses. But your favorite color alone can't reveal your personality."
+    },
+    {
+      "id": "outro",
+      "text": "So, is RED your favorite color? And does any of this sound like you?"
+    }
+  ],
+  "traits": [
+    {
+      "word": "confidence",
+      "icon": "crown"
+    },
+    {
+      "word": "passion",
+      "icon": "heart"
+    },
+    {
+      "word": "energy",
+      "icon": "bolt"
+    },
+    {
+      "word": "excitement",
+      "icon": "burst"
+    }
+  ],
+  "traits_outro_word": "people",
+  "shadow_intro_word": "another",
+  "shadow_traits": [
+    {
+      "word": "danger",
+      "icon": "warning"
+    },
+    {
+      "word": "urgency",
+      "icon": "clock"
+    },
+    {
+      "word": "aggression",
+      "icon": "slash"
+    }
+  ],
+  "duality": {
+    "word": "same",
+    "left": {
+      "word": "excited",
+      "icon": "heart"
+    },
+    "right": {
+      "word": "alert",
+      "icon": "eye"
+    }
+  },
+  "fact": {
+    "study_word": "studies",
+    "attention_word": "attention",
+    "emotion_word": "emotional",
+    "caveat_word": "but",
+    "stamp_word": "can't",
+    "stamp_top": "NOT A",
+    "stamp_bottom": "PERSONALITY TEST"
+  },
+  "outro": {
+    "comment_word": "does",
+    "cta": "TELL ME IN THE COMMENTS",
+    "teaser": "WHICH COLOR NEXT?"
+  },
+  "teaser_colors": [
+    [
+      38,
+      92,
+      196
+    ],
+    [
+      36,
+      150,
+      86
+    ],
+    [
+      246,
+      196,
+      44
+    ],
+    [
+      128,
+      58,
+      168
+    ]
+  ]
+}
