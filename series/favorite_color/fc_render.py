@@ -164,7 +164,7 @@ def main():
         mp4 = os.path.join(R.out, f"{R.ep['id']}.mp4")
         cmd = ["ffmpeg", "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", "24", "-i", "-", "-i", audio,
                "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-maxrate", "8M", "-bufsize", "16M", "-pix_fmt", "yuv420p",
-               "-profile:v", "high", "-r", "24", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-af", "loudnorm=I=-14:TP=-1.5:LRA=7,alimiter=limit=0.83:level=false,apad",
+               "-profile:v", "high", "-r", "24", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-af", "loudnorm=I=-14:TP=-1.5:LRA=7,alimiter=limit=0.78:level=false,apad",
                "-t", f"{R.T.total:.3f}", "-movflags", "+faststart", mp4]
         p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         with mp.get_context("fork").Pool(a.workers) as pool:
