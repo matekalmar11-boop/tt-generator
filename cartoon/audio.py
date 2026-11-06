@@ -4,7 +4,8 @@ import numpy as np
 from scipy import signal
 
 SR = 44100
-TL = json.load(open("timeline.json")); TOTAL = TL["total"]
+import os
+TL = json.load(open(os.environ.get("TLDIR", ".") + "/timeline.json")); TOTAL = TL["total"]
 SEG = {s["id"]: s for s in TL["segs"]}
 S = lambda i, f=0.0: SEG[i]["start"] + f * (SEG[i]["end"] - SEG[i]["start"])
 rng = np.random.default_rng(7)
@@ -138,11 +139,11 @@ def kick():
     n = int(0.25 * SR); t = tt(n); return np.sin(2 * np.pi * np.cumsum(55 + 110 * np.exp(-t / 0.04)) / SR) * ex(n, 0.09)
 def hat(): n = int(0.05 * SR); return filt(rng.normal(0, 1, n), "highpass", 7000, 2) * ex(n, 0.012) * 0.4
 def rim(): n = int(0.08 * SR); return (np.sin(2 * np.pi * 1100 * tt(n)) + bp(rng.normal(0, 1, n), 1500, 6000) * 0.5) * ex(n, 0.02) * 0.5
-def music():
+def music(bpm=120, prog=None, mix_=1.0):
     m = np.zeros((2, N)); P = lambda x, t, g, p=0.0: put(m, x, t, g, p)
-    bpm = 120; beat = 60 / bpm
+    beat = 60 / bpm
     A = lambda midi: 440 * 2 ** ((midi - 69) / 12)
-    prog = [(57, [69, 72, 76]), (53, [65, 69, 72]), (48, [67, 72, 76]), (55, [67, 71, 74])]   # Am F C G
+    prog = prog or [(57, [69, 72, 76]), (53, [65, 69, 72]), (48, [67, 72, 76]), (55, [67, 71, 74])]   # Am F C G
     arps = [0, 1, 2, 1, 0, 1, 2, 1]
     t = 0.0; bar = 0
     while t < TOTAL:
@@ -164,7 +165,7 @@ def music():
     return m
 
 def vo():
-    w = wave.open("vo.wav"); a = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768; sr = w.getframerate()
+    w = wave.open(os.environ.get("TLDIR", ".") + "/vo.wav"); a = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768; sr = w.getframerate()
     a = signal.resample_poly(a, SR, sr); a = filt(a, "highpass", 80, 2)
     a = a + 0.30 * bp(a, 2200, 5500) - 0.12 * bp(a, 180, 420)    # Präsenz/Klarheit, Dröhnen raus
     env = filt(np.abs(a), "lowpass", 12, 1) + 1e-4              # Kompressor: Lautstärke der Sätze angleichen

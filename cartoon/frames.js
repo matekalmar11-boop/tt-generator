@@ -7,7 +7,7 @@ const { chromium } = require('playwright'); const { start } = require('./server.
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--no-sandbox'] });
   const p = await b.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
   p.on('pageerror', e => console.log('PAGEERR', e.message)); p.on('console', m => { if (m.type() === 'error') console.log('CONSOLE', m.text()); });
-  await p.goto(`http://localhost:${port}/index.html`); await p.waitForFunction('window.READY===true', null, { timeout: 120000 });
+  await p.goto(`http://localhost:${port}/${process.env.PAGE||'index.html'}`); await p.waitForFunction('window.READY===true', null, { timeout: 120000 });
   fs.mkdirSync(outDir, { recursive: true });
   const list = times.length ? times.map((t, i) => [`still_${t.toFixed(2)}`, t]) : Array.from({ length: f1 - f0 }, (_, i) => { const f = f0 + i; return [String(f).padStart(5, '0'), f / fps]; });
   for (const [name, t] of list) {
