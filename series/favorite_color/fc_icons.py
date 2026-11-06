@@ -185,3 +185,73 @@ ICONS = dict(heart=heart, crown=crown, bolt=bolt, burst=burst, warning=warning, 
 
 def icon(name, pal, t=0.0, **kw):
     return ICONS[name](pal, t, **kw)
+
+
+# ---- Episode 2 (Blau) und weitere: Welle, Schild, Anker, Schneeflocke, Regenwolke, Siegerpodest
+def wave(pal, t=0.0):
+    items = []
+    for i, (dy, col) in enumerate([(-90, pal["bright"]), (0, pal["main"]), (90, pal["deep"])]):
+        m = np.zeros((170, 520), np.uint8)
+        xs = np.arange(520); ys = (85 + 38 * np.sin(xs / 520 * 2 * math.pi * 1.5 + t * 2.2 + i)).astype(np.int32)
+        for x, y in zip(xs, ys): m[y:, x] = 255
+        L = cached(("wave", i, col, int(t * 12) % 24), lambda m=m, col=col, i=i: make_layer(m, col, h=10, seed=120 + i, rough=1.0))
+        items.append((L, 0, dy))
+    return items
+
+
+def shield(pal, t=0.0):
+    def fn(d, S):
+        d.polygon([(x * S, y * S) for x, y in [(200, 0), (390, 60), (380, 250), (200, 440), (20, 250), (10, 60)]], fill=255)
+    def fn2(d, S):
+        d.polygon([(x * S, y * S) for x, y in [(140, 0), (270, 42), (262, 175), (140, 300), (18, 175), (10, 42)]], fill=255)
+    return [(SHAPE("shield", 400, 440, fn, pal["main"], 16, seed=125, shade=1.2), 0, 0), (SHAPE("shield2", 280, 300, fn2, pal["paper"], 6, seed=126), 0, -10),
+            (RR(40, 170, 14, pal["main"], 3, seed=127), 0, -10), (RR(170, 40, 14, pal["main"], 3, seed=128), 0, -40)]
+
+
+def anchor(pal, t=0.0):
+    def hook(d, S):
+        d.arc([20 * S, -160 * S, 380 * S, 200 * S], 20, 160, fill=255, width=int(44 * S))
+        d.polygon([(0, 70 * S), (80 * S, 60 * S), (40 * S, 0)], fill=255); d.polygon([(400 * S, 70 * S), (320 * S, 60 * S), (360 * S, 0)], fill=255)
+    items = [(RR(46, 340, 18, pal["paper"], 12, seed=130), 0, -40), (RR(220, 40, 16, pal["paper"], 10, seed=131), 0, -130),
+             (SHAPE("anchor_hook", 400, 210, hook, pal["paper"], 12, seed=132), 0, 140)]
+    ring = cached(("ancring", pal["paper"]), lambda: make_layer(cv2.circle(np.zeros((140, 140), np.uint8), (70, 70), 50, 255, 22, cv2.LINE_AA), pal["paper"], h=10, seed=133))
+    items.append((ring, 0, -230))
+    return items
+
+
+def snow(pal, t=0.0):
+    items = []
+    for k in range(6):
+        a = k * 60
+        items.append((RR(36, 420, 16, pal["paper"], 10, seed=135), 0, 0, a))
+        for side in (-1, 1):
+            for r in (110, 160):
+                ang = math.radians(a)
+                bx, by = r * math.sin(ang), -r * math.cos(ang)
+                items.append((RR(24, 90, 10, pal["paper"], 6, seed=136), bx + side * 22 * math.cos(ang), by + side * 22 * math.sin(ang), a + side * 40))
+    items.append((ELL(80, 80, mix(pal["paper"], pal["bright"], 0.4), 6, seed=137), 0, 0))
+    return items
+
+
+def cloud(pal, t=0.0):
+    col = mix(pal["paper"], pal["deep"], 0.35)
+    items = [(ELL(w, h, col, 10, seed=140 + i, shade=0.6), dx, dy) for i, (dx, dy, w, h) in enumerate([(-130, 20, 220, 180), (0, -40, 280, 250), (140, 10, 230, 200), (10, 60, 420, 150)])]
+    for k in range(7):
+        q = (t * 1.6 + k * 0.37) % 1
+        items.append((RR(14, 60, 7, pal["bright"], 3, seed=145 + k % 3), -150 + k * 50, 150 + q * 260, 12))
+    return items
+
+
+def podium(pal, colors, t=0.0, grow=1.0):
+    """Siegerpodest: Mitte = Episodenfarbe (#1), links/rechts andere Farben."""
+    items = []
+    for i, (dx, hgt, col, lab) in enumerate([(-260, 200, colors[0], "2"), (0, 300, pal["main"], "1"), (260, 150, colors[1], "3")]):
+        hh = max(6, int(hgt * clamp(grow * 1.3 - (0.3 if i != 1 else 0))))
+        items.append((RR(240, hh, 10, pal["paper"], 12, seed=150 + i), dx, 260 - hh / 2))
+        if hh > 60:
+            items.append((TXT(lab, 90, pal["ink"], 3, seed=153 + i), dx, 260 - hh / 2 + 10))
+        items.append((RR(170, 170, 16, col, 10, seed=156 + i), dx, 260 - hh - 100))
+    return items
+
+
+ICONS.update(wave=wave, shield=shield, anchor=anchor, snow=snow, cloud=cloud)

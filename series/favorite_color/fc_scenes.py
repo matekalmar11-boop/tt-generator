@@ -23,8 +23,15 @@ class Episode:
         du = ep["duality"]
         self.t_same = wt(du["word"], "shadow"); self.t_left = wt(du["left"]["word"], "shadow"); self.t_right = wt(du["right"]["word"], "shadow")
         fa = ep["fact"]
-        self.t_studies = wt(fa["study_word"], "fact"); self.t_attn = wt(fa["attention_word"], "fact"); self.t_emo = wt(fa["emotion_word"], "fact")
-        self.t_but = wt(fa["caveat_word"], "fact"); self.t_cant = wt(fa.get("stamp_word", "can't"), "fact")
+        self.t_studies = wt(fa["study_word"], "fact")
+        beats = fa.get("beats") or [dict(word=fa["attention_word"], kind="eye", label="ATTENTION"), dict(word=fa["emotion_word"], kind="ekg")]
+        self.fbeats = [dict(b_, t=wt(b_["word"], "fact")) for b_ in beats]
+        self.t_attn = next((b_["t"] for b_ in self.fbeats if b_["kind"] != "ekg"), self.t_studies + 1)
+        self.t_emo = next((b_["t"] for b_ in self.fbeats if b_["kind"] == "ekg"), None)
+        # Abschluss des Fakt-Teils: "stat" (z.B. Podest) oder - nur Episode 1 - "caveat" (Stempel)
+        self.fact_end = "caveat" if fa.get("caveat_word") else ("stat" if fa.get("stat") else None)
+        self.t_but = wt(fa["caveat_word"], "fact") if self.fact_end == "caveat" else (wt(fa["stat"]["word"], "fact") if self.fact_end == "stat" else 1e9)
+        self.t_cant = wt(fa.get("stamp_word", "can't"), "fact") if self.fact_end == "caveat" else 1e9
         self.t_comment = wt(ep["outro"]["comment_word"], "outro")
         self.t_end = S["outro"]["end"] + 0.15
         self.scenes = dict(hook=self.s_hook, traits=self.s_traits, shadow=self.s_shadow, fact=self.s_fact, outro=self.s_outro)
@@ -51,7 +58,7 @@ class Episode:
         draw(c, BG(p["warm_bg"], (1.25, 0.65), seed=2), W / 2, H / 2)
         if rays:
             draw(c, self.rays(p["main"]), W / 2, 820, rot=t * rspeed, op=0.55)
-        glow(c, W / 2, 820, 900, (255, 120, 90), 0.18)
+        glow(c, W / 2, 820, 900, mix(self.pal["bright"], (255, 230, 200), 0.5), 0.18)
         draw(c, BAND(W + 260, 520, p["deep"], 24, seed=4, ht=18), W / 2, 1790)
         draw(c, BAND(W + 260, 300, mix(p["deep"], p["ink"], 0.4), 28, seed=5, ht=24), W / 2, 1900)
         draw(c, BAND(W + 260, 300, p["deep"], 26, seed=6, ht=22, top=False), W / 2, 40)
@@ -60,7 +67,7 @@ class Episode:
         p = self.pal
         draw(c, BG(p["dark_bg"], (1.4, 0.55), seed=3), W / 2, H / 2)
         k = 0.5 + 0.5 * math.sin(t * 2 * math.pi * 1.1) if pulse else 0.5
-        glow(c, W / 2, 820, 1000, (p["main"][0], 20, 30), 0.16 + 0.14 * k)
+        glow(c, W / 2, 820, 1000, mix(p["main"], p["dark_bg"], 0.25), 0.16 + 0.14 * k)
         draw(c, BAND(W + 260, 520, mix(p["dark_bg"], p["deep"], 0.35), 24, seed=7, ht=18), W / 2, 1780)
         draw(c, BAND(W + 260, 320, p["ink"], 28, seed=8, ht=26), W / 2, 1900)
         draw(c, BAND(W + 260, 300, mix(p["dark_bg"], p["ink"], 0.5), 26, seed=9, ht=22, top=False), W / 2, 40)
@@ -113,13 +120,15 @@ class Episode:
         size = 330 if len(name) <= 4 else int(330 * 4 / len(name))
         Ls = [TXT(ch, size, p["main"], 18, seed=40 + i) for i, ch in enumerate(name)]
         widths = [L.w - 2 * L.pad for L in Ls]; tw = sum(widths) + 14 * (len(Ls) - 1)
+        fit = min(1.0, 640 / tw)                   # Name passt immer in den Papierkreis
+        widths = [w_ * fit for w_ in widths]; tw *= fit
         x = W / 2 - tw / 2
         pulse = 1.0 + 0.08 * max(0.0, 1 - abs(t - self.t_color_hook - 0.1) / 0.18)
         for i, L in enumerate(Ls):
             s = bounce(t, 0.02 + i * 0.07, 0.3)
             jx, jy, jr = jitter(50 + i, f, 2.2)
-            draw(c, L, x + widths[i] / 2 + jx, 830 + jy, rot=(i - 1) * 3 + jr * 2, sc=s * z * pulse)
-            x += widths[i] + 14
+            draw(c, L, x + widths[i] / 2 + jx, 830 + jy, rot=(i - 1) * 3 + jr * 2, sc=s * z * pulse * fit)
+            x += widths[i] + 14 * fit
         # Serientitel
         s2 = bounce(t, 0.25, 0.32)
         jx, jy, jr = jitter(60, f, 1.2)
@@ -172,6 +181,16 @@ class Episode:
                 for k_ in range(6):
                     a = lt * 1.2 + k_ * 1.05
                     draw_group(c, IC.star(p, t), cx + 300 * math.cos(a), cy - 40 + 200 * math.sin(a), rot=lt * 90, sc=0.09 + 0.03 * math.sin(lt * 5 + k_))
+            if name == "drop":
+                for r_ in range(3):
+                    q = (lt * 0.9 + r_ / 3) % 1
+                    draw(c, cached(("ripple", r_), lambda: make_layer(cv2.ellipse(np.zeros((260, 700), np.uint8), (350, 130), (330, 110), 0, 0, 360, 255, 10, cv2.LINE_AA), p["paper"], h=4, seed=170 + r_, rough=1.0)), cx, cy + 260, sc=0.5 + q * 0.7, op=(1 - q) * 0.8)
+            if name == "shield":
+                glow(c, cx - 200 + 400 * ((lt * 0.6) % 1), cy - 60, 260, (255, 255, 255), 0.22)
+            if name == "anchor":
+                rot += 7 * math.sin(lt * 2.6)
+            if name == "wave":
+                jy += 10 * math.sin(lt * 2.4)
             if name == "burst":
                 for k_ in range(18):
                     a = k_ * 2 * math.pi / 18; q = clamp(lt / 0.9)
@@ -221,7 +240,7 @@ class Episode:
             if k > 0.3:
                 for e_ in (-1, 1):
                     draw(c, ELL(50, 30, p["bright"], 2, seed=104, rim=0), cx + 150 + e_ * 60 + 90 * k, cy - 60, sc=k, op=k)
-                glow(c, cx + 150 + 90 * k, cy - 60, 260, (255, 40, 40), 0.3 * k)
+                glow(c, cx + 150 + 90 * k, cy - 60, 260, self.pal["bright"], 0.3 * k)
             return
         i = self.carousel(self.shadow, t)
         if i > 0:
@@ -236,17 +255,27 @@ class Episode:
         if name == "warning":
             rot += 12 * math.sin(lt * 5.5) * math.exp(-lt * 0.4)
             flash = 1.0 if int(lt * 6) % 2 == 0 else 0.4
-            glow(c, cx, cy, 700, (255, 40, 40), 0.35 * flash)
+            glow(c, cx, cy, 700, self.pal["bright"], 0.35 * flash)
         if name == "clock":
             extra["speed"] = 3.0
             for r_ in range(3):
                 q = (lt * 1.2 + r_ / 3) % 1
                 draw(c, cached(("ring", r_), lambda: make_layer(cv2.circle(np.zeros((700, 700), np.uint8), (350, 350), 330, 255, 14, cv2.LINE_AA), p["bright"], h=6, seed=120 + r_, rough=1.2)), cx, cy, sc=0.7 + q * 0.6, op=1 - q)
+        if name == "snow":
+            rot += lt * 18
+            for k_ in range(14):
+                q = (lt * 0.35 + k_ * 0.071) % 1
+                draw_group(c, IC.snow(p, t), 80 + (k_ * 157) % 920, 260 + q * 1000, rot=lt * 60 + k_ * 30, sc=0.07 + 0.03 * (k_ % 3), op=0.8)
+        if name == "moon":
+            jy += 12 * math.sin(lt * 1.5)
+            for k_ in range(9):
+                tw = 0.5 + 0.5 * math.sin(lt * 4 + k_ * 1.7)
+                draw_group(c, IC.star(p, t), 120 + (k_ * 211) % 860, 300 + (k_ * 137) % 420, rot=k_ * 20, sc=0.05 + 0.03 * tw, op=0.5 + 0.5 * tw)
         if name == "slash":
             extra["reveal"] = clamp(lt / 0.45)
             for e_ in (-1, 1):
                 draw(c, ELL(60, 34, p["bright"], 2, seed=105, rim=0), cx + e_ * 90, cy - 420, sc=1.0, op=0.9)
-            glow(c, cx, cy - 420, 300, (255, 40, 40), 0.35)
+            glow(c, cx, cy - 420, 300, self.pal["bright"], 0.35)
         draw_group(c, IC.icon(name, p, lt, **extra), cx + jx, cy + jy, rot=rot, sc=s * 1.05)
         self.label(c, f, word, ti - 0.05, t, y=1160, color=p["bright"], back=p["ink"])
 
@@ -278,7 +307,7 @@ class Episode:
         extra = {"pupil": pupil} if du["right"]["icon"] == "eye" else {}
         draw_group(c, IC.icon(du["right"]["icon"], p, lt2, **extra), 800 + jx, 760 + jy, rot=jr, sc=0.58 * sR)
         if sR > 0:
-            glow(c, 800, 760, 300, (255, 40, 40), 0.18)
+            glow(c, 800, 760, 300, self.pal["bright"], 0.18)
         self.label(c, f, du["left"]["word"], self.t_left - 0.05, t, y=1110, x=280, size=88, color=p["paper"], back=p["deep"])
         self.label(c, f, du["right"]["word"], self.t_right - 0.05, t, y=1110, x=800, size=88, color=p["bright"], back=p["ink"])
 
@@ -293,29 +322,67 @@ class Episode:
             s1 = bounce(t, self.t_studies - 0.1, 0.36)
             jx, jy, jr = jitter(140, f, 1.4)
             draw_group(c, IC.chart(p, t, grow=clamp((t - self.t_studies) / 1.0)), 270 + jx, 470 + jy, rot=-6 + jr, sc=0.62 * s1)
-            s2 = bounce(t, self.t_attn - 0.12, 0.36)
-            if s2 > 0:
-                lt = t - self.t_attn
-                glow(c, 620, 800, 520, (255, 200, 150), 0.25)
-                pupil = 0.7 + 0.35 * math.sin(lt * 4) ** 2
-                look = (40 * math.sin(lt * 1.6), 10 * math.sin(lt * 2.3))
-                jx, jy, jr = jitter(141, f, 1.4)
-                draw_group(c, IC.eye(p, lt, pupil=pupil, look=look), 620 + jx, 800 + jy, rot=jr, sc=1.05 * s2)
-                self.label(c, f, "ATTENTION", self.t_attn - 0.05, t, y=560, x=730, size=72, color=p["paper"], back=p["main"])
-            s3 = bounce(t, self.t_emo - 0.1, 0.32)
-            if s3 > 0:
-                rev = clamp((t - self.t_emo) / 1.1)
-                draw(c, RR(900, 150, 30, p["ink"], 12, seed=150), cx, 1140, sc=s3)
-                pts = [(0, 75), (180, 75), (220, 30), (260, 120), (300, 10), (345, 140), (390, 75), (560, 75), (600, 40), (640, 105), (680, 75), (860, 75)]
-                n = max(2, int(rev * len(pts)) + 1)
-                m = np.zeros((150, 860), np.uint8); cv2.polylines(m, [np.array(pts[:n], np.int32)], False, 255, 12, cv2.LINE_AA)
-                L = make_layer(m, p["bright"], h=4, seed=151, rough=0.8)
-                draw(c, L, cx, 1140, sc=s3)
-                hx = 45 + pts[min(n, len(pts)) - 1][0]
-                draw_group(c, IC.heart(p, t, beat=1 + 0.12 * max(0.0, math.sin((t - self.t_emo) * 9)) ** 4), cx - 430 + hx, 1140, sc=0.12 * s3)
+            stage = [b_ for b_ in self.fbeats if b_["kind"] != "ekg"]
+            cur = None
+            for i, b_ in enumerate(stage):
+                if t >= b_["t"] - 0.12: cur = i
+            if cur is not None:
+                if cur > 0:   # vorheriges Motiv fliegt raus
+                    k = clamp((t - (stage[cur]["t"] - 0.12)) / 0.3)
+                    if k < 1: self.fact_visual(c, stage[cur - 1], t, f, x=620 - 900 * ease(k), rot=-25 * k, s=1.0)
+                b_ = stage[cur]
+                self.fact_visual(c, b_, t, f, x=620, rot=0, s=bounce(t, b_["t"] - 0.12, 0.36))
+                if b_.get("label"):
+                    self.label(c, f, b_["label"], b_["t"] - 0.05, t, y=560, x=730, size=72, color=p["paper"], back=p["main"])
+            if self.t_emo is not None:
+                s3 = bounce(t, self.t_emo - 0.1, 0.32)
+                if s3 > 0:
+                    rev = clamp((t - self.t_emo) / 1.1)
+                    draw(c, RR(900, 150, 30, p["ink"], 12, seed=150), cx, 1140, sc=s3)
+                    pts = [(0, 75), (180, 75), (220, 30), (260, 120), (300, 10), (345, 140), (390, 75), (560, 75), (600, 40), (640, 105), (680, 75), (860, 75)]
+                    n = max(2, int(rev * len(pts)) + 1)
+                    m = np.zeros((150, 860), np.uint8); cv2.polylines(m, [np.array(pts[:n], np.int32)], False, 255, 12, cv2.LINE_AA)
+                    draw(c, make_layer(m, p["bright"], h=4, seed=151, rough=0.8), cx, 1140, sc=s3)
+                    hx = 45 + pts[min(n, len(pts)) - 1][0]
+                    draw_group(c, IC.heart(p, t, beat=1 + 0.12 * max(0.0, math.sin((t - self.t_emo) * 9)) ** 4), cx - 430 + hx, 1140, sc=0.12 * s3)
             return
-        # Einschränkung: Lieblingsfarbe != Persönlichkeit
+        if self.fact_end == "stat":
+            return self.fact_stat(c, t, f)
+        return self.fact_caveat(c, t, f)
+
+    def fact_visual(self, c, b_, t, f, x, rot, s):
+        p = self.pal
+        lt = t - b_["t"]
+        jx, jy, jr = jitter(141, f, 1.4)
+        glow(c, x, 800, 520, (255, 236, 200), 0.22 * s)
+        if b_["kind"] == "eye":
+            pupil = 0.7 + 0.35 * math.sin(lt * 4) ** 2 if b_.get("dilate", True) else 0.6
+            draw_group(c, IC.eye(p, lt, pupil=pupil, look=(40 * math.sin(lt * 1.6), 10 * math.sin(lt * 2.3))), x + jx, 800 + jy, rot=rot + jr, sc=1.05 * s)
+        else:
+            draw_group(c, IC.icon(b_["icon"], p, lt), x + jx, 800 + jy, rot=rot + jr, sc=0.95 * s)
+
+    def fact_stat(self, c, t, f):
+        """Abschluss mit einer einprägsamen Zahl/Rangliste (z.B. 'beliebteste Farbe')."""
+        p, ep = self.pal, self.ep
+        st = ep["fact"]["stat"]
         lt = t - self.t_but
+        s = bounce(t, self.t_but - 0.08, 0.36)
+        others = [C(x) for x in ep.get("teaser_colors", [[200, 40, 40], [40, 150, 80]])][:2]
+        jx, jy, jr = jitter(165, f, 1.4)
+        glow(c, W / 2, 820, 620, (255, 236, 200), 0.25 * s)
+        draw_group(c, IC.podium(p, others, t, grow=clamp(lt / 0.8)), W / 2 + jx, 760 + jy, rot=jr, sc=1.05 * s)
+        if lt > 0.6:
+            for k_ in range(16):
+                a = k_ * 2 * math.pi / 16; q = clamp((lt - 0.6) / 1.0)
+                col = [p["main"], p["accent"], p["bright"], p["paper"]][k_ % 4]
+                draw(c, RR(24, 14, 3, col, 3, seed=k_ % 4), W / 2 + math.cos(a) * (60 + 480 * ease(q)), 480 + math.sin(a) * (60 + 380 * ease(q)) + 260 * q * q, rot=k_ * 37 + lt * 280, op=1 - 0.6 * q)
+        t_lab = self.T.wt(st["label_word"], "fact") if st.get("label_word") else self.t_but + 0.5
+        self.label(c, f, st["label"], t_lab - 0.05, t, y=1150, size=86, color=p["paper"], back=p["main"])
+
+    def fact_caveat(self, c, t, f):
+        """Nur Episode 1: Lieblingsfarbe != Persönlichkeit (ab Episode 2 nicht mehr verwendet)."""
+        p, ep = self.pal, self.ep
+        cx = W / 2
         sA = bounce(t, self.t_but - 0.08, 0.34); sB = bounce(t, self.t_but + 0.2, 0.34); sC = bounce(t, self.t_but + 0.4, 0.34)
         jx, jy, jr = jitter(160, f, 1.5)
         draw_group(c, IC.swatch(p, p["main"], ep["color_name"], 300, 420), 230 + jx, 760 + jy, rot=-6 + jr, sc=0.95 * sA)

@@ -1,0 +1,49 @@
+{
+  "id": "ep02_blue",
+  "episode": 2,
+  "color_name": "BLUE",
+  "voice": "af_heart",
+  "speed": 0.9,
+  "palette": {
+    "main": [34, 92, 200],
+    "deep": [12, 34, 92],
+    "bright": [96, 170, 255],
+    "warm_bg": [22, 58, 140],
+    "dark_bg": [7, 10, 22],
+    "paper": [236, 233, 222],
+    "ink": [10, 12, 22],
+    "accent": [246, 200, 78],
+    "sub_highlight": [104, 182, 255]
+  },
+  "sections": [
+    {"id": "hook",   "text": "If BLUE is your favorite color, here's what psychology says about it."},
+    {"id": "traits", "text": "Blue is often associated with calm, trust, loyalty, and depth. People who love blue may be especially drawn to peace and stability."},
+    {"id": "shadow", "text": "But blue has another side. It can also feel cold, distant, or even sad. The same color can make us feel peaceful or lonely."},
+    {"id": "fact",   "text": "Studies suggest that blue is often linked to calm and focus. And in many surveys, it ranks as the world's most popular favorite color."},
+    {"id": "outro",  "text": "So, is BLUE your favorite color? And does any of this sound like you?"}
+  ],
+  "traits": [
+    {"word": "calm", "icon": "wave"},
+    {"word": "trust", "icon": "shield"},
+    {"word": "loyalty", "icon": "anchor"},
+    {"word": "depth", "icon": "drop"}
+  ],
+  "traits_outro_word": "people",
+  "shadow_intro_word": "another",
+  "shadow_traits": [
+    {"word": "cold", "icon": "snow"},
+    {"word": "distant", "icon": "moon"},
+    {"word": "sad", "icon": "cloud"}
+  ],
+  "duality": {"word": "same", "left": {"word": "peaceful", "icon": "wave"}, "right": {"word": "lonely", "icon": "moon"}},
+  "fact": {
+    "study_word": "studies",
+    "beats": [
+      {"word": "calm", "kind": "icon", "icon": "wave", "label": "CALM"},
+      {"word": "focus", "kind": "eye", "label": "FOCUS", "dilate": false}
+    ],
+    "stat": {"word": "surveys", "label_word": "popular", "label": "#1 FAVORITE COLOR"}
+  },
+  "outro": {"comment_word": "does", "cta": "TELL ME IN THE COMMENTS", "teaser": "WHICH COLOR NEXT?"},
+  "teaser_colors": [[206, 28, 40], [36, 150, 86], [246, 196, 44], [128, 58, 168]]
+}

@@ -108,6 +108,45 @@ def stamp():
     return (np.sin(2 * np.pi * np.cumsum(fr) / SR) * ex(n, 0.09) + bp(rng.normal(0, 1, n), 300, 3000) * ex(n, 0.03) * 0.8) * 1.0
 
 
+def water(d=1.0):
+    n = int(d * SR); t = tt(n); x = filt(rng.normal(0, 1, n), "lowpass", 900, 2) * (0.5 + 0.5 * np.sin(2 * np.pi * 0.9 * t))
+    return x * np.sin(np.pi * np.clip(t / d, 0, 1)) * 0.5
+
+def plink(f=1400):
+    n = int(0.25 * SR); t = tt(n); fr = f * (1 + 0.6 * np.exp(-t / 0.02))
+    return np.sin(2 * np.pi * np.cumsum(fr) / SR) * ex(n, 0.05) * 0.45
+
+def clang():
+    n = int(1.0 * SR); t = tt(n)
+    return sum(np.sin(2 * np.pi * f * t) * g for f, g in [(523, 1), (1290, 0.5), (2130, 0.3)]) * ex(n, 0.25) * 0.3
+
+def chain():
+    s_ = np.zeros(int(0.8 * SR))
+    for k in range(6):
+        c = clink(1700 + 300 * rng.random()) * 0.7; i = int(k * 0.1 * SR); s_[i:i + len(c)] += c[:len(s_) - i]
+    return s_
+
+def clink(f=2400):
+    n = int(0.4 * SR); t = tt(n); return (np.sin(2 * np.pi * f * t) + 0.6 * np.sin(2 * np.pi * f * 2.76 * t)) * ex(n, 0.08) * 0.3
+
+def wind(d=1.6):
+    n = int(d * SR); t = tt(n); x = bp(rng.normal(0, 1, n), 300, 2500) * (0.5 + 0.5 * np.sin(2 * np.pi * 0.7 * t + 1))
+    return x * np.sin(np.pi * np.clip(t / d, 0, 1)) * 0.45
+
+def rain(d=1.6):
+    n = int(d * SR); x = np.zeros(n)
+    for _ in range(int(d * 45)):
+        i = int(rng.uniform(0, 1) * (n - 2000)); m = int(0.015 * SR)
+        x[i:i + m] += bp(rng.normal(0, 1, m), 2500, 9000) * ex(m, 0.004) * rng.uniform(0.3, 1)
+    return (x + filt(rng.normal(0, 1, n), "lowpass", 2000, 2) * 0.08) * np.sin(np.pi * np.clip(tt(n) / d, 0, 1)) * 0.7
+
+def fanfare():
+    s_ = np.zeros(int(1.6 * SR))
+    for k, f in enumerate([523, 659, 784, 1047]):
+        c = chime(f, 1.2) * 0.8; i = int(k * 0.09 * SR); s_[i:i + len(c)] += c[:len(s_) - i]
+    return s_
+
+
 # ---------------------------------------------------------------- Musik
 A = lambda m: 440 * 2 ** ((m - 69) / 12)
 
@@ -179,7 +218,10 @@ def sfx(E, total):
     fx = dict(crown=lambda t: P(sparkle(), t, 0.8), heart=lambda t: [P(heartbeat(), t + k * 0.67, 0.75) for k in range(3)],
               bolt=lambda t: P(zap(), t, 0.8), burst=lambda t: P(confetti(), t, 0.9), warning=lambda t: P(beep2(), t, 0.9),
               clock=lambda t: [P(tick(k % 2), t + k * 0.12, 0.8) for k in range(14)],
-              slash=lambda t: [P(swish(), t + k * 0.13, 0.9, (k - 1) * 0.4) for k in range(3)])
+              slash=lambda t: [P(swish(), t + k * 0.13, 0.9, (k - 1) * 0.4) for k in range(3)],
+              wave=lambda t: P(water(1.3), t, 0.8), shield=lambda t: P(clang(), t, 0.7), anchor=lambda t: P(chain(), t, 0.8),
+              drop=lambda t: [P(plink(1500 - 300 * k), t + k * 0.25, 0.7) for k in range(3)], snow=lambda t: P(wind(1.6), t, 0.9),
+              moon=lambda t: P(chime(659, 1.8), t, 0.5), cloud=lambda t: P(rain(1.8), t, 0.9))
     for name, word, ti in E.traits:
         P(slap(1.0), ti - 0.08, 0.7); P(pop(560), ti - 0.04, 0.5); P(whoosh(0.3), ti - 0.12, 0.35)
         fx.get(name, lambda t: None)(ti)
@@ -194,10 +236,18 @@ def sfx(E, total):
     P(whoosh(0.5), E.t_same - 0.1, 0.6); P(slap(1.0), E.t_left - 0.1, 0.7); P(heartbeat(), E.t_left, 0.6); P(slap(1.2), E.t_right - 0.1, 0.7); P(chime(1318, 0.8), E.t_right, 0.35)
     # Fakt
     P(slap(1.1), E.t_studies - 0.1, 0.7); [P(pop(500 + 90 * k), E.t_studies + 0.15 + k * 0.2, 0.45) for k in range(4)]
-    P(pop(900), E.t_attn - 0.12, 0.6); P(chime(988, 1.0), E.t_attn, 0.35)
-    for q in (0.3, 0.75): P(ekg_beep(), E.t_emo + q * 1.1, 0.8)
-    for k in range(3): P(slap(0.9 + 0.1 * k), E.t_but - 0.08 + k * 0.24, 0.65)
-    P(stamp(), E.t_cant - 0.05 + 0.15, 1.0)
+    for b_ in E.fbeats:
+        if b_["kind"] == "ekg":
+            for q in (0.3, 0.75): P(ekg_beep(), b_["t"] + q * 1.1, 0.8)
+        else:
+            P(pop(900), b_["t"] - 0.12, 0.6); P(whoosh(0.3), b_["t"] - 0.15, 0.35)
+            fx.get(b_.get("icon", "eye"), lambda t: P(chime(988, 1.0), t, 0.35))(b_["t"])
+    if E.fact_end == "caveat":
+        for k in range(3): P(slap(0.9 + 0.1 * k), E.t_but - 0.08 + k * 0.24, 0.65)
+        P(stamp(), E.t_cant - 0.05 + 0.15, 1.0)
+    elif E.fact_end == "stat":
+        for k in range(3): P(slap(0.8 + 0.15 * k), E.t_but - 0.05 + k * 0.18, 0.65)
+        P(fanfare(), E.t_but + 0.6, 0.8); P(confetti(1.0), E.t_but + 0.6, 0.7)
     # Outro
     P(slap(0.9), b["outro"] + 0.05, 0.7); P(pop(600), E.t_comment - 0.08, 0.7); P(whoosh(0.35), E.t_comment + 0.2, 0.5)
     P(chime(784, 2.2), E.t_end, 0.7); P(chime(1175, 2.2), E.t_end + 0.12, 0.5)
